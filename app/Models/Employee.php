@@ -163,6 +163,16 @@ class Employee extends Model
     }
 
     /**
+     * Daily schedule assignments for this employee.
+     *
+     * @return HasMany<ScheduleAssignment, $this>
+     */
+    public function scheduleAssignments(): HasMany
+    {
+        return $this->hasMany(ScheduleAssignment::class);
+    }
+
+    /**
      * Filter query to active employees only.
      *
      * @param  Builder<$this>  $query

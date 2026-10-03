@@ -42,7 +42,7 @@ class Shift extends Model
     /**
      * Daily schedule assignments assigned to this shift.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\ScheduleAssignment, $this>
+     * @return HasMany<ScheduleAssignment, $this>
      */
     public function scheduleAssignments(): HasMany
     {
@@ -79,7 +79,7 @@ class Shift extends Model
     /**
      * Filter query to active shifts only.
      *
-     * @param  \Illuminate\Database\Eloquent\Builder<$this>  $query
+     * @param  Builder<$this>  $query
      */
     public function scopeActive(Builder $query): void
     {
