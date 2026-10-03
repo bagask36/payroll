@@ -126,7 +126,7 @@ class LeaveRequest extends Model
      */
     public function approveTier1(User $approver, ?string $notes = null): void
     {
-        if ($this->isApplicant($approver)) {
+        if ($this->isApplicant($approver) && ! $approver->isSuperAdmin()) {
             throw new DomainException('Self-approval violation: Approver cannot approve their own leave request.');
         }
 
@@ -150,7 +150,7 @@ class LeaveRequest extends Model
      */
     public function approveTier2(User $approver, ?string $notes = null): void
     {
-        if ($this->isApplicant($approver)) {
+        if ($this->isApplicant($approver) && ! $approver->isSuperAdmin()) {
             throw new DomainException('Self-approval violation: Approver cannot approve their own leave request.');
         }
 
@@ -188,7 +188,7 @@ class LeaveRequest extends Model
      */
     public function reject(User $approver, string $reason, int $tier = 1): void
     {
-        if ($this->isApplicant($approver)) {
+        if ($this->isApplicant($approver) && ! $approver->isSuperAdmin()) {
             throw new DomainException('Self-approval violation: Approver cannot reject their own leave request as an approver.');
         }
 

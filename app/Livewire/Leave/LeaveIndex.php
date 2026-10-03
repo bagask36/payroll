@@ -252,7 +252,6 @@ class LeaveIndex extends Component
         $tier1Queue = $user->hasPermission('leave.approve_tier1')
             ? LeaveRequest::with(['employee', 'doctor', 'leaveType'])
                 ->where('status', 'pending_tier1')
-                ->where('created_by', '!=', $user->id)
                 ->latest()
                 ->get()
             : collect();
@@ -261,7 +260,6 @@ class LeaveIndex extends Component
         $tier2Queue = $user->hasPermission('leave.approve_tier2')
             ? LeaveRequest::with(['employee', 'doctor', 'leaveType', 'approvals.approver'])
                 ->where('status', 'pending_tier2')
-                ->where('created_by', '!=', $user->id)
                 ->latest()
                 ->get()
             : collect();

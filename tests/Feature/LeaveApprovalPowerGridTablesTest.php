@@ -88,7 +88,7 @@ class LeaveApprovalPowerGridTablesTest extends TestCase
 
         $annualType = LeaveType::where('code', 'ANNUAL')->firstOrFail();
 
-        LeaveRequest::factory()->create([
+        $leaveRequest = LeaveRequest::factory()->create([
             'employee_id' => $employee->id,
             'leave_type_id' => $annualType->id,
             'start_date' => Carbon::today()->addDays(2),
@@ -103,7 +103,48 @@ class LeaveApprovalPowerGridTablesTest extends TestCase
 
         Livewire::test(LeaveTier1ApprovalTable::class)
             ->assertStatus(200)
-            ->assertDontSee('Cuti pribadi supervisor');
+            ->assertSee('Cuti pribadi supervisor');
+
+        $table = new LeaveTier1ApprovalTable();
+        $actions = $table->actions($leaveRequest);
+        $this->assertCount(1, $actions);
+        $this->assertEquals('Pengajuan Sendiri', $actions[0]->slot);
+    }
+
+    public function test_tier1_approval_table_super_admin_can_approve_any(): void
+    {
+        $admin = User::factory()->create(['is_active' => true]);
+        $admin->assignRole('super_admin');
+
+        $employee = Employee::factory()->create([
+            'user_id' => $admin->id,
+            'full_name' => 'Admin Pemohon',
+            'status' => 'active',
+        ]);
+
+        $annualType = LeaveType::where('code', 'ANNUAL')->firstOrFail();
+
+        $leaveRequest = LeaveRequest::factory()->create([
+            'employee_id' => $employee->id,
+            'leave_type_id' => $annualType->id,
+            'start_date' => Carbon::today()->addDays(2),
+            'end_date' => Carbon::today()->addDays(3),
+            'total_days' => 2.0,
+            'reason' => 'Cuti admin test',
+            'status' => 'pending_tier1',
+            'created_by' => $admin->id,
+        ]);
+
+        $this->actingAs($admin);
+
+        Livewire::test(LeaveTier1ApprovalTable::class)
+            ->assertStatus(200)
+            ->assertSee('Cuti admin test');
+
+        $table = new LeaveTier1ApprovalTable();
+        $actions = $table->actions($leaveRequest);
+        $this->assertCount(2, $actions);
+        $this->assertEquals('Setujui (T1)', $actions[0]->slot);
     }
 
     public function test_tier1_approval_table_empty_for_unauthorized_user(): void
@@ -197,7 +238,7 @@ class LeaveApprovalPowerGridTablesTest extends TestCase
 
         $annualType = LeaveType::where('code', 'ANNUAL')->firstOrFail();
 
-        LeaveRequest::factory()->create([
+        $leaveRequest = LeaveRequest::factory()->create([
             'employee_id' => $employee->id,
             'leave_type_id' => $annualType->id,
             'start_date' => Carbon::today()->addDays(2),
@@ -212,7 +253,12 @@ class LeaveApprovalPowerGridTablesTest extends TestCase
 
         Livewire::test(LeaveTier2ApprovalTable::class)
             ->assertStatus(200)
-            ->assertDontSee('Cuti pribadi HR Manager');
+            ->assertSee('Cuti pribadi HR Manager');
+
+        $table = new LeaveTier2ApprovalTable();
+        $actions = $table->actions($leaveRequest);
+        $this->assertCount(1, $actions);
+        $this->assertEquals('Pengajuan Sendiri', $actions[0]->slot);
     }
 
     public function test_leave_index_responds_to_powergrid_dispatched_actions(): void

@@ -51,7 +51,6 @@ final class LeaveTier2ApprovalTable extends PowerGridComponent
             ])
             ->with(['employee', 'doctor', 'leaveType', 'approvals.approver'])
             ->where('leave_requests.status', 'pending_tier2')
-            ->where('leave_requests.created_by', '!=', $user->id)
             ->latest('leave_requests.created_at');
     }
 
@@ -111,17 +110,24 @@ final class LeaveTier2ApprovalTable extends PowerGridComponent
     public function actions(LeaveRequest $row): array
     {
         $actions = [];
+        $user = Auth::user();
 
-        if (Auth::user()?->hasPermission('leave.approve_tier2')) {
-            $actions[] = Button::add('approveTier2')
-                ->slot('Setujui Final (T2)')
-                ->class('inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg bg-purple-600 hover:bg-purple-700 text-white shadow-2xs transition-colors cursor-pointer mr-1')
-                ->dispatch('approve-tier2', ['requestId' => $row->id]);
+        if ($user?->hasPermission('leave.approve_tier2')) {
+            if ($row->isApplicant($user) && ! $user->isSuperAdmin()) {
+                $actions[] = Button::add('selfRequest')
+                    ->slot('Pengajuan Sendiri')
+                    ->class('inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 cursor-not-allowed opacity-80');
+            } else {
+                $actions[] = Button::add('approveTier2')
+                    ->slot('Setujui Final (T2)')
+                    ->class('inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg bg-purple-600 hover:bg-purple-700 text-white shadow-2xs transition-colors cursor-pointer mr-1')
+                    ->dispatch('approve-tier2', ['requestId' => $row->id]);
 
-            $actions[] = Button::add('rejectTier2')
-                ->slot('Tolak')
-                ->class('inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:hover:bg-rose-900/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800 shadow-2xs transition-colors cursor-pointer')
-                ->dispatch('open-reject-modal', ['requestId' => $row->id, 'tier' => 2]);
+                $actions[] = Button::add('rejectTier2')
+                    ->slot('Tolak')
+                    ->class('inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:hover:bg-rose-900/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800 shadow-2xs transition-colors cursor-pointer')
+                    ->dispatch('open-reject-modal', ['requestId' => $row->id, 'tier' => 2]);
+            }
         }
 
         return $actions;

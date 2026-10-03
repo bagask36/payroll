@@ -55,7 +55,7 @@ class LeaveRequestPolicy
      */
     public function approveTier1(User $user, LeaveRequest $request): bool
     {
-        if ($request->isApplicant($user)) {
+        if ($request->isApplicant($user) && ! $user->isSuperAdmin()) {
             return false;
         }
 
@@ -67,7 +67,7 @@ class LeaveRequestPolicy
      */
     public function approveTier2(User $user, LeaveRequest $request): bool
     {
-        if ($request->isApplicant($user)) {
+        if ($request->isApplicant($user) && ! $user->isSuperAdmin()) {
             return false;
         }
 
