@@ -7,6 +7,9 @@ use App\Models\AuditLog;
 use App\Models\Document;
 use App\Models\Employee;
 use App\Models\EmployeeBankAccount;
+use App\Models\EmployeeEmployment;
+use App\Models\Position;
+use App\Models\Unit;
 use App\Models\User;
 use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -286,5 +289,98 @@ class EmployeeShowManagementTest extends TestCase
             ->call('deleteDoc', $doc->id)
             ->assertHasNoErrors();
         $this->assertSoftDeleted($doc);
+    }
+
+    // ---------------------------------------------------------------
+    // RIWAYAT PENUGASAN & MUTASI (EMPLOYMENT)
+    // ---------------------------------------------------------------
+
+    public function test_hr_admin_can_record_new_assignment_and_it_updates_employee_profile_and_history(): void
+    {
+        $oldUnit = Unit::factory()->create(['name' => 'Rawat Inap']);
+        $newUnit = Unit::factory()->create(['name' => 'IGD']);
+        $oldPos = Position::factory()->create(['title' => 'Perawat Pratama']);
+        $newPos = Position::factory()->create(['title' => 'Kepala Ruang IGD']);
+
+        $employee = Employee::factory()->create([
+            'unit_id' => $oldUnit->id,
+            'position_id' => $oldPos->id,
+        ]);
+
+        $initialEmployment = EmployeeEmployment::create([
+            'employee_id' => $employee->id,
+            'unit_id' => $oldUnit->id,
+            'position_id' => $oldPos->id,
+            'contract_type' => 'permanent',
+            'contract_number' => 'SK/001',
+            'start_date' => '2024-01-01',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($this->userWithRole('hr_admin'));
+
+        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
+            ->call('openEmploymentModal')
+            ->assertSet('showEmploymentModal', true)
+            ->set('employmentUnitId', $newUnit->id)
+            ->set('employmentPositionId', $newPos->id)
+            ->set('employmentContractType', 'permanent')
+            ->set('employmentContractNumber', 'SK/PROMOSI/2026/099')
+            ->set('employmentStartDate', '2026-02-01')
+            ->set('employmentNotes', 'Promosi dan mutasi ke IGD')
+            ->call('saveEmployment')
+            ->assertHasNoErrors()
+            ->assertSet('showEmploymentModal', false);
+
+        // Verify old employment deactivated
+        $initialEmployment->refresh();
+        $this->assertFalse((bool) $initialEmployment->is_active);
+        $this->assertEquals($oldUnit->id, $initialEmployment->unit_id);
+        $this->assertEquals($oldPos->id, $initialEmployment->position_id);
+
+        // Verify new employment created
+        $newEmployment = EmployeeEmployment::where('employee_id', $employee->id)
+            ->where('contract_number', 'SK/PROMOSI/2026/099')
+            ->first();
+        $this->assertNotNull($newEmployment);
+        $this->assertTrue((bool) $newEmployment->is_active);
+        $this->assertEquals($newUnit->id, $newEmployment->unit_id);
+        $this->assertEquals($newPos->id, $newEmployment->position_id);
+        $this->assertEquals('Promosi dan mutasi ke IGD', $newEmployment->notes);
+
+        // Verify employee main profile automatically updated
+        $employee->refresh();
+        $this->assertEquals($newUnit->id, $employee->unit_id);
+        $this->assertEquals($newPos->id, $employee->position_id);
+
+        // Verify audit log created
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'employee.assignment_recorded',
+            'auditable_type' => Employee::class,
+            'auditable_id' => $employee->id,
+        ]);
+    }
+
+    public function test_unauthorized_user_cannot_record_assignment(): void
+    {
+        $user = $this->userWithRole('employee');
+        $employee = Employee::factory()->create(['user_id' => $user->id]);
+        $newUnit = Unit::factory()->create();
+        $newPos = Position::factory()->create();
+
+        $this->actingAs($user);
+
+        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
+            ->call('openEmploymentModal')
+            ->assertForbidden();
+
+        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
+            ->set('employmentUnitId', $newUnit->id)
+            ->set('employmentPositionId', $newPos->id)
+            ->set('employmentContractType', 'permanent')
+            ->set('employmentContractNumber', 'SK/HACK/001')
+            ->set('employmentStartDate', '2026-02-01')
+            ->call('saveEmployment')
+            ->assertForbidden();
     }
 }

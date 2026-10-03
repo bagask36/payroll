@@ -208,45 +208,99 @@
 
     {{-- Tab 2: Riwayat Penugasan & Kontrak --}}
     @if($activeTab === 'employment')
-        <flux:card class="space-y-4">
-            <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Riwayat Ikatan Kerja & Penempatan Unit</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-sm divide-y divide-zinc-200 dark:divide-zinc-800">
-                    <thead class="bg-zinc-50/75 dark:bg-zinc-800/50 text-xs font-semibold uppercase text-zinc-500">
-                        <tr>
-                            <th class="px-4 py-3">Unit / Bagian</th>
-                            <th class="px-4 py-3">Jabatan</th>
-                            <th class="px-4 py-3">Ikatan Kerja</th>
-                            <th class="px-4 py-3">Mulai Tugas</th>
-                            <th class="px-4 py-3">Akhir Kontrak</th>
-                            <th class="px-4 py-3">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
-                        @forelse($employee->employments as $empRec)
+        <div class="space-y-4">
+            @if($employmentFeedback)
+                <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-sm flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <flux:icon name="check-circle" class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span>{{ $employmentFeedback }}</span>
+                    </div>
+                    <button type="button" wire:click="$set('employmentFeedback', null)" class="text-emerald-600 hover:text-emerald-800">
+                        <flux:icon name="x-mark" class="w-4 h-4" />
+                    </button>
+                </div>
+            @endif
+
+            @if($employmentError)
+                <div class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-sm flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <flux:icon name="exclamation-circle" class="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
+                        <span>{{ $employmentError }}</span>
+                    </div>
+                    <button type="button" wire:click="$set('employmentError', null)" class="text-rose-600 hover:text-rose-800">
+                        <flux:icon name="x-mark" class="w-4 h-4" />
+                    </button>
+                </div>
+            @endif
+
+            <flux:card class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                    <div>
+                        <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Riwayat Ikatan Kerja &amp; Penempatan Unit</h3>
+                        <p class="text-xs text-zinc-400 mt-0.5">Catatan historis mutasi unit, promosi jabatan, dan pembaharuan ikatan kerja.</p>
+                    </div>
+                    @if($canUpdateEmployment)
+                        <flux:button variant="primary" size="sm" icon="plus" wire:click="openEmploymentModal">
+                            Catat Penugasan / SK Baru
+                        </flux:button>
+                    @endif
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm divide-y divide-zinc-200 dark:divide-zinc-800">
+                        <thead class="bg-zinc-50/75 dark:bg-zinc-800/50 text-xs font-semibold uppercase text-zinc-500">
                             <tr>
-                                <td class="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">{{ $employee->unit?->name ?? '-' }}</td>
-                                <td class="px-4 py-3 text-zinc-700 dark:text-zinc-300">{{ $employee->position?->title ?? '-' }}</td>
-                                <td class="px-4 py-3 uppercase text-xs">{{ $empRec->contract_type }}</td>
-                                <td class="px-4 py-3 text-xs">{{ $empRec->start_date?->format('d/m/Y') ?? '-' }}</td>
-                                <td class="px-4 py-3 text-xs">{{ $empRec->end_date?->format('d/m/Y') ?? 'Tidak Terbatas' }}</td>
-                                <td class="px-4 py-3">
-                                    @if($empRec->is_active)
-                                        <flux:badge size="sm" color="emerald">Penugasan Aktif</flux:badge>
-                                    @else
-                                        <flux:badge size="sm" color="zinc">Selesai</flux:badge>
-                                    @endif
-                                </td>
+                                <th class="px-4 py-3">No. SK / Kontrak</th>
+                                <th class="px-4 py-3">Unit / Bagian</th>
+                                <th class="px-4 py-3">Jabatan</th>
+                                <th class="px-4 py-3">Ikatan Kerja</th>
+                                <th class="px-4 py-3">Mulai Tugas</th>
+                                <th class="px-4 py-3">Akhir Kontrak</th>
+                                <th class="px-4 py-3">Status</th>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="px-4 py-6 text-center text-zinc-400 italic">Belum ada riwayat penugasan tercatat.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </flux:card>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                            @forelse($employee->employments as $empRec)
+                                <tr>
+                                    <td class="px-4 py-3 font-mono text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                                        {{ $empRec->contract_number }}
+                                        @if($empRec->notes)
+                                            <span class="block text-[11px] font-sans font-normal text-zinc-400">{{ $empRec->notes }}</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">{{ $empRec->unit?->name ?? ($employee->unit?->name ?? '-') }}</td>
+                                    <td class="px-4 py-3 text-zinc-700 dark:text-zinc-300">{{ $empRec->position?->title ?? ($employee->position?->title ?? '-') }}</td>
+                                    <td class="px-4 py-3 uppercase text-xs font-medium">
+                                        @if($empRec->contract_type === 'permanent')
+                                            Tetap (PKWTT)
+                                        @elseif($empRec->contract_type === 'contract')
+                                            Kontrak (PKWT)
+                                        @elseif($empRec->contract_type === 'probation')
+                                            Percobaan
+                                        @else
+                                            {{ $empRec->contract_type }}
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-xs">{{ $empRec->start_date?->format('d/m/Y') ?? '-' }}</td>
+                                    <td class="px-4 py-3 text-xs">{{ $empRec->end_date?->format('d/m/Y') ?? 'Tidak Terbatas' }}</td>
+                                    <td class="px-4 py-3">
+                                        @if($empRec->is_active)
+                                            <flux:badge size="sm" color="emerald">Penugasan Aktif</flux:badge>
+                                        @else
+                                            <flux:badge size="sm" color="zinc">Selesai</flux:badge>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="7" class="px-4 py-6 text-center text-zinc-400 italic">Belum ada riwayat penugasan tercatat.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </flux:card>
+        </div>
     @endif
 
     {{-- Tab 3: Kompensasi & Gaji (Strictly Protected) --}}
@@ -910,6 +964,77 @@
             </div>
         </div>
     @endif
+
+    {{-- Modal: Catat Penugasan / SK Baru --}}
+    <flux:modal wire:model="showEmploymentModal" class="md:w-2xl space-y-4">
+        <div>
+            <flux:heading size="lg">Catat Penugasan / SK Baru</flux:heading>
+            <flux:subheading>Mencatat mutasi unit, kenaikan jabatan, atau pembaharuan ikatan kerja. Unit dan jabatan profil pegawai akan otomatis diperbarui.</flux:subheading>
+        </div>
+
+        <form wire:submit.prevent="saveEmployment" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <flux:select label="Unit Penempatan" wire:model="employmentUnitId" required>
+                    <option value="">Pilih Unit...</option>
+                    @foreach($availableUnits as $u)
+                        <option value="{{ $u->id }}">{{ $u->name }} ({{ $u->code }})</option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select label="Jabatan" wire:model="employmentPositionId" required>
+                    <option value="">Pilih Jabatan...</option>
+                    @foreach($availablePositions as $pos)
+                        <option value="{{ $pos->id }}">{{ $pos->title }}</option>
+                    @endforeach
+                </flux:select>
+
+                <flux:select label="Jenis Ikatan Kerja" wire:model="employmentContractType" required>
+                    <option value="permanent">Pegawai Tetap (PKWTT)</option>
+                    <option value="contract">Kontrak (PKWT)</option>
+                    <option value="probation">Masa Percobaan (Probation)</option>
+                    <option value="internship">Magang / Internship</option>
+                </flux:select>
+
+                <flux:input 
+                    label="Nomor SK / SPK / Kontrak" 
+                    wire:model="employmentContractNumber" 
+                    placeholder="misal: SK/RSJ/2026/045" 
+                    required 
+                />
+
+                <flux:input 
+                    label="Tanggal Mulai Tugas" 
+                    type="date" 
+                    wire:model="employmentStartDate" 
+                    required 
+                />
+
+                <flux:input 
+                    label="Tanggal Berakhir (Opsional)" 
+                    type="date" 
+                    wire:model="employmentEndDate" 
+                    placeholder="Kosongkan jika tetap" 
+                />
+            </div>
+
+            <flux:textarea 
+                label="Catatan / Keterangan Penugasan" 
+                wire:model="employmentNotes" 
+                rows="2" 
+                placeholder="misal: Rotasi dinas triwulan II / Promosi Kepala Ruangan" 
+            />
+
+            <div class="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 text-xs text-zinc-500">
+                <span class="font-medium text-zinc-700 dark:text-zinc-300">Catatan Sistem:</span>
+                Menyimpan penugasan ini akan otomatis menandai penugasan aktif sebelumnya sebagai selesai dan memperbarui unit serta jabatan aktif pegawai saat ini.
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <flux:button variant="ghost" wire:click="$set('showEmploymentModal', false)">Batal</flux:button>
+                <flux:button type="submit" variant="primary">Simpan &amp; Terapkan Penugasan</flux:button>
+            </div>
+        </form>
+    </flux:modal>
 
     {{-- Modal: Edit Biodata --}}
     <flux:modal wire:model="showBioModal" class="md:w-2xl space-y-4">

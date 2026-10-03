@@ -6,9 +6,12 @@ use App\Contracts\FaceAiService;
 use App\Models\Document;
 use App\Models\Employee;
 use App\Models\EmployeeBankAccount;
+use App\Models\EmployeeEmployment;
 use App\Models\EmployeeSalary;
 use App\Models\EmployeeSalaryComponent;
+use App\Models\Position;
 use App\Models\SalaryComponent;
+use App\Models\Unit;
 use App\Services\Audit\AuditService;
 use App\Services\Document\DocumentService;
 use Carbon\Carbon;
@@ -120,12 +123,34 @@ class EmployeeShow extends Component
 
     public ?string $salaryError = null;
 
+    // --- EMPLOYMENT / ASSIGNMENT MODAL STATE ---
+    public bool $showEmploymentModal = false;
+
+    public ?int $employmentUnitId = null;
+
+    public ?int $employmentPositionId = null;
+
+    public string $employmentContractType = 'permanent';
+
+    public string $employmentContractNumber = '';
+
+    public string $employmentStartDate = '';
+
+    public ?string $employmentEndDate = null;
+
+    public string $employmentNotes = '';
+
+    public ?string $employmentFeedback = null;
+
+    public ?string $employmentError = null;
+
     public function mount(int $id): void
     {
         $this->employee = Employee::with([
             'unit',
             'position',
-            'employments',
+            'employments.unit',
+            'employments.position',
             'salaries',
             'currentSalary',
             'salaryComponents.component',
@@ -154,6 +179,108 @@ class EmployeeShow extends Component
         $this->bankError = null;
         $this->docFeedback = null;
         $this->docError = null;
+        $this->employmentFeedback = null;
+        $this->employmentError = null;
+    }
+
+    // =========================================================
+    // RIWAYAT PENUGASAN & IKATAN KERJA (EMPLOYMENT)
+    // =========================================================
+
+    public function openEmploymentModal(): void
+    {
+        $this->authorize('updateEmployment', $this->employee);
+        $this->resetMessages();
+        $this->resetValidation();
+
+        $latestEmployment = $this->employee->currentEmployment;
+
+        $this->employmentUnitId = $this->employee->unit_id;
+        $this->employmentPositionId = $this->employee->position_id;
+        $this->employmentContractType = $latestEmployment?->contract_type ?? 'permanent';
+        $this->employmentContractNumber = 'SK/RSJ/'.Carbon::now()->format('Ym').'/'.str_pad((string) $this->employee->id, 4, '0', STR_PAD_LEFT);
+        $this->employmentStartDate = Carbon::today()->toDateString();
+        $this->employmentEndDate = null;
+        $this->employmentNotes = '';
+
+        $this->showEmploymentModal = true;
+    }
+
+    public function saveEmployment(AuditService $auditService): void
+    {
+        $this->authorize('updateEmployment', $this->employee);
+        $this->resetMessages();
+
+        $this->validate([
+            'employmentUnitId' => ['required', 'exists:units,id'],
+            'employmentPositionId' => ['required', 'exists:positions,id'],
+            'employmentContractType' => ['required', 'in:permanent,contract,probation,internship'],
+            'employmentContractNumber' => ['required', 'string', 'max:100'],
+            'employmentStartDate' => ['required', 'date'],
+            'employmentEndDate' => ['nullable', 'date', 'after_or_equal:employmentStartDate'],
+            'employmentNotes' => ['nullable', 'string', 'max:500'],
+        ], [
+            'employmentUnitId.required' => 'Unit penempatan wajib dipilih.',
+            'employmentPositionId.required' => 'Jabatan wajib dipilih.',
+            'employmentContractType.required' => 'Jenis ikatan kerja wajib dipilih.',
+            'employmentContractNumber.required' => 'Nomor SK / Kontrak wajib diisi.',
+            'employmentStartDate.required' => 'Tanggal mulai tugas wajib diisi.',
+            'employmentEndDate.after_or_equal' => 'Tanggal akhir kontrak harus sama atau setelah tanggal mulai.',
+        ]);
+
+        $oldUnitId = $this->employee->unit_id;
+        $oldPositionId = $this->employee->position_id;
+        $oldContractType = $this->employee->currentEmployment?->contract_type;
+
+        DB::transaction(function () {
+            // Non-aktifkan ikatan kerja aktif sebelumnya
+            EmployeeEmployment::where('employee_id', $this->employee->id)
+                ->where('is_active', true)
+                ->update(['is_active' => false]);
+
+            // Buat record riwayat penugasan baru dengan snapshot unit dan jabatan saat penugasan
+            EmployeeEmployment::create([
+                'employee_id' => $this->employee->id,
+                'unit_id' => $this->employmentUnitId,
+                'position_id' => $this->employmentPositionId,
+                'contract_type' => $this->employmentContractType,
+                'contract_number' => $this->employmentContractNumber,
+                'start_date' => $this->employmentStartDate,
+                'end_date' => $this->employmentEndDate ?: null,
+                'notes' => $this->employmentNotes ?: null,
+                'is_active' => true,
+            ]);
+
+            // Otomatis mutasikan / perbarui unit & jabatan aktif di profil pegawai
+            $this->employee->update([
+                'unit_id' => $this->employmentUnitId,
+                'position_id' => $this->employmentPositionId,
+            ]);
+        });
+
+        $this->employee->refresh();
+        $this->employee->load(['unit', 'position', 'employments.unit', 'employments.position', 'currentEmployment']);
+
+        $auditService->log(
+            action: 'employee.assignment_recorded',
+            auditable: $this->employee,
+            oldValues: [
+                'unit_id' => $oldUnitId,
+                'position_id' => $oldPositionId,
+                'contract_type' => $oldContractType,
+            ],
+            newValues: [
+                'unit_id' => $this->employmentUnitId,
+                'position_id' => $this->employmentPositionId,
+                'contract_type' => $this->employmentContractType,
+                'contract_number' => $this->employmentContractNumber,
+                'start_date' => $this->employmentStartDate,
+                'notes' => $this->employmentNotes,
+            ]
+        );
+
+        $this->showEmploymentModal = false;
+        $this->employmentFeedback = 'Riwayat penugasan/kontrak baru berhasil dicatat dan status pegawai telah diperbarui.';
     }
 
     // =========================================================
@@ -749,8 +876,11 @@ class EmployeeShow extends Component
             'canViewBank' => $user?->can('viewBank', $this->employee),
             'canManageBiometrics' => $user?->can('manageBiometrics', $this->employee),
             'canUpdateBio' => $user?->can('update', $this->employee),
+            'canUpdateEmployment' => $user?->can('updateEmployment', $this->employee),
             'canManageBank' => $user?->can('manageBank', $this->employee),
             'canUploadDoc' => $user?->can('uploadDocument', $this->employee),
+            'availableUnits' => Unit::orderBy('name')->get(),
+            'availablePositions' => Position::orderBy('title')->get(),
             'availableComponents' => SalaryComponent::where('is_active', true)->orderBy('type')->orderBy('name')->get(),
             'assignedComponents' => $this->employee->salaryComponents()->with('component')->latest('effective_from')->get(),
         ]);

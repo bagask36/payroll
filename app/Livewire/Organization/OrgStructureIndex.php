@@ -29,6 +29,8 @@ class OrgStructureIndex extends Component
     // --- UNIT MODAL STATE ---
     public bool $showUnitModal = false;
     public ?int $editingUnitId = null;
+    public string $unitSource = 'custom'; // 'custom' or 'master'
+    public ?int $selectedMasterUnitId = null;
     public string $unitCode = '';
     public string $unitName = '';
     public ?int $unitDepartmentId = null;
@@ -37,6 +39,8 @@ class OrgStructureIndex extends Component
     // --- POSITION MODAL STATE ---
     public bool $showPositionModal = false;
     public ?int $editingPositionId = null;
+    public string $positionSource = 'master'; // 'master' or 'custom'
+    public string $selectedMasterTitle = '';
     public string $positionTitle = '';
     public string $positionPlacementType = 'unit'; // 'unit' or 'department'
     public ?int $positionDepartmentId = null;
@@ -147,7 +151,7 @@ class OrgStructureIndex extends Component
     }
 
     // ==========================================
-    // UNIT CRUD
+    // UNIT CRUD (With Master Selection or New Entry)
     // ==========================================
 
     public function openCreateUnit(?int $departmentId = null): void
@@ -157,10 +161,23 @@ class OrgStructureIndex extends Component
             abort(403, 'Anda tidak memiliki hak akses untuk membuat unit kerja.');
         }
 
-        $this->reset(['editingUnitId', 'unitCode', 'unitName', 'unitDepartmentId']);
+        $this->reset(['editingUnitId', 'unitCode', 'unitName', 'unitDepartmentId', 'selectedMasterUnitId']);
         $this->unitDepartmentId = $departmentId;
+        $this->unitSource = 'custom';
         $this->unitIsActive = true;
         $this->showUnitModal = true;
+    }
+
+    public function updatedSelectedMasterUnitId(?int $value): void
+    {
+        if ($value) {
+            $unit = Unit::find($value);
+            if ($unit) {
+                $this->unitCode = $unit->code;
+                $this->unitName = $unit->name;
+                $this->unitIsActive = $unit->is_active;
+            }
+        }
     }
 
     public function editUnit(int $id): void
@@ -172,6 +189,7 @@ class OrgStructureIndex extends Component
 
         $unit = Unit::findOrFail($id);
         $this->editingUnitId = $unit->id;
+        $this->unitSource = 'custom';
         $this->unitCode = $unit->code;
         $this->unitName = $unit->name;
         $this->unitDepartmentId = $unit->department_id;
@@ -191,6 +209,27 @@ class OrgStructureIndex extends Component
             if (! $user || ! $user->can('org.create')) {
                 abort(403, 'Anda tidak memiliki hak akses untuk membuat unit kerja.');
             }
+        }
+
+        // If assigning an existing master unit to this department
+        if ($this->unitSource === 'master' && $this->selectedMasterUnitId && ! $this->editingUnitId) {
+            $this->validate([
+                'selectedMasterUnitId' => 'required|exists:units,id',
+                'unitDepartmentId' => 'required|exists:departments,id',
+            ]);
+
+            $unit = Unit::findOrFail($this->selectedMasterUnitId);
+            $oldValues = $unit->only(['code', 'name', 'department_id', 'is_active']);
+
+            $unit->update([
+                'department_id' => $this->unitDepartmentId,
+            ]);
+
+            $auditService->log('unit.updated', $unit, $oldValues, $unit->only(['code', 'name', 'department_id', 'is_active']));
+            $this->showUnitModal = false;
+            $this->errorMessage = null;
+            $this->feedbackMessage = "Unit kerja '{$unit->name}' berhasil ditautkan ke Departemen.";
+            return;
         }
 
         $this->validate([
@@ -221,7 +260,7 @@ class OrgStructureIndex extends Component
             ]);
 
             $auditService->log('unit.created', $unit, null, $unit->only(['code', 'name', 'department_id', 'is_active']));
-            $this->feedbackMessage = "Unit kerja baru '{$unit->name}' berhasil ditambahkan.";
+            $this->feedbackMessage = "Unit kerja baru '{$unit->name}' berhasil ditambahkan ke Data Master.";
         }
 
         $this->showUnitModal = false;
@@ -229,7 +268,7 @@ class OrgStructureIndex extends Component
     }
 
     // ==========================================
-    // POSITION CRUD (Supports Unit OR Department Placement)
+    // POSITION CRUD (With Master Selection or New Entry)
     // ==========================================
 
     public function openCreatePosition(?int $unitId = null, ?int $departmentId = null): void
@@ -239,7 +278,8 @@ class OrgStructureIndex extends Component
             abort(403, 'Anda tidak memiliki hak akses untuk membuat formasi jabatan.');
         }
 
-        $this->reset(['editingPositionId', 'positionTitle']);
+        $this->reset(['editingPositionId', 'positionTitle', 'selectedMasterTitle']);
+        $this->positionSource = 'master';
         
         if ($departmentId !== null) {
             $this->positionPlacementType = 'department';
@@ -255,6 +295,17 @@ class OrgStructureIndex extends Component
         $this->showPositionModal = true;
     }
 
+    public function updatedSelectedMasterTitle(string $value): void
+    {
+        if ($value) {
+            $this->positionTitle = $value;
+            $sample = Position::where('title', $value)->first();
+            if ($sample && $sample->grade_level) {
+                $this->positionGradeLevel = $sample->grade_level;
+            }
+        }
+    }
+
     public function editPosition(int $id): void
     {
         $user = Auth::user();
@@ -264,6 +315,7 @@ class OrgStructureIndex extends Component
 
         $pos = Position::findOrFail($id);
         $this->editingPositionId = $pos->id;
+        $this->positionSource = 'custom';
         $this->positionTitle = $pos->title;
         $this->positionGradeLevel = $pos->grade_level;
 
@@ -292,6 +344,11 @@ class OrgStructureIndex extends Component
             if (! $user || ! $user->can('org.create')) {
                 abort(403, 'Anda tidak memiliki hak akses untuk membuat formasi jabatan.');
             }
+        }
+
+        // If choosing from master, ensure positionTitle is taken from selectedMasterTitle if not empty
+        if ($this->positionSource === 'master' && ! $this->editingPositionId && $this->selectedMasterTitle) {
+            $this->positionTitle = $this->selectedMasterTitle;
         }
 
         $rules = [
@@ -333,7 +390,7 @@ class OrgStructureIndex extends Component
             ]);
 
             $auditService->log('position.created', $pos, null, $pos->only(['title', 'unit_id', 'department_id', 'grade_level']));
-            $this->feedbackMessage = "Formasi jabatan baru '{$pos->title}' berhasil ditambahkan.";
+            $this->feedbackMessage = "Formasi jabatan baru '{$pos->title}' berhasil ditambahkan ke Data Master.";
         }
 
         $this->showPositionModal = false;
@@ -438,9 +495,6 @@ class OrgStructureIndex extends Component
     // DRAG AND DROP REORGANIZATION
     // ==========================================
 
-    /**
-     * Move a position to a Unit OR directly to a Department.
-     */
     public function movePosition(int $positionId, int $targetId, string $targetType = 'unit', ?AuditService $auditService = null): void
     {
         $auditService = $auditService ?? app(AuditService::class);
@@ -609,7 +663,14 @@ class OrgStructureIndex extends Component
             ->get();
 
         $allDepartments = Department::orderBy('name')->get();
-        $allUnits = Unit::orderBy('name')->get();
+        $allUnits = Unit::with('department')->orderBy('name')->get();
+
+        // Unique position titles registered across the master database
+        $masterPositionTitles = Position::select('title', 'grade_level')
+            ->get()
+            ->unique('title')
+            ->sortBy('title')
+            ->values();
 
         $totalDepartments = Department::count();
         $totalUnits = Unit::count();
@@ -625,6 +686,7 @@ class OrgStructureIndex extends Component
             'standaloneDepartments' => $standaloneDepartments,
             'allDepartments' => $allDepartments,
             'allUnits' => $allUnits,
+            'masterPositionTitles' => $masterPositionTitles,
             'totalDepartments' => $totalDepartments,
             'totalUnits' => $totalUnits,
             'totalPositions' => $totalPositions,
