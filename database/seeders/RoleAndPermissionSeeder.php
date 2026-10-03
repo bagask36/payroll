@@ -201,8 +201,7 @@ class RoleAndPermissionSeeder extends Seeder
         // Doctor
         $doctorPerms = [
             'org.view',
-            'employee.view_sensitive', 'employee.view_bank',
-            'doctor.view', 'doctor.view_credentials', 'doctor.update', 'doctor.manage_credentials',
+            'doctor.view',
             'schedule.view',
             'attendance.view_own', 'attendance.check_in_out', 'attendance.adjust_request',
             'leave.view_own', 'leave.create_own', 'leave.cancel_own',
@@ -214,7 +213,6 @@ class RoleAndPermissionSeeder extends Seeder
         // Employee
         $employeePerms = [
             'org.view',
-            'employee.view_sensitive', 'employee.view_bank', 'employee.update',
             'doctor.view',
             'schedule.view',
             'attendance.view_own', 'attendance.check_in_out', 'attendance.adjust_request',
