@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class SystemSetting extends Model
+{
+    use HasFactory;
+
+    /**
+     * @var list<string>
+     */
+    protected $fillable = [
+        'group',
+        'key',
+        'value',
+        'description',
+    ];
+
+    /**
+     * Get a setting by key with optional default.
+     */
+    public static function get(string $key, ?string $default = null): ?string
+    {
+        $setting = static::where('key', $key)->first();
+
+        return $setting ? $setting->value : $default;
+    }
+
+    /**
+     * Set a setting key and value.
+     */
+    public static function set(string $key, ?string $value, string $group = 'general', ?string $description = null): self
+    {
+        return static::updateOrCreate(
+            ['key' => $key],
+            [
+                'value' => $value,
+                'group' => $group,
+                'description' => $description,
+            ]
+        );
+    }
+}
