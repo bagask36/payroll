@@ -100,7 +100,7 @@ class Employee extends Model
      */
     public function employments(): HasMany
     {
-        return $this->hasMany(EmployeeEmployment::class);
+        return $this->hasMany(EmployeeEmployment::class)->orderByDesc('start_date')->orderByDesc('id');
     }
 
     /**

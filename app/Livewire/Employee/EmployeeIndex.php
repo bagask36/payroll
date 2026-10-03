@@ -134,6 +134,8 @@ class EmployeeIndex extends Component
 
         EmployeeEmployment::create([
             'employee_id' => $employee->id,
+            'unit_id' => $this->unitId,
+            'position_id' => $this->positionId,
             'contract_type' => $this->contractType,
             'contract_number' => 'KTR/RSJ/'.Carbon::now()->format('Ym').'/'.str_pad((string) $employee->id, 4, '0', STR_PAD_LEFT),
             'start_date' => $this->joinDate,

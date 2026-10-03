@@ -13,6 +13,7 @@ use App\Services\Audit\AuditService;
 use App\Services\Document\DocumentService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -36,53 +37,87 @@ class EmployeeShow extends Component
 
     // --- BIODATA MODAL STATE ---
     public bool $showBioModal = false;
+
     public string $bioFullName = '';
+
     public string $bioPhone = '';
+
     public string $bioAddress = '';
+
     public string $bioGender = 'male';
+
     public string $bioBirthPlace = '';
+
     public string $bioBirthDate = '';
+
     public string $bioMaritalStatus = 'single';
+
     public int $bioTaxDependents = 0;
+
     public ?string $bioNpwp = null;
+
     public ?string $bioKtp = null;
+
     public ?string $bioFeedback = null;
+
     public ?string $bioError = null;
 
     // --- BANK ACCOUNT MODAL STATE ---
     public bool $showBankModal = false;
+
     public ?int $editingBankId = null;
+
     public string $bankName = '';
+
     public string $accountNumber = '';
+
     public string $accountHolder = '';
+
     public bool $isPrimaryBank = true;
+
     public ?string $bankFeedback = null;
+
     public ?string $bankError = null;
 
     // --- DOCUMENT UPLOAD MODAL STATE ---
     public bool $showDocModal = false;
+
     public string $docUploadType = 'ktp';
+
     public $docUploadedFile = null;
+
     public ?string $docFeedback = null;
+
     public ?string $docError = null;
 
     // --- SALARY REVISION STATE ---
     public bool $showSalaryModal = false;
+
     public string $basicSalary = '';
+
     public string $salaryEffectiveFrom = '';
+
     public string $revisionReason = '';
 
     // --- SALARY COMPONENT STATE ---
     public bool $showComponentModal = false;
+
     public ?int $editingComponentAssignmentId = null;
+
     public ?int $selectedComponentId = null;
+
     public string $componentAmount = '';
+
     public string $componentEffectiveFrom = '';
+
     public ?string $componentEffectiveTo = null;
+
     public string $componentNotes = '';
+
     public bool $componentIsActive = true;
 
     public ?string $salaryFeedback = null;
+
     public ?string $salaryError = null;
 
     public function mount(int $id): void
@@ -268,7 +303,7 @@ class EmployeeShow extends Component
             'accountHolder.required' => 'Nama pemilik rekening wajib diisi.',
         ]);
 
-        \Illuminate\Support\Facades\DB::transaction(function () use ($auditService) {
+        DB::transaction(function () use ($auditService) {
             if ($this->isPrimaryBank) {
                 EmployeeBankAccount::where('employee_id', $this->employee->id)
                     ->when($this->editingBankId, fn ($q) => $q->where('id', '!=', $this->editingBankId))
@@ -479,7 +514,7 @@ class EmployeeShow extends Component
 
         $this->showSalaryModal = false;
         $this->employee->load(['salaries', 'currentSalary']);
-        $this->salaryFeedback = 'Gaji pokok pegawai berhasil diperbarui dengan tanggal efektif ' . Carbon::parse($this->salaryEffectiveFrom)->format('d/m/Y') . '.';
+        $this->salaryFeedback = 'Gaji pokok pegawai berhasil diperbarui dengan tanggal efektif '.Carbon::parse($this->salaryEffectiveFrom)->format('d/m/Y').'.';
     }
 
     public function openComponentModal(?int $id = null): void
@@ -621,7 +656,6 @@ class EmployeeShow extends Component
         $this->employee->load(['salaryComponents.component', 'activeSalaryComponents.component']);
         $this->salaryFeedback = "Komponen {$componentName} berhasil dihapus dari pegawai.";
     }
-
 
     public function enrollBiometrics(FaceAiService $faceAiService, AuditService $auditService): void
     {

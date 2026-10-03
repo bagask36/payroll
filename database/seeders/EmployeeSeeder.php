@@ -59,6 +59,8 @@ class EmployeeSeeder extends Seeder
         EmployeeEmployment::updateOrCreate(
             ['employee_id' => $emp1->id, 'contract_number' => 'SPK/RSJ/2024/001'],
             [
+                'unit_id' => $sdmUnit->id,
+                'position_id' => $hrPos->id,
                 'contract_type' => 'permanent',
                 'start_date' => '2024-01-01',
                 'end_date' => null,
@@ -122,6 +124,8 @@ class EmployeeSeeder extends Seeder
         EmployeeEmployment::updateOrCreate(
             ['employee_id' => $emp2->id, 'contract_number' => 'SPK/RSJ/2023/015'],
             [
+                'unit_id' => $icuUnit->id,
+                'position_id' => $icuPos->id,
                 'contract_type' => 'permanent',
                 'start_date' => '2023-03-01',
                 'end_date' => null,
@@ -185,6 +189,8 @@ class EmployeeSeeder extends Seeder
         EmployeeEmployment::updateOrCreate(
             ['employee_id' => $emp3->id, 'contract_number' => 'SPK/RSJ/2025/042'],
             [
+                'unit_id' => $igdUnit->id,
+                'position_id' => $igdNursePos->id,
                 'contract_type' => 'contract',
                 'start_date' => '2025-01-01',
                 'end_date' => '2026-12-31',

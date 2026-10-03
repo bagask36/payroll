@@ -18,11 +18,14 @@ class EmployeeEmployment extends Model
      */
     protected $fillable = [
         'employee_id',
+        'unit_id',
+        'position_id',
         'contract_type',
         'contract_number',
         'start_date',
         'end_date',
         'is_active',
+        'notes',
     ];
 
     /**
@@ -45,6 +48,26 @@ class EmployeeEmployment extends Model
     public function employee(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    /**
+     * Assigned hospital unit/section.
+     *
+     * @return BelongsTo<Unit, $this>
+     */
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(Unit::class);
+    }
+
+    /**
+     * Assigned official position.
+     *
+     * @return BelongsTo<Position, $this>
+     */
+    public function position(): BelongsTo
+    {
+        return $this->belongsTo(Position::class);
     }
 
     /**
