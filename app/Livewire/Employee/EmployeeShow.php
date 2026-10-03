@@ -132,17 +132,18 @@ class EmployeeShow extends Component
         $this->resetValidation();
 
         $e = $this->employee;
+        $canSensitive = (bool) Auth::user()?->can('viewSensitive', $e);
         $this->bioFullName = (string) $e->full_name;
         $this->bioPhone = (string) $e->phone_number;
-        $this->bioAddress = (string) $e->residential_address;
+        $this->bioAddress = $canSensitive ? (string) $e->residential_address : '';
         $this->bioGender = (string) ($e->gender ?: 'male');
         $this->bioBirthPlace = (string) $e->birth_place;
         $this->bioBirthDate = $e->birth_date?->toDateString() ?? '';
         $this->bioMaritalStatus = (string) ($e->marital_status ?: 'single');
         $this->bioTaxDependents = (int) $e->tax_dependents;
-        $this->bioNpwp = $e->npwp_number;
-        // KTP only pre-filled for users allowed to see sensitive PII
-        $this->bioKtp = Auth::user()?->can('viewSensitive', $e) ? $e->ktp_number : null;
+        // Sensitive PII only pre-filled for users allowed to see it
+        $this->bioNpwp = $canSensitive ? $e->npwp_number : null;
+        $this->bioKtp = $canSensitive ? $e->ktp_number : null;
 
         $this->showBioModal = true;
     }
@@ -157,16 +158,16 @@ class EmployeeShow extends Component
         $rules = [
             'bioFullName' => ['required', 'string', 'max:150'],
             'bioPhone' => ['required', 'string', 'max:30'],
-            'bioAddress' => ['required', 'string', 'max:500'],
             'bioGender' => ['required', 'in:male,female'],
             'bioBirthPlace' => ['required', 'string', 'max:100'],
             'bioBirthDate' => ['required', 'date', 'before:today'],
             'bioMaritalStatus' => ['required', 'in:single,married,divorced,widowed'],
             'bioTaxDependents' => ['required', 'integer', 'min:0', 'max:3'],
-            'bioNpwp' => ['nullable', 'string', 'max:50'],
         ];
         if ($canEditSensitive) {
             $rules['bioKtp'] = ['required', 'digits:16'];
+            $rules['bioNpwp'] = ['nullable', 'string', 'max:50'];
+            $rules['bioAddress'] = ['required', 'string', 'max:500'];
         }
 
         $this->validate($rules, [
@@ -186,19 +187,21 @@ class EmployeeShow extends Component
         $data = [
             'full_name' => $this->bioFullName,
             'phone_number' => $this->bioPhone,
-            'residential_address' => $this->bioAddress,
             'gender' => $this->bioGender,
             'birth_place' => $this->bioBirthPlace,
             'birth_date' => $this->bioBirthDate,
             'marital_status' => $this->bioMaritalStatus,
             'tax_dependents' => $this->bioTaxDependents,
-            'npwp_number' => $this->bioNpwp ?: null,
         ];
 
         $ktpChanged = false;
-        if ($canEditSensitive && $this->bioKtp !== $this->employee->ktp_number) {
-            $data['ktp_number'] = $this->bioKtp;
-            $ktpChanged = true;
+        if ($canEditSensitive) {
+            $data['residential_address'] = $this->bioAddress;
+            $data['npwp_number'] = $this->bioNpwp ?: null;
+            if ($this->bioKtp !== $this->employee->ktp_number) {
+                $data['ktp_number'] = $this->bioKtp;
+                $ktpChanged = true;
+            }
         }
 
         $this->employee->update($data);

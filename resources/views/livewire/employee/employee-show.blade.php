@@ -911,6 +911,105 @@
         </div>
     @endif
 
+    {{-- Modal: Edit Biodata --}}
+    <flux:modal wire:model="showBioModal" class="md:w-2xl space-y-4">
+        <div>
+            <flux:heading size="lg">Edit Biodata Pegawai</flux:heading>
+            <flux:subheading>Perubahan dicatat pada audit trail.</flux:subheading>
+        </div>
+
+        <form wire:submit.prevent="saveBio" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <flux:input label="Nama Lengkap" wire:model="bioFullName" required />
+                <flux:input label="Nomor Telepon" wire:model="bioPhone" required />
+                <flux:select label="Jenis Kelamin" wire:model="bioGender">
+                    <option value="male">Laki-laki</option>
+                    <option value="female">Perempuan</option>
+                </flux:select>
+                <flux:input label="Tempat Lahir" wire:model="bioBirthPlace" required />
+                <flux:input label="Tanggal Lahir" type="date" wire:model="bioBirthDate" required />
+                <flux:select label="Status Pernikahan" wire:model="bioMaritalStatus">
+                    <option value="single">Belum Menikah</option>
+                    <option value="married">Menikah</option>
+                    <option value="divorced">Cerai Hidup</option>
+                    <option value="widowed">Cerai Mati</option>
+                </flux:select>
+                <flux:input label="Jumlah Tanggungan (PTKP, maks. 3)" type="number" min="0" max="3" wire:model="bioTaxDependents" />
+                @if($canViewSensitive)
+                    <flux:input label="NPWP" wire:model="bioNpwp" placeholder="Opsional" />
+                    <flux:input label="NIK KTP (16 digit)" wire:model="bioKtp" maxlength="16" inputmode="numeric" required />
+                @endif
+            </div>
+            @if($canViewSensitive)
+                <flux:textarea label="Alamat Domisili" wire:model="bioAddress" rows="2" required />
+            @else
+                <p class="text-xs text-zinc-400">NIK KTP, NPWP, dan alamat hanya dapat diubah oleh pengguna dengan akses data sensitif.</p>
+            @endif
+
+            <div class="flex justify-end gap-2 pt-2">
+                <flux:button variant="ghost" wire:click="$set('showBioModal', false)">Batal</flux:button>
+                <flux:button type="submit" variant="primary">Simpan Biodata</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    {{-- Modal: Rekening Bank --}}
+    <flux:modal wire:model="showBankModal" class="md:w-md space-y-4">
+        <div>
+            <flux:heading size="lg">{{ $editingBankId ? 'Edit Rekening Payroll' : 'Tambah Rekening Payroll' }}</flux:heading>
+            <flux:subheading>Nomor rekening disimpan terenkripsi.</flux:subheading>
+        </div>
+
+        <form wire:submit.prevent="saveBank" class="space-y-4">
+            <flux:input label="Nama Bank" wire:model="bankName" placeholder="misal: BCA, Mandiri, BNI, BRI" list="bank-name-options" required />
+            <datalist id="bank-name-options">
+                <option value="BCA"></option>
+                <option value="Mandiri"></option>
+                <option value="BNI"></option>
+                <option value="BRI"></option>
+                <option value="BSI"></option>
+                <option value="CIMB Niaga"></option>
+            </datalist>
+            <flux:input label="Nomor Rekening" wire:model="accountNumber" inputmode="numeric" placeholder="Hanya angka" required />
+            <flux:input label="Nama Pemilik Rekening" wire:model="accountHolder" required />
+            <flux:checkbox label="Jadikan rekening utama" wire:model="isPrimaryBank" description="Rekening utama digunakan untuk pencairan gaji." />
+
+            <div class="flex justify-end gap-2 pt-2">
+                <flux:button variant="ghost" wire:click="$set('showBankModal', false)">Batal</flux:button>
+                <flux:button type="submit" variant="primary">Simpan Rekening</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    {{-- Modal: Unggah Dokumen --}}
+    <flux:modal wire:model="showDocModal" class="md:w-md space-y-4">
+        <div>
+            <flux:heading size="lg">Unggah Berkas Pegawai</flux:heading>
+            <flux:subheading>Format PDF, JPG, atau PNG. Maksimal 10 MB.</flux:subheading>
+        </div>
+
+        <form wire:submit.prevent="uploadDoc" class="space-y-4">
+            <flux:select label="Jenis Dokumen" wire:model="docUploadType">
+                <option value="ktp">KTP</option>
+                <option value="kk">Kartu Keluarga</option>
+                <option value="ijazah">Ijazah</option>
+                <option value="contract">Kontrak Kerja</option>
+                <option value="str">STR</option>
+                <option value="sip">SIP</option>
+                <option value="certificate">Sertifikat</option>
+                <option value="other">Lainnya</option>
+            </flux:select>
+
+            <flux:input type="file" label="Berkas" wire:model="docUploadedFile" accept=".pdf,.jpg,.jpeg,.png" />
+            <div wire:loading wire:target="docUploadedFile" class="text-xs text-zinc-500">Mengunggah berkas sementara…</div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <flux:button variant="ghost" wire:click="$set('showDocModal', false)">Batal</flux:button>
+                <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="docUploadedFile,uploadDoc">Unggah</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
     {{-- Modal 1: Revisi Gaji Pokok --}}
     <flux:modal wire:model="showSalaryModal" class="md:w-md space-y-4">
         <div>
