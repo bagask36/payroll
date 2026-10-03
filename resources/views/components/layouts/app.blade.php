@@ -146,7 +146,7 @@
                     <flux:sidebar.group 
                         expandable 
                         :expanded="request()->routeIs('reports.*')" 
-                        heading="Laporan" 
+                        heading="LAPORAN" 
                         icon="chart-bar"
                         class="mt-3"
                     >
