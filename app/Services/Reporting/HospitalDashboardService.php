@@ -41,9 +41,9 @@ class HospitalDashboardService
      *
      * @return array<string, mixed>
      */
-    public function getAttendanceMetricsForDate(string $date): array
+    public function getAttendanceMetricsForDate(?string $date = null): array
     {
-        $dateString = Carbon::parse($date)->toDateString();
+        $dateString = Carbon::parse($date ?? Carbon::today()->toDateString())->toDateString();
 
         $totalScheduled = ScheduleAssignment::whereDate('schedule_date', $dateString)
             ->where('status', '!=', 'cancelled')
@@ -68,11 +68,15 @@ class HospitalDashboardService
     /**
      * Get monthly payroll and statutory compensation summary.
      *
-     * @return array<string, mixed>
+     * @return array<string, mixed>|null
      */
-    public function getPayrollSummary(int $runId): array
+    public function getPayrollSummary(?int $runId = null): ?array
     {
-        $run = PayrollRun::with('items')->findOrFail($runId);
+        $run = $runId ? PayrollRun::with('items')->find($runId) : PayrollRun::with('items')->latest('id')->first();
+
+        if (! $run) {
+            return null;
+        }
 
         $totalGross = (float) $run->total_gross_pay;
         $totalNet = (float) $run->total_net_pay;
