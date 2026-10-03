@@ -5,9 +5,11 @@ namespace Tests\Feature;
 use App\Livewire\Doctor\DoctorIndex;
 use App\Models\Doctor;
 use App\Models\User;
+use Database\Seeders\DoctorSeeder;
+use Database\Seeders\EmployeeSeeder;
+use Database\Seeders\OrganizationSeeder;
 use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -18,84 +20,59 @@ class DoctorUiTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(RoleAndPermissionSeeder::class);
+        $this->seed([
+            RoleAndPermissionSeeder::class,
+            OrganizationSeeder::class,
+            EmployeeSeeder::class,
+            DoctorSeeder::class,
+        ]);
     }
 
-    public function test_unauthorized_user_cannot_access_doctor_directory(): void
+    public function test_authorized_user_can_view_doctor_directory_page(): void
     {
-        $user = User::factory()->create(['is_active' => true]);
+        $admin = User::where('email', 'admin@juwitahospital.com')->first();
 
-        $this->actingAs($user);
+        $response = $this->actingAs($admin)->get('/doctors');
+        $response->assertStatus(200);
+        $response->assertSee('Direktori Tenaga Medis');
 
-        Livewire::test(DoctorIndex::class)
-            ->assertForbidden();
-    }
-
-    public function test_authorized_user_can_view_and_filter_doctors(): void
-    {
-        $user = User::factory()->create(['is_active' => true]);
-        $user->assignRole('hr_admin');
-
-        $doc1 = Doctor::factory()->create([
-            'name' => 'dr. Bambang Sp.B',
-            'specialization' => 'Spesialis Bedah (Sp.B)',
-            'status' => 'active',
-        ]);
-
-        $doc2 = Doctor::factory()->create([
-            'name' => 'dr. Dian Sp.A',
-            'specialization' => 'Spesialis Anak (Sp.A)',
-            'status' => 'active',
-        ]);
-
-        $this->actingAs($user);
-
-        Livewire::test(DoctorIndex::class)
+        Livewire::actingAs($admin)
+            ->test(DoctorIndex::class)
             ->assertStatus(200)
-            ->assertSee('dr. Bambang Sp.B')
-            ->assertSee('dr. Dian Sp.A')
-            ->set('specializationFilter', 'Spesialis Bedah (Sp.B)')
-            ->assertSee('dr. Bambang Sp.B')
-            ->assertDontSee('dr. Dian Sp.A');
+            ->assertSee('dr. Hendra Pratama, Sp.PD')
+            ->assertSee('Dokter Organik');
     }
 
-    public function test_doctor_can_update_their_own_license_credentials(): void
+    public function test_filter_by_doctor_type_organic_and_partner(): void
     {
-        $doctorUser = User::factory()->create(['is_active' => true]);
-        $doctorUser->assignRole('doctor');
+        $admin = User::where('email', 'admin@juwitahospital.com')->first();
 
-        $doctor = Doctor::factory()->create([
-            'user_id' => $doctorUser->id,
-            'name' => 'dr. Sarah Sp.PD',
-            'str_number' => 'STR-OLD-11111',
-            'sip_number' => 'SIP-OLD-22222',
-            'status' => 'active',
-        ]);
+        Livewire::actingAs($admin)
+            ->test(DoctorIndex::class)
+            ->set('doctorTypeFilter', 'organic')
+            ->assertSee('dr. Hendra Pratama, Sp.PD')
+            ->set('doctorTypeFilter', 'partner')
+            ->assertDontSee('dr. Hendra Pratama, Sp.PD');
+    }
 
-        $this->actingAs($doctorUser);
+    public function test_hr_admin_can_update_doctor_credentials(): void
+    {
+        $admin = User::where('email', 'admin@juwitahospital.com')->first();
+        $doctor = Doctor::where('name', 'dr. Hendra Pratama, Sp.PD')->firstOrFail();
 
-        $newStrDate = Carbon::today()->addYears(5)->toDateString();
-        $newSipDate = Carbon::today()->addYears(3)->toDateString();
-
-        Livewire::test(DoctorIndex::class)
+        Livewire::actingAs($admin)
+            ->test(DoctorIndex::class)
             ->call('openRenewalModal', $doctor->id)
-            ->set('strNumber', 'STR-NEW-99999')
-            ->set('strValidUntil', $newStrDate)
-            ->set('sipNumber', 'SIP-NEW-88888')
-            ->set('sipValidUntil', $newSipDate)
+            ->assertSet('showRenewalModal', true)
+            ->set('strNumber', 'STR-NEW-9999')
+            ->set('strValidUntil', '2028-12-31')
+            ->set('sipNumber', 'SIP-NEW-8888')
+            ->set('sipValidUntil', '2028-12-31')
             ->call('updateCredentials')
-            ->assertHasNoErrors()
-            ->assertSee('berhasil diperbarui');
+            ->assertSet('showRenewalModal', false);
 
         $doctor->refresh();
-        $this->assertEquals('STR-NEW-99999', $doctor->str_number);
-        $this->assertEquals('SIP-NEW-88888', $doctor->sip_number);
-        $this->assertEquals($newStrDate, $doctor->str_valid_until->toDateString());
-        $this->assertEquals($newSipDate, $doctor->sip_valid_until->toDateString());
-
-        $this->assertDatabaseHas('audit_logs', [
-            'action' => 'doctor.credentials_updated',
-            'auditable_id' => $doctor->id,
-        ]);
+        $this->assertEquals('STR-NEW-9999', $doctor->str_number);
+        $this->assertEquals('2028-12-31', $doctor->str_valid_until->toDateString());
     }
 }

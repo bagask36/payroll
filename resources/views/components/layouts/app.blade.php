@@ -75,9 +75,15 @@
                 </flux:sidebar.group>
 
                 <flux:sidebar.group heading="Keuangan & Dokumen" class="mt-4">
-                    @if(auth()->user()?->can('payroll.view_run') || auth()->user()?->can('payroll.view_payslip_own'))
-                        <flux:sidebar.item icon="banknotes" href="{{ route('dashboard') }}">
+                    @can('payroll.view_all')
+                        <flux:sidebar.item icon="banknotes" href="{{ route('payroll.index') }}" :current="request()->routeIs('payroll.index')">
                             Penggajian (Payroll)
+                        </flux:sidebar.item>
+                    @endcan
+
+                    @if(auth()->user()?->employee)
+                        <flux:sidebar.item icon="receipt-percent" href="{{ route('payroll.my-payslips') }}" :current="request()->routeIs('payroll.my-payslips')">
+                            Slip Gaji Saya
                         </flux:sidebar.item>
                     @endif
 

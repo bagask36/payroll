@@ -101,7 +101,7 @@ class DoctorIndex extends Component
 
     public function render()
     {
-        $query = Doctor::with(['employee.activeEmployment.unit'])->orderBy('name', 'asc');
+        $query = Doctor::with(['employee.unit', 'employee.position'])->orderBy('name', 'asc');
 
         if (! empty($this->search)) {
             $term = '%'.$this->search.'%';

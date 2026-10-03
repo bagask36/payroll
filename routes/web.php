@@ -9,6 +9,8 @@ use App\Livewire\Employee\EmployeeIndex;
 use App\Livewire\Employee\EmployeeShow;
 use App\Livewire\Leave\LeaveApply;
 use App\Livewire\Leave\LeaveIndex;
+use App\Livewire\Payroll\MyPayslips;
+use App\Livewire\Payroll\PayrollIndex;
 use App\Livewire\Schedule\ScheduleRoster;
 use App\Services\Audit\AuditService;
 use Illuminate\Http\Request;
@@ -35,6 +37,10 @@ Route::middleware('auth')->group(function () {
     // Leaves & Approvals
     Route::get('/leaves', LeaveIndex::class)->name('leaves.index');
     Route::get('/leaves/apply', LeaveApply::class)->name('leaves.apply');
+
+    // Payroll & Payslips
+    Route::get('/payroll', PayrollIndex::class)->name('payroll.index');
+    Route::get('/payroll/my-payslips', MyPayslips::class)->name('payroll.my-payslips');
 
     // Attendance & Geofencing Routes
     Route::get('/attendance', AttendanceIndex::class)->name('attendance.index');
