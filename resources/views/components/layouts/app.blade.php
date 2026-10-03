@@ -53,7 +53,7 @@
 
                 <flux:navlist.group heading="Waktu & Operasional" class="mt-4">
                     @can('schedule.view')
-                        <flux:navlist.item icon="calendar" href="{{ route('dashboard') }}">
+                        <flux:navlist.item icon="calendar" href="{{ route('schedules.index') }}" :current="request()->routeIs('schedules.*')">
                             Jadwal & Shift Roster
                         </flux:navlist.item>
                     @endcan
