@@ -63,7 +63,7 @@
     @endif
 
     {{-- Tabs Navigation --}}
-    <div class="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-2">
+    <div class="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-2 overflow-x-auto">
         <flux:button 
             size="sm" 
             :variant="$activeTab === 'my_requests' ? 'primary' : 'subtle'" 
@@ -101,7 +101,7 @@
 
     {{-- Tab 1: My Personal Requests --}}
     @if($activeTab === 'my_requests')
-        <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800 overflow-x-auto">
             <livewire:tables.leave-request-table />
         </flux:card>
     @endif
@@ -114,7 +114,7 @@
                 <span>Permohonan cuti staf berikut membutuhkan verifikasi dan persetujuan tingkat pertama (Kepala Unit / Supervisor).</span>
             </div>
 
-            <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+            <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800 overflow-x-auto">
                 <livewire:tables.leave-tier1-approval-table />
             </flux:card>
         </div>
@@ -128,7 +128,7 @@
                 <span>Persetujuan final Manajemen SDM (Tier 2). Penyetujuan akan langsung mengesahkan cuti dan memotong saldo kuota.</span>
             </div>
 
-            <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+            <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800 overflow-x-auto">
                 <livewire:tables.leave-tier2-approval-table />
             </flux:card>
         </div>

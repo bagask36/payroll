@@ -18,7 +18,7 @@
     </head>
     <body class="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 antialiased">
         {{-- Collapsible Sidebar according to Flux UI official demos --}}
-        <flux:sidebar sticky collapsible class="border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+        <flux:sidebar sticky collapsible class="border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 w-72 sm:w-80 max-w-[85vw] lg:w-64 max-lg:shadow-2xl">
             <flux:sidebar.header>
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 px-1 min-w-0">
                     <img 
@@ -35,7 +35,8 @@
                     </div>
                 </a>
 
-                <flux:sidebar.collapse class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
+                <flux:sidebar.collapse class="max-lg:hidden in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
+                <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
             </flux:sidebar.header>
 
             <flux:sidebar.nav>
@@ -270,7 +271,7 @@
             <flux:sidebar.spacer />
 
             <flux:sidebar.nav>
-                <div class="px-1 py-1.5 border-t border-zinc-200 dark:border-zinc-800">
+                <div class="px-1 py-1.5 border-t border-zinc-200 dark:border-zinc-800 pb-safe max-lg:pb-5">
                     <flux:dropdown position="top" align="start" class="w-full">
                         <flux:profile 
                             name="{{ auth()->user()?->name ?? 'User' }}" 
@@ -328,7 +329,7 @@
                 aria-label="Ganti mode gelap"
             />
 
-            <flux:dropdown position="bottom" align="end">
+            <flux:dropdown position="bottom" align="end" class="max-md:hidden">
                 <flux:profile 
                     name="{{ auth()->user()?->name ?? 'User' }}" 
                     initials="{{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 2)) }}"

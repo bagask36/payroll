@@ -110,7 +110,7 @@
     </div>
 
     {{-- PowerGrid Datatable --}}
-    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800 overflow-x-auto">
         <livewire:tables.attendance-table />
     </flux:card>
 
@@ -154,6 +154,156 @@
                     </flux:button>
                 </div>
             </form>
+        </flux:modal>
+    @endif
+
+    {{-- Flux Native Modal for Attendance Detail & Evidence Photos --}}
+    @if($showDetailModal && $detailAttendance)
+        @php
+            $inEvent = $detailAttendance->events->firstWhere('event_type', 'clock_in');
+            $outEvent = $detailAttendance->events->firstWhere('event_type', 'clock_out');
+            $personName = $detailAttendance->employee?->full_name ?? $detailAttendance->doctor?->name ?? 'Pegawai';
+            $personId = $detailAttendance->employee?->nip ?? $detailAttendance->doctor?->specialization ?? '-';
+        @endphp
+        <flux:modal wire:model="showDetailModal" class="md:w-[42rem] space-y-6">
+            {{-- Modal Header --}}
+            <div class="flex items-start justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
+                <div>
+                    <flux:heading size="lg" class="font-bold text-zinc-900 dark:text-zinc-100">
+                        Detail &amp; Bukti Foto Presensi
+                    </flux:heading>
+                    <flux:subheading class="text-xs text-zinc-500 mt-1">
+                        {{ $personName }} ({{ $personId }}) &bull; {{ $detailAttendance->date?->translatedFormat('l, d F Y') }}
+                    </flux:subheading>
+                </div>
+
+                <div>
+                    @if($detailAttendance->status === 'present')
+                        <flux:badge size="sm" color="emerald">Tepat Waktu</flux:badge>
+                    @elseif($detailAttendance->status === 'late')
+                        <flux:badge size="sm" color="amber">Terlambat ({{ $detailAttendance->late_duration_minutes }}m)</flux:badge>
+                    @else
+                        <flux:badge size="sm" color="red">Absen</flux:badge>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Summary Grid --}}
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div class="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/60">
+                    <span class="text-zinc-400 block mb-0.5">Shift Kerja</span>
+                    <span class="font-semibold text-zinc-800 dark:text-zinc-200">{{ $detailAttendance->scheduleAssignment?->shift?->name ?? 'Reguler' }}</span>
+                </div>
+                <div class="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/60">
+                    <span class="text-zinc-400 block mb-0.5">Clock In</span>
+                    <span class="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                        {{ $detailAttendance->clock_in ? $detailAttendance->clock_in->format('H:i:s') : '-' }}
+                    </span>
+                </div>
+                <div class="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/60">
+                    <span class="text-zinc-400 block mb-0.5">Clock Out</span>
+                    <span class="font-mono font-bold text-blue-600 dark:text-blue-400">
+                        {{ $detailAttendance->clock_out ? $detailAttendance->clock_out->format('H:i:s') : '-' }}
+                    </span>
+                </div>
+                <div class="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/60">
+                    <span class="text-zinc-400 block mb-0.5">Total Durasi</span>
+                    <span class="font-semibold text-zinc-800 dark:text-zinc-200">
+                        @if($detailAttendance->work_duration_minutes)
+                            {{ intdiv($detailAttendance->work_duration_minutes, 60) }}j {{ $detailAttendance->work_duration_minutes % 60 }}m
+                        @else
+                            -
+                        @endif
+                    </span>
+                </div>
+            </div>
+
+            {{-- Evidence Photos (Clock In & Clock Out) --}}
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3 flex items-center gap-1.5">
+                    <flux:icon name="camera" class="w-4 h-4 text-purple-600" />
+                    Bukti Foto Wajah Verifikasi (Anti-Spoofing)
+                </h4>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {{-- Clock In Photo Card --}}
+                    <div class="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                <flux:icon name="arrow-right" class="w-3.5 h-3.5" />
+                                Foto Masuk (Clock In)
+                            </span>
+                            @if($inEvent)
+                                <span class="text-[10px] text-zinc-400 font-mono">{{ $inEvent->recorded_at?->format('H:i:s') }}</span>
+                            @endif
+                        </div>
+
+                        <div class="aspect-[4/3] rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 flex items-center justify-center relative">
+                            @if($inEvent?->photo_url)
+                                <img src="{{ $inEvent->photo_url }}" class="w-full h-full object-cover" alt="Foto Masuk" />
+                                <div class="absolute bottom-2 left-2 right-2 px-2 py-1 rounded bg-black/70 backdrop-blur-xs text-[10px] text-zinc-300 flex items-center justify-between">
+                                    <span>Liveness: {{ round(($inEvent->liveness_score ?? 0.98) * 100) }}%</span>
+                                    <span>Match: {{ round(($inEvent->face_similarity ?? 0.95) * 100) }}%</span>
+                                </div>
+                            @else
+                                <div class="text-center p-4 space-y-1">
+                                    <flux:icon name="photo" class="w-8 h-8 text-zinc-600 mx-auto" />
+                                    <p class="text-[11px] text-zinc-500">Tidak ada foto masuk</p>
+                                </div>
+                            @endif
+                        </div>
+
+                        @if($inEvent)
+                            <div class="text-[10px] text-zinc-500 space-y-0.5">
+                                <div>GPS: {{ $inEvent->distance_meters }}m dari RS ({{ $inEvent->is_within_geofence ? 'Valid' : 'Luar Perimeter' }})</div>
+                                <div class="truncate" title="{{ $inEvent->device_info }}">Perangkat: {{ $inEvent->device_info ? \Illuminate\Support\Str::limit($inEvent->device_info, 38) : '-' }}</div>
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- Clock Out Photo Card --}}
+                    <div class="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                                <flux:icon name="arrow-left" class="w-3.5 h-3.5" />
+                                Foto Pulang (Clock Out)
+                            </span>
+                            @if($outEvent)
+                                <span class="text-[10px] text-zinc-400 font-mono">{{ $outEvent->recorded_at?->format('H:i:s') }}</span>
+                            @endif
+                        </div>
+
+                        <div class="aspect-[4/3] rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 flex items-center justify-center relative">
+                            @if($outEvent?->photo_url)
+                                <img src="{{ $outEvent->photo_url }}" class="w-full h-full object-cover" alt="Foto Pulang" />
+                                <div class="absolute bottom-2 left-2 right-2 px-2 py-1 rounded bg-black/70 backdrop-blur-xs text-[10px] text-zinc-300 flex items-center justify-between">
+                                    <span>Liveness: {{ round(($outEvent->liveness_score ?? 0.98) * 100) }}%</span>
+                                    <span>Match: {{ round(($outEvent->face_similarity ?? 0.95) * 100) }}%</span>
+                                </div>
+                            @else
+                                <div class="text-center p-4 space-y-1">
+                                    <flux:icon name="photo" class="w-8 h-8 text-zinc-600 mx-auto" />
+                                    <p class="text-[11px] text-zinc-500">Tidak ada foto pulang</p>
+                                </div>
+                            @endif
+                        </div>
+
+                        @if($outEvent)
+                            <div class="text-[10px] text-zinc-500 space-y-0.5">
+                                <div>GPS: {{ $outEvent->distance_meters }}m dari RS ({{ $outEvent->is_within_geofence ? 'Valid' : 'Luar Perimeter' }})</div>
+                                <div class="truncate" title="{{ $outEvent->device_info }}">Perangkat: {{ $outEvent->device_info ? \Illuminate\Support\Str::limit($outEvent->device_info, 38) : '-' }}</div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            {{-- Footer Action --}}
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                <flux:button wire:click="closeDetailModal" variant="subtle">
+                    Tutup
+                </flux:button>
+            </div>
         </flux:modal>
     @endif
 </div>

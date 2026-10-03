@@ -40,13 +40,13 @@
     @endif
 
     {{-- Payslips PowerGrid Table --}}
-    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800 overflow-x-auto">
         <livewire:tables.my-payslip-table />
     </flux:card>
 
     {{-- Payslip Modal View --}}
     @if($selectedItem)
-        <flux:modal wire:model="showDetailModal" class="md:w-[34rem] space-y-4">
+        <flux:modal wire:model="showDetailModal" class="md:w-[34rem] space-y-4 max-w-full">
             <div class="border-b border-zinc-100 dark:border-zinc-800 pb-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
@@ -61,7 +61,7 @@
             </div>
 
             {{-- Employee Details --}}
-            <div class="grid grid-cols-2 gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl text-xs">
                 <div>
                     <span class="text-zinc-400 block text-[11px]">Nama Pegawai</span>
                     <span class="font-bold text-zinc-800 dark:text-zinc-200">{{ $selectedItem->employee?->full_name }}</span>
@@ -130,7 +130,7 @@
                 {{-- Employer Contributions Transparency Note --}}
                 <div class="p-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-800/40 text-[11px] text-zinc-400 space-y-0.5">
                     <div class="font-semibold text-zinc-500">Iuran Ditanggung Rumah Sakit (Pemberi Kerja):</div>
-                    <div class="flex justify-between">
+                    <div class="flex flex-col sm:flex-row sm:justify-between gap-1">
                         <span>BPJS Kesehatan (4%): Rp {{ number_format((float) $selectedItem->bpjs_kes_employer, 0, ',', '.') }}</span>
                         <span>BPJS Ketenagakerjaan: Rp {{ number_format((float) $selectedItem->bpjs_tk_employer, 0, ',', '.') }}</span>
                     </div>

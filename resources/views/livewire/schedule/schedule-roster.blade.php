@@ -43,7 +43,7 @@
     {{-- Navigation & Filter Card --}}
     <flux:card class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         {{-- Week Navigator --}}
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
             <flux:button size="sm" variant="subtle" icon="chevron-left" wire:click="previousWeek" />
             <div class="px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-xs font-semibold text-zinc-900 dark:text-zinc-100 font-mono">
                 {{ $startDate->translatedFormat('d M Y') }} — {{ $endDate->translatedFormat('d M Y') }}
@@ -53,14 +53,14 @@
         </div>
 
         {{-- Filters --}}
-        <div class="flex items-center gap-3">
-            <flux:select wire:model.live="personTypeFilter" class="w-44">
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+            <flux:select wire:model.live="personTypeFilter" class="w-full sm:w-44">
                 <flux:select.option value="all">Semua Personil</flux:select.option>
                 <flux:select.option value="employee">Perawat & Staf</flux:select.option>
                 <flux:select.option value="doctor">Dokter & Spesialis</flux:select.option>
             </flux:select>
 
-            <flux:select wire:model.live="shiftFilter" class="w-48">
+            <flux:select wire:model.live="shiftFilter" class="w-full sm:w-48">
                 <flux:select.option value="all">Semua Shift</flux:select.option>
                 @foreach($shifts as $s)
                     <flux:select.option value="{{ $s->id }}">{{ $s->name }}</flux:select.option>
@@ -70,7 +70,7 @@
     </flux:card>
 
     {{-- PowerGrid Schedule Table --}}
-    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800 overflow-x-auto">
         <livewire:tables.schedule-table 
             :week-start-date="$weekStartDate" 
             :person-type-filter="$personTypeFilter" 

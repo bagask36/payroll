@@ -440,4 +440,70 @@ class AttendanceUiTest extends TestCase
         $this->assertStringContainsString('clock_out', $clockOutEvent->photo_path);
         Storage::disk('public')->assertExists($clockOutEvent->photo_path);
     }
+
+    public function test_authorized_user_can_view_attendance_detail_modal_with_photos(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('employee');
+
+        $employee = Employee::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'ACTIVE',
+        ]);
+
+        $attendance = Attendance::factory()->create([
+            'employee_id' => $employee->id,
+            'date' => Carbon::today()->toDateString(),
+            'clock_in' => Carbon::today()->setTime(8, 0),
+            'clock_out' => Carbon::today()->setTime(16, 0),
+            'status' => 'present',
+        ]);
+
+        $attendance->events()->create([
+            'event_type' => 'clock_in',
+            'recorded_at' => Carbon::today()->setTime(8, 0),
+            'latitude' => -6.195,
+            'longitude' => 106.820,
+            'distance_meters' => 10,
+            'is_within_geofence' => true,
+            'photo_path' => 'attendance-photos/2026/10/fake_in.jpg',
+            'face_matched' => true,
+            'face_similarity' => 0.94,
+            'liveness_score' => 0.98,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(AttendanceIndex::class)
+            ->call('openDetailModal', $attendance->id)
+            ->assertSet('showDetailModal', true)
+            ->assertSee('Detail &amp; Bukti Foto Presensi', false)
+            ->assertSee('fake_in.jpg')
+            ->call('closeDetailModal')
+            ->assertSet('showDetailModal', false);
+    }
+
+    public function test_unauthorized_employee_cannot_view_others_attendance_detail_modal(): void
+    {
+        $userA = User::factory()->create(['is_active' => true]);
+        $userA->assignRole('employee');
+        Employee::factory()->create(['user_id' => $userA->id, 'status' => 'ACTIVE']);
+
+        $userB = User::factory()->create(['is_active' => true]);
+        $userB->assignRole('employee');
+        $employeeB = Employee::factory()->create(['user_id' => $userB->id, 'status' => 'ACTIVE']);
+
+        $attendanceB = Attendance::factory()->create([
+            'employee_id' => $employeeB->id,
+            'date' => Carbon::today()->toDateString(),
+            'status' => 'present',
+        ]);
+
+        // User A tries to open User B's attendance detail modal -> must be forbidden
+        $this->actingAs($userA);
+
+        Livewire::test(AttendanceIndex::class)
+            ->call('openDetailModal', $attendanceB->id)
+            ->assertForbidden();
+    }
 }

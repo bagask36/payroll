@@ -41,7 +41,7 @@
     @endif
 
     {{-- Documents PowerGrid Table --}}
-    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800 overflow-x-auto">
         <livewire:tables.document-table />
     </flux:card>
 

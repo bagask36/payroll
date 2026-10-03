@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Audit\AuditService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -53,6 +54,11 @@ class AttendanceIndex extends Component
 
     public ?int $selectedAttendanceId = null;
 
+    // Attendance Detail & Evidence Modal State
+    public bool $showDetailModal = false;
+
+    public ?Attendance $detailAttendance = null;
+
     #[Rule(['nullable', 'date_format:H:i'])]
     public string $adjustedClockIn = '';
 
@@ -71,7 +77,7 @@ class AttendanceIndex extends Component
         $this->endDate = Carbon::today()->toDateString();
     }
 
-    #[\Livewire\Attributes\On('open-adjustment-modal')]
+    #[On('open-adjustment-modal')]
     public function openAdjustmentModal(int $attendanceId): void
     {
         $this->authorize('requestAdjustment', Attendance::class);
@@ -82,6 +88,24 @@ class AttendanceIndex extends Component
         $this->adjustedClockOut = $attendance->clock_out ? $attendance->clock_out->format('H:i') : '';
         $this->adjustmentReason = '';
         $this->showAdjustmentModal = true;
+    }
+
+    #[On('open-detail-modal')]
+    public function openDetailModal(int $attendanceId): void
+    {
+        $attendance = Attendance::with(['employee', 'doctor', 'scheduleAssignment.shift', 'events', 'adjustments.requestedBy'])
+            ->findOrFail($attendanceId);
+
+        $this->authorize('view', $attendance);
+
+        $this->detailAttendance = $attendance;
+        $this->showDetailModal = true;
+    }
+
+    public function closeDetailModal(): void
+    {
+        $this->showDetailModal = false;
+        $this->detailAttendance = null;
     }
 
     public function submitAdjustment(AuditService $auditService): void
