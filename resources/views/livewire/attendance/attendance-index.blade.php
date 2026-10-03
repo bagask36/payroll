@@ -25,7 +25,7 @@
     @if($feedbackMessage)
         <div class="p-4 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <flux:icon name="check-circle" class="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <flux:icon name="check-circle" class="size-5 text-emerald-600 dark:text-emerald-400" />
                 <span class="text-sm font-medium">{{ $feedbackMessage }}</span>
             </div>
             <flux:button size="sm" variant="subtle" wire:click="$set('feedbackMessage', null)">Tutup</flux:button>
@@ -37,7 +37,7 @@
         <flux:card class="border-l-4 border-l-amber-500 space-y-4">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2 font-semibold text-zinc-900 dark:text-zinc-100">
-                    <flux:icon name="bell" class="w-5 h-5 text-amber-500" />
+                    <flux:icon name="bell" class="size-5 text-amber-500" />
                     <span>Permohonan Koreksi Presensi Membutuhkan Persetujuan ({{ $pendingAdjustments->count() }})</span>
                 </div>
             </div>
@@ -93,69 +93,75 @@
             />
 
             <flux:select wire:model.live="statusFilter" label="Status Kehadiran">
-                <option value="all">Semua Status</option>
-                <option value="present">Tepat Waktu (Present)</option>
-                <option value="late">Terlambat (Late)</option>
-                <option value="absent">Absen (Absent)</option>
+                <flux:select.option value="all">Semua Status</flux:select.option>
+                <flux:select.option value="present">Tepat Waktu (Present)</flux:select.option>
+                <flux:select.option value="late">Terlambat (Late)</flux:select.option>
+                <flux:select.option value="absent">Absen (Absent)</flux:select.option>
             </flux:select>
         </div>
     </flux:card>
 
-    {{-- Table of Attendance Records --}}
-    <flux:card class="overflow-x-auto p-0">
-        <table class="w-full text-left text-sm divide-y divide-zinc-200 dark:divide-zinc-800">
-            <thead class="bg-zinc-50/75 dark:bg-zinc-800/50 text-xs font-semibold uppercase text-zinc-500">
-                <tr>
-                    <th class="px-4 py-3.5">Tanggal</th>
-                    @if(auth()->user()->hasPermission('attendance.view_all') || auth()->user()->hasPermission('attendance.view_team'))
-                        <th class="px-4 py-3.5">Pegawai / Dokter</th>
-                    @endif
-                    <th class="px-4 py-3.5">Shift</th>
-                    <th class="px-4 py-3.5">Masuk</th>
-                    <th class="px-4 py-3.5">Pulang</th>
-                    <th class="px-4 py-3.5">Durasi</th>
-                    <th class="px-4 py-3.5">Status</th>
-                    <th class="px-4 py-3.5 text-right">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+    {{-- Native Flux Table --}}
+    <flux:card class="p-0 overflow-hidden">
+        <flux:table :paginate="$attendances">
+            <flux:table.columns>
+                <flux:table.column>Tanggal</flux:table.column>
+                @if(auth()->user()->hasPermission('attendance.view_all') || auth()->user()->hasPermission('attendance.view_team'))
+                    <flux:table.column>Pegawai / Dokter</flux:table.column>
+                @endif
+                <flux:table.column>Shift</flux:table.column>
+                <flux:table.column>Masuk</flux:table.column>
+                <flux:table.column>Pulang</flux:table.column>
+                <flux:table.column>Durasi</flux:table.column>
+                <flux:table.column>Status</flux:table.column>
+                <flux:table.column align="end">Aksi</flux:table.column>
+            </flux:table.columns>
+
+            <flux:table.rows>
                 @forelse($attendances as $row)
-                    <tr class="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/40">
-                        <td class="px-4 py-3 font-medium whitespace-nowrap text-zinc-900 dark:text-zinc-100">
+                    <flux:table.row :key="$row->id">
+                        <flux:table.cell class="font-medium text-zinc-900 dark:text-zinc-100">
                             {{ $row->date->format('d/m/Y') }}
-                        </td>
+                        </flux:table.cell>
+
                         @if(auth()->user()->hasPermission('attendance.view_all') || auth()->user()->hasPermission('attendance.view_team'))
-                            <td class="px-4 py-3 whitespace-nowrap">
+                            <flux:table.cell>
                                 <div class="font-medium text-zinc-900 dark:text-zinc-100">
                                     {{ $row->employee?->name ?? $row->doctor?->name ?? '-' }}
                                 </div>
                                 <div class="text-xs text-zinc-400">
                                     {{ $row->employee?->nip ?? $row->doctor?->specialization ?? '' }}
                                 </div>
-                            </td>
+                            </flux:table.cell>
                         @endif
-                        <td class="px-4 py-3 whitespace-nowrap text-zinc-600 dark:text-zinc-400">
+
+                        <flux:table.cell class="text-zinc-600 dark:text-zinc-400">
                             {{ $row->scheduleAssignment?->shift?->name ?? 'Reguler' }}
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap font-mono text-zinc-800 dark:text-zinc-200">
+                        </flux:table.cell>
+
+                        <flux:table.cell class="font-mono text-zinc-800 dark:text-zinc-200">
                             {{ $row->clock_in ? $row->clock_in->format('H:i') : '-' }}
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap font-mono text-zinc-800 dark:text-zinc-200">
+                        </flux:table.cell>
+
+                        <flux:table.cell class="font-mono text-zinc-800 dark:text-zinc-200">
                             {{ $row->clock_out ? $row->clock_out->format('H:i') : '-' }}
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-zinc-600 dark:text-zinc-400">
+                        </flux:table.cell>
+
+                        <flux:table.cell class="text-zinc-600 dark:text-zinc-400">
                             {{ $row->work_duration_minutes ? intdiv($row->work_duration_minutes, 60).'j '.($row->work_duration_minutes % 60).'m' : '-' }}
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap">
+                        </flux:table.cell>
+
+                        <flux:table.cell>
                             @if($row->status === 'present')
-                                <flux:badge size="sm" color="emerald">Tepat Waktu</flux:badge>
+                                <flux:badge size="sm" color="emerald" inset="top bottom">Tepat Waktu</flux:badge>
                             @elseif($row->status === 'late')
-                                <flux:badge size="sm" color="amber">Telat {{ $row->late_duration_minutes }}m</flux:badge>
+                                <flux:badge size="sm" color="amber" inset="top bottom">Telat {{ $row->late_duration_minutes }}m</flux:badge>
                             @else
-                                <flux:badge size="sm" color="red">Absen</flux:badge>
+                                <flux:badge size="sm" color="red" inset="top bottom">Absen</flux:badge>
                             @endif
-                        </td>
-                        <td class="px-4 py-3 whitespace-nowrap text-right">
+                        </flux:table.cell>
+
+                        <flux:table.cell align="end">
                             @can('attendance.adjust_request')
                                 <flux:button 
                                     size="xs" 
@@ -165,67 +171,59 @@
                                     Koreksi
                                 </flux:button>
                             @endcan
-                        </td>
-                    </tr>
+                        </flux:table.cell>
+                    </flux:table.row>
                 @empty
-                    <tr>
-                        <td colspan="8" class="px-4 py-8 text-center text-zinc-400 italic">
+                    <flux:table.row>
+                        <flux:table.cell colspan="8" class="text-center py-8 text-zinc-400 italic">
                             Tidak ada catatan presensi pada rentang tanggal yang dipilih.
-                        </td>
-                    </tr>
+                        </flux:table.cell>
+                    </flux:table.row>
                 @endforelse
-            </tbody>
-        </table>
-
-        @if($attendances->hasPages())
-            <div class="p-4 border-t border-zinc-100 dark:border-zinc-800">
-                {{ $attendances->links() }}
-            </div>
-        @endif
+            </flux:table.rows>
+        </flux:table>
     </flux:card>
 
-    {{-- Adjustment Request Modal --}}
+    {{-- Flux Native Modal for Adjustment Request --}}
     @if($showAdjustmentModal)
-        <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/60 backdrop-blur-sm">
-            <flux:card class="w-full max-w-lg space-y-4 shadow-2xl">
-                <div class="flex items-center justify-between pb-3 border-b border-zinc-100 dark:border-zinc-800">
-                    <flux:heading size="lg">Form Pengajuan Koreksi Presensi</flux:heading>
-                    <flux:button size="sm" variant="subtle" icon="x-mark" wire:click="$set('showAdjustmentModal', false)" />
-                </div>
+        <flux:modal wire:model="showAdjustmentModal" class="md:w-[28rem] space-y-6">
+            <div>
+                <flux:heading size="lg">Form Pengajuan Koreksi Presensi</flux:heading>
+                <flux:subheading class="text-xs text-zinc-500">Koreksi memerlukan tinjauan dan persetujuan dari atasan / HR.</flux:subheading>
+            </div>
 
-                <form wire:submit="submitAdjustment" class="space-y-4">
-                    <div class="grid grid-cols-2 gap-3">
-                        <flux:input 
-                            wire:model="adjustedClockIn" 
-                            label="Jam Masuk Baru (JJ:MM)" 
-                            type="time" 
-                        />
-
-                        <flux:input 
-                            wire:model="adjustedClockOut" 
-                            label="Jam Pulang Baru (JJ:MM)" 
-                            type="time" 
-                        />
-                    </div>
-
-                    <flux:textarea 
-                        wire:model="adjustmentReason" 
-                        label="Alasan Pengajuan Koreksi" 
-                        placeholder="Contoh: Tugas operasi darurat di IGD, sistem presensi tidak sempat discan..." 
-                        rows="3"
-                        required 
+            <form wire:submit="submitAdjustment" class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <flux:input 
+                        wire:model="adjustedClockIn" 
+                        label="Jam Masuk (JJ:MM)" 
+                        type="time" 
                     />
 
-                    <div class="flex items-center justify-end gap-2 pt-3 border-t border-zinc-100 dark:border-zinc-800">
-                        <flux:button type="button" variant="subtle" wire:click="$set('showAdjustmentModal', false)">
-                            Batal
-                        </flux:button>
-                        <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
-                            Kirim Pengajuan
-                        </flux:button>
-                    </div>
-                </form>
-            </flux:card>
-        </div>
+                    <flux:input 
+                        wire:model="adjustedClockOut" 
+                        label="Jam Pulang (JJ:MM)" 
+                        type="time" 
+                    />
+                </div>
+
+                <flux:textarea 
+                    wire:model="adjustmentReason" 
+                    label="Alasan Pengajuan Koreksi" 
+                    placeholder="Contoh: Bertugas darurat di IGD, alat fingerprint belum sempat discan..." 
+                    rows="3"
+                    required 
+                />
+
+                <div class="flex items-center justify-end gap-2 pt-4">
+                    <flux:modal.close>
+                        <flux:button variant="subtle">Batal</flux:button>
+                    </flux:modal.close>
+                    <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
+                        Kirim Pengajuan
+                    </flux:button>
+                </div>
+            </form>
+        </flux:modal>
     @endif
 </div>

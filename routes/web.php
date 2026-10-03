@@ -7,6 +7,8 @@ use App\Livewire\Dashboard;
 use App\Livewire\Doctor\DoctorIndex;
 use App\Livewire\Employee\EmployeeIndex;
 use App\Livewire\Employee\EmployeeShow;
+use App\Livewire\Leave\LeaveApply;
+use App\Livewire\Leave\LeaveIndex;
 use App\Livewire\Schedule\ScheduleRoster;
 use App\Services\Audit\AuditService;
 use Illuminate\Http\Request;
@@ -29,6 +31,10 @@ Route::middleware('auth')->group(function () {
 
     // Duty Rosters & Shifts
     Route::get('/schedules', ScheduleRoster::class)->name('schedules.index');
+
+    // Leaves & Approvals
+    Route::get('/leaves', LeaveIndex::class)->name('leaves.index');
+    Route::get('/leaves/apply', LeaveApply::class)->name('leaves.apply');
 
     // Attendance & Geofencing Routes
     Route::get('/attendance', AttendanceIndex::class)->name('attendance.index');

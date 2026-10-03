@@ -24,6 +24,7 @@ class DatabaseSeeder extends Seeder
             LeaveSeeder::class,
             PayrollSeeder::class,
             DocumentSeeder::class,
+            TestUserSeeder::class,
         ]);
     }
 }

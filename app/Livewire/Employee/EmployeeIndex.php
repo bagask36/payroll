@@ -159,10 +159,18 @@ class EmployeeIndex extends Component
         $units = Unit::orderBy('name')->get();
         $positions = Position::orderBy('title')->get();
 
+        $stats = [
+            'total' => Employee::count(),
+            'active' => Employee::where('status', 'active')->count(),
+            'permanent' => Employee::whereHas('currentEmployment', fn ($q) => $q->where('contract_type', 'permanent'))->count(),
+            'contract' => Employee::whereHas('currentEmployment', fn ($q) => $q->where('contract_type', 'contract'))->count(),
+        ];
+
         return view('livewire.employee.employee-index', [
             'employees' => $employees,
             'units' => $units,
             'positions' => $positions,
+            'stats' => $stats,
         ]);
     }
 }

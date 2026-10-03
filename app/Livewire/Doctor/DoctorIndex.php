@@ -144,9 +144,20 @@ class DoctorIndex extends Component
         $doctors = $query->paginate(15);
         $specializations = Doctor::select('specialization')->distinct()->pluck('specialization');
 
+        $stats = [
+            'total' => Doctor::count(),
+            'organic' => Doctor::whereNotNull('employee_id')->count(),
+            'partner' => Doctor::whereNull('employee_id')->count(),
+            'attention' => Doctor::where(function ($q) {
+                $q->whereDate('str_valid_until', '<', Carbon::today()->addDays(60))
+                    ->orWhereDate('sip_valid_until', '<', Carbon::today()->addDays(60));
+            })->count(),
+        ];
+
         return view('livewire.doctor.doctor-index', [
             'doctors' => $doctors,
             'specializations' => $specializations,
+            'stats' => $stats,
         ]);
     }
 }
