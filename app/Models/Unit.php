@@ -55,6 +55,16 @@ class Unit extends Model
     }
 
     /**
+     * Employees assigned to this unit.
+     *
+     * @return HasMany<Employee, $this>
+     */
+    public function employees(): HasMany
+    {
+        return $this->hasMany(Employee::class);
+    }
+
+    /**
      * Scope to active units only.
      *
      * @param  Builder<$this>  $query

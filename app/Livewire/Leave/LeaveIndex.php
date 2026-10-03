@@ -42,6 +42,11 @@ class LeaveIndex extends Component
         ];
     }
 
+    // Detail Modal State
+    public bool $showDetailModal = false;
+
+    public ?LeaveRequest $selectedRequest = null;
+
     // Rejection Modal State
     public bool $showRejectModal = false;
 
@@ -55,6 +60,16 @@ class LeaveIndex extends Component
     public ?string $feedbackMessage = null;
 
     public ?string $errorMessage = null;
+
+    #[On('open-detail-modal')]
+    public function openDetailModal(int $requestId): void
+    {
+        $request = LeaveRequest::with(['leaveType', 'employee.unit', 'employee.position', 'doctor', 'approvals.approver'])->findOrFail($requestId);
+        $this->authorize('view', $request);
+
+        $this->selectedRequest = $request;
+        $this->showDetailModal = true;
+    }
 
     public function mount(): void
     {

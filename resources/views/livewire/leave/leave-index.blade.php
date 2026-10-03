@@ -162,4 +162,129 @@
             </form>
         </flux:modal>
     @endif
+
+    {{-- Detail Modal --}}
+    @if($showDetailModal && $selectedRequest)
+        <flux:modal wire:model="showDetailModal" class="md:w-[34rem] space-y-5">
+            <div>
+                <div class="flex items-center justify-between gap-3">
+                    <flux:heading size="lg">Detail Permohonan Cuti</flux:heading>
+                    @php
+                        $statusBadge = match ($selectedRequest->status) {
+                            'approved' => ['color' => 'emerald', 'label' => 'Disetujui'],
+                            'rejected' => ['color' => 'rose', 'label' => 'Ditolak'],
+                            'cancelled' => ['color' => 'zinc', 'label' => 'Dibatalkan'],
+                            'pending_tier2' => ['color' => 'blue', 'label' => 'Menunggu SDM (Tier 2)'],
+                            default => ['color' => 'amber', 'label' => 'Menunggu Supervisor (Tier 1)'],
+                        };
+                    @endphp
+                    <flux:badge :color="$statusBadge['color']" size="sm">
+                        {{ $statusBadge['label'] }}
+                    </flux:badge>
+                </div>
+                <flux:subheading class="text-xs text-zinc-500 mt-0.5">
+                    ID Tiket: <span class="font-mono">{{ substr($selectedRequest->uuid ?? (string) $selectedRequest->id, 0, 8) }}</span> • Diajukan: {{ $selectedRequest->created_at->translatedFormat('d M Y H:i') }}
+                </flux:subheading>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 p-3.5 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl text-xs">
+                <div>
+                    <span class="text-zinc-500 font-medium block">Nama Pemohon:</span>
+                    <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $selectedRequest->employee?->full_name ?? $selectedRequest->doctor?->name ?? 'Pegawai' }}</span>
+                    @if($selectedRequest->employee)
+                        <span class="text-zinc-400 block text-[11px] font-mono">{{ $selectedRequest->employee->nip }}</span>
+                    @endif
+                </div>
+
+                <div>
+                    <span class="text-zinc-500 font-medium block">Unit & Jabatan:</span>
+                    <span class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $selectedRequest->employee?->unit?->name ?? $selectedRequest->doctor?->specialization ?? '-' }}</span>
+                    <span class="text-zinc-400 block text-[11px]">{{ $selectedRequest->employee?->position?->title ?? 'Staf' }}</span>
+                </div>
+
+                <div>
+                    <span class="text-zinc-500 font-medium block">Jenis Cuti:</span>
+                    <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ $selectedRequest->leaveType?->name ?? 'Cuti' }}</span>
+                </div>
+
+                <div>
+                    <span class="text-zinc-500 font-medium block">Durasi Hari:</span>
+                    <span class="font-bold text-zinc-900 dark:text-zinc-100 font-mono">{{ $selectedRequest->total_days }} Hari Kerja</span>
+                </div>
+
+                <div class="col-span-2 pt-2 border-t border-zinc-200/60 dark:border-zinc-700/60">
+                    <span class="text-zinc-500 font-medium block">Rentang Tanggal:</span>
+                    <span class="font-mono text-zinc-800 dark:text-zinc-200 font-semibold">
+                        {{ $selectedRequest->start_date->translatedFormat('d F Y') }} s/d {{ $selectedRequest->end_date->translatedFormat('d F Y') }}
+                    </span>
+                </div>
+            </div>
+
+            <div>
+                <span class="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block mb-1">Alasan Pengajuan:</span>
+                <div class="p-3 bg-zinc-50 dark:bg-zinc-800/40 rounded-lg text-xs text-zinc-700 dark:text-zinc-300 border border-zinc-200/60 dark:border-zinc-800">
+                    {{ $selectedRequest->reason ?: 'Tidak ada keterangan tambahan.' }}
+                </div>
+            </div>
+
+            @if($selectedRequest->status === 'rejected' && $selectedRequest->rejection_reason)
+                <div class="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-xl space-y-1">
+                    <div class="flex items-center gap-1.5 text-xs font-bold text-rose-700 dark:text-rose-400">
+                        <flux:icon name="exclamation-circle" class="size-4 shrink-0" />
+                        <span>Alasan Penolakan Permohonan:</span>
+                    </div>
+                    <p class="text-xs text-rose-800 dark:text-rose-300 whitespace-pre-line pl-5">
+                        {{ $selectedRequest->rejection_reason }}
+                    </p>
+                </div>
+            @endif
+
+            @if($selectedRequest->approvals && $selectedRequest->approvals->isNotEmpty())
+                <div>
+                    <span class="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block mb-1.5">Riwayat Verifikasi:</span>
+                    <div class="space-y-2">
+                        @foreach($selectedRequest->approvals as $approval)
+                            <div class="p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs flex items-center justify-between">
+                                <div>
+                                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">
+                                        Tier {{ $approval->tier }}: {{ $approval->approver?->name ?? 'Verifikator' }}
+                                    </div>
+                                    @if($approval->notes)
+                                        <div class="text-[11px] text-zinc-500 italic mt-0.5">"{{ $approval->notes }}"</div>
+                                    @endif
+                                </div>
+                                <div class="text-right">
+                                    <flux:badge :color="$approval->status === 'approved' ? 'emerald' : 'rose'" size="xs">
+                                        {{ $approval->status === 'approved' ? 'Disetujui' : 'Ditolak' }}
+                                    </flux:badge>
+                                    <div class="text-[10px] text-zinc-400 mt-0.5">
+                                        {{ $approval->action_at ? $approval->action_at->translatedFormat('d/m/Y H:i') : '' }}
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <div class="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800">
+                <div>
+                    @if($selectedRequest->status === 'pending_tier1' && ($selectedRequest->isApplicant(auth()->user()) || auth()->user()?->can('cancel', $selectedRequest)))
+                        <flux:button 
+                            variant="danger" 
+                            size="sm"
+                            wire:click="cancelRequest({{ $selectedRequest->id }})"
+                            wire:confirm="Yakin ingin membatalkan permohonan cuti ini?"
+                        >
+                            Batalkan Permohonan
+                        </flux:button>
+                    @endif
+                </div>
+
+                <flux:modal.close>
+                    <flux:button variant="subtle" size="sm">Tutup</flux:button>
+                </flux:modal.close>
+            </div>
+        </flux:modal>
+    @endif
 </div>

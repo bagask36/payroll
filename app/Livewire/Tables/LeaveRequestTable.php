@@ -119,8 +119,14 @@ final class LeaveRequestTable extends PowerGridComponent
     public function actions(LeaveRequest $row): array
     {
         $actions = [];
+        $user = Auth::user();
 
-        if ($row->status === 'pending_tier1' && Auth::id() === $row->created_by) {
+        $actions[] = Button::add('viewDetail')
+            ->slot('Detail')
+            ->class('inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 shadow-2xs transition-colors cursor-pointer mr-1.5')
+            ->dispatch('open-detail-modal', ['requestId' => $row->id]);
+
+        if ($row->status === 'pending_tier1' && ($row->isApplicant($user) || $user?->can('cancel', $row))) {
             $actions[] = Button::add('cancelRequest')
                 ->slot('Batalkan')
                 ->class('inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:hover:bg-rose-900/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800 shadow-2xs transition-colors cursor-pointer')

@@ -74,6 +74,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/attendance', \App\Livewire\Report\AttendanceReportIndex::class)->name('reports.attendance');
     Route::get('/reports/leaves', \App\Livewire\Report\LeaveReportIndex::class)->name('reports.leaves');
     Route::get('/reports/payroll', \App\Livewire\Report\PayrollReportIndex::class)->name('reports.payroll');
+    Route::get('/reports/pph21', \App\Livewire\Report\Pph21ReportIndex::class)->name('reports.pph21');
     Route::get('/reports/doctors', \App\Livewire\Report\DoctorReportIndex::class)->name('reports.doctors');
 
     // System Settings & Hospital Config

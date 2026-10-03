@@ -80,6 +80,7 @@ class SidebarAndModulesTest extends TestCase
         $response->assertSee('Laporan Kehadiran');
         $response->assertSee('Laporan Cuti & Izin');
         $response->assertSee('Laporan Payroll');
+        $response->assertSee('Laporan PPh 21');
         $response->assertSee('Laporan Dokter');
 
         $response->assertSee('Audit Trail');
@@ -97,6 +98,7 @@ class SidebarAndModulesTest extends TestCase
             '/reports/attendance',
             '/reports/leaves',
             '/reports/payroll',
+            '/reports/pph21',
             '/reports/doctors',
             '/system/settings',
         ];

@@ -193,8 +193,9 @@
                     $canSeeAttendanceReport = auth()->user()?->can('attendance.view_all') || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('hr_manager') || auth()->user()?->hasRole('payroll');
                     $canSeeLeaveReport = auth()->user()?->can('leave.view_all') || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('hr_manager') || auth()->user()?->hasRole('payroll');
                     $canSeePayrollReport = auth()->user()?->can('payroll.view_all') || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_manager') || auth()->user()?->hasRole('payroll') || auth()->user()?->hasRole('finance');
+                    $canSeePph21Report = $canSeePayrollReport || auth()->user()?->can('statutory.view') || auth()->user()?->hasRole('finance');
                     $canSeeDoctorReport = auth()->user()?->can('doctor.view_credentials') || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('hr_manager');
-                    $canSeeReports = $canSeeEmployeeReport || $canSeeAttendanceReport || $canSeeLeaveReport || $canSeePayrollReport || $canSeeDoctorReport;
+                    $canSeeReports = $canSeeEmployeeReport || $canSeeAttendanceReport || $canSeeLeaveReport || $canSeePayrollReport || $canSeePph21Report || $canSeeDoctorReport;
                 @endphp
 
                 @if($canSeeReports)
@@ -226,6 +227,12 @@
                         @if($canSeePayrollReport)
                             <flux:sidebar.item icon="banknotes" href="{{ route('reports.payroll') }}" :current="request()->routeIs('reports.payroll')">
                                 Laporan Payroll
+                            </flux:sidebar.item>
+                        @endif
+
+                        @if($canSeePph21Report)
+                            <flux:sidebar.item icon="calculator" href="{{ route('reports.pph21') }}" :current="request()->routeIs('reports.pph21')">
+                                Laporan PPh 21
                             </flux:sidebar.item>
                         @endif
 
