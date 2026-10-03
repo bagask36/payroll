@@ -32,17 +32,17 @@
                 </flux:navlist.item>
 
                 <flux:navlist.group heading="Kepegawaian & Medis" class="mt-4">
-                    @can('employee.view_directory')
-                        <flux:navlist.item icon="users" href="{{ route('dashboard') }}">
+                    @if(auth()->user()?->can('employee.view'))
+                        <flux:navlist.item icon="users" href="{{ route('employees.index') }}" :current="request()->routeIs('employees.*')">
                             Pegawai & Staf
                         </flux:navlist.item>
-                    @endcan
+                    @endif
 
-                    @can('doctor.view_directory')
-                        <flux:navlist.item icon="user-group" href="{{ route('dashboard') }}">
+                    @if(auth()->user()?->can('doctor.view'))
+                        <flux:navlist.item icon="user-group" href="{{ route('doctors.index') }}" :current="request()->routeIs('doctors.*')">
                             Tenaga Medis & Dokter
                         </flux:navlist.item>
-                    @endcan
+                    @endif
 
                     @can('org.view')
                         <flux:navlist.item icon="building-office" href="{{ route('dashboard') }}">

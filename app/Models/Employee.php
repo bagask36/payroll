@@ -204,6 +204,14 @@ class Employee extends Model
     }
 
     /**
+     * Get employee name accessor (alias of full_name).
+     */
+    public function getNameAttribute(): string
+    {
+        return $this->full_name ?? '';
+    }
+
+    /**
      * Filter query to active employees only.
      *
      * @param  Builder<$this>  $query

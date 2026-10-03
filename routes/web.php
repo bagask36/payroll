@@ -4,6 +4,9 @@ use App\Livewire\Attendance\AttendanceIndex;
 use App\Livewire\Attendance\ClockInOut;
 use App\Livewire\Auth\Login;
 use App\Livewire\Dashboard;
+use App\Livewire\Doctor\DoctorIndex;
+use App\Livewire\Employee\EmployeeIndex;
+use App\Livewire\Employee\EmployeeShow;
 use App\Services\Audit\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +20,11 @@ Route::get('/login', Login::class)->name('login')->middleware('guest');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
+
+    // Employees & Doctors Routes
+    Route::get('/employees', EmployeeIndex::class)->name('employees.index');
+    Route::get('/employees/{id}', EmployeeShow::class)->name('employees.show');
+    Route::get('/doctors', DoctorIndex::class)->name('doctors.index');
 
     // Attendance & Geofencing Routes
     Route::get('/attendance', AttendanceIndex::class)->name('attendance.index');
