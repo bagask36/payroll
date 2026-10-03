@@ -98,6 +98,12 @@
                             Audit Trail Sistem
                         </flux:sidebar.item>
                     @endcan
+
+                    @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasPermission('system.config_view'))
+                        <flux:sidebar.item icon="cog-6-tooth" href="{{ route('master.index') }}" :current="request()->routeIs('master.*')">
+                            Master Data RS
+                        </flux:sidebar.item>
+                    @endif
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
@@ -136,7 +142,7 @@
         </flux:sidebar>
 
         {{-- Top App Header --}}
-        <flux:header container class="border-b border-zinc-200 bg-white lg:bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-900">
+        <flux:header sticky class="border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/90">
             <flux:sidebar.toggle class="me-4 lg:hidden" icon="bars-2" inset="left" />
 
             <flux:breadcrumbs class="max-sm:hidden">
@@ -147,6 +153,16 @@
             </flux:breadcrumbs>
 
             <flux:spacer />
+
+            <flux:button
+                x-data
+                x-on:click="$flux.dark = ! $flux.dark"
+                variant="subtle"
+                size="sm"
+                icon="moon"
+                class="me-2"
+                aria-label="Ganti mode gelap"
+            />
 
             <flux:dropdown position="bottom" align="end">
                 <flux:profile 
@@ -171,8 +187,8 @@
             </flux:dropdown>
         </flux:header>
 
-        {{-- Main Container --}}
-        <flux:main container>
+        {{-- Main Content (full width) --}}
+        <flux:main class="p-4! sm:p-6! lg:px-8!">
             {{ $slot }}
         </flux:main>
 

@@ -2,26 +2,49 @@
 
 namespace App\Livewire\Doctor;
 
+use App\Livewire\Concerns\WithDataTable;
 use App\Models\Doctor;
 use App\Services\Audit\AuditService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithPagination;
 
 #[Title('Direktori Tenaga Medis & Dokter - RS Juwita')]
 class DoctorIndex extends Component
 {
-    use WithPagination;
+    use WithDataTable;
 
-    public string $search = '';
-
+    #[Url(except: 'all')]
     public string $specializationFilter = 'all';
 
+    #[Url(except: 'all')]
     public string $licenseStatusFilter = 'all';
 
+    #[Url(except: 'all')]
     public string $doctorTypeFilter = 'all';
+
+    protected function sortableColumns(): array
+    {
+        return [
+            'name' => 'name',
+            'specialization' => 'specialization',
+            'str_valid_until' => 'str_valid_until',
+            'sip_valid_until' => 'sip_valid_until',
+            'doctor_type' => fn (Builder $q, string $dir) => $q->orderByRaw("CASE WHEN employee_id IS NOT NULL THEN 1 ELSE 2 END {$dir}"),
+        ];
+    }
+
+    protected function filterProperties(): array
+    {
+        return [
+            'specializationFilter' => 'all',
+            'licenseStatusFilter' => 'all',
+            'doctorTypeFilter' => 'all',
+        ];
+    }
 
     // Renewal Modal State
     public bool $showRenewalModal = false;
@@ -101,7 +124,7 @@ class DoctorIndex extends Component
 
     public function render()
     {
-        $query = Doctor::with(['employee.unit', 'employee.position'])->orderBy('name', 'asc');
+        $query = Doctor::with(['employee.unit', 'employee.position']);
 
         if (! empty($this->search)) {
             $term = '%'.$this->search.'%';
@@ -141,7 +164,9 @@ class DoctorIndex extends Component
                 ->whereDate('sip_valid_until', '>', $soonThreshold);
         }
 
-        $doctors = $query->paginate(15);
+        $this->applySorting($query, 'name', 'asc');
+
+        $doctors = $query->paginate($this->perPageValue());
         $specializations = Doctor::select('specialization')->distinct()->pluck('specialization');
 
         $stats = [

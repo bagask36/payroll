@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Payroll;
 
+use App\Livewire\Concerns\WithDataTable;
 use App\Models\Employee;
 use App\Models\PayrollItem;
 use App\Models\PayrollPeriod;
@@ -14,16 +15,32 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
-use Livewire\WithPagination;
 
 #[Title('Manajemen Penggajian (Payroll) - RS Juwita')]
 class PayrollIndex extends Component
 {
-    use WithPagination;
+    use WithDataTable;
 
     public ?int $selectedRunId = null;
 
-    public string $searchEmployee = '';
+    protected function sortableColumns(): array
+    {
+        return [
+            'employee' => fn ($q, $dir) => $q->orderBy(
+                Employee::select('full_name')->whereColumn('employees.id', 'payroll_items.employee_id'),
+                $dir
+            ),
+            'basic_salary' => 'basic_salary',
+            'bpjs_kes' => 'bpjs_kes_employee',
+            'bpjs_tk' => 'bpjs_tk_employee',
+            'net_salary' => 'net_salary',
+        ];
+    }
+
+    protected function filterProperties(): array
+    {
+        return [];
+    }
 
     // Calculate Modal State
     public bool $showCalculateModal = false;
@@ -157,15 +174,18 @@ class PayrollIndex extends Component
         $itemsQuery = PayrollItem::with(['employee.unit', 'employee.position'])
             ->where('payroll_run_id', $this->selectedRunId);
 
-        if ($this->searchEmployee !== '') {
-            $searchTerm = '%'.strtolower($this->searchEmployee).'%';
-            $itemsQuery->whereHas('employee', function ($q) use ($searchTerm) {
-                $q->whereRaw('LOWER(full_name) LIKE ?', [$searchTerm])
-                    ->orWhereRaw('LOWER(nip) LIKE ?', [$searchTerm]);
+        $searchTerm = trim($this->search);
+        if ($searchTerm !== '') {
+            $like = '%'.strtolower($searchTerm).'%';
+            $itemsQuery->whereHas('employee', function ($q) use ($like) {
+                $q->whereRaw('LOWER(full_name) LIKE ?', [$like])
+                    ->orWhereRaw('LOWER(nip) LIKE ?', [$like]);
             });
         }
 
-        $items = $itemsQuery->orderBy('id')->paginate(15);
+        $this->applySorting($itemsQuery, 'id', 'asc');
+
+        $items = $itemsQuery->paginate($this->perPageValue());
 
         $viewingItem = $this->viewingItemId ? PayrollItem::with(['employee.unit', 'employee.position'])->find($this->viewingItemId) : null;
 

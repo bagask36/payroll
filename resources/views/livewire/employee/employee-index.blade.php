@@ -32,85 +32,115 @@
 
     {{-- KPI Metric Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <flux:card variant="soft" class="relative">
-            <flux:text class="truncate font-medium">Total Seluruh Pegawai</flux:text>
-            <flux:heading size="xl" class="mt-2">{{ $stats['total'] }}</flux:heading>
-            <flux:text class="text-xs text-zinc-500 mt-1">Staf Medis & Non-Medis</flux:text>
-        </flux:card>
-
-        <flux:card variant="soft" class="relative">
-            <flux:text class="truncate font-medium">Pegawai Aktif Bekerja</flux:text>
-            <flux:heading size="xl" class="mt-2 text-emerald-600 dark:text-emerald-400">{{ $stats['active'] }}</flux:heading>
-            <flux:text class="text-xs text-zinc-500 mt-1">Status Keaktifan Aktif</flux:text>
-        </flux:card>
-
-        <flux:card variant="soft" class="relative">
-            <flux:text class="truncate font-medium">Pegawai Tetap (PKWTT)</flux:text>
-            <flux:heading size="xl" class="mt-2 text-blue-600 dark:text-blue-400">{{ $stats['permanent'] }}</flux:heading>
-            <flux:text class="text-xs text-zinc-500 mt-1">Ikatan Kerja Permanen</flux:text>
-        </flux:card>
-
-        <flux:card variant="soft" class="relative">
-            <flux:text class="truncate font-medium">Pegawai Kontrak (PKWT)</flux:text>
-            <flux:heading size="xl" class="mt-2 text-indigo-600 dark:text-indigo-400">{{ $stats['contract'] }}</flux:heading>
-            <flux:text class="text-xs text-zinc-500 mt-1">Perjanjian Waktu Tertentu</flux:text>
-        </flux:card>
+        <x-stat-card 
+            label="Total Pegawai" 
+            :value="$stats['total']" 
+            icon="users" 
+            color="zinc" 
+            sublabel="Seluruh staf terdaftar" 
+        />
+        <x-stat-card 
+            label="Pegawai Aktif" 
+            :value="$stats['active']" 
+            icon="check-circle" 
+            color="emerald" 
+            sublabel="Status operasional aktif" 
+        />
+        <x-stat-card 
+            label="Pegawai Tetap (PKWTT)" 
+            :value="$stats['permanent']" 
+            icon="building-office-2" 
+            color="blue" 
+            sublabel="Ikatan kerja permanen" 
+        />
+        <x-stat-card 
+            label="Pegawai Kontrak (PKWT)" 
+            :value="$stats['contract']" 
+            icon="document-text" 
+            color="amber" 
+            sublabel="Perjanjian waktu tertentu" 
+        />
     </div>
 
-    {{-- Filters --}}
-    <flux:card class="space-y-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <flux:input 
-                wire:model.live.debounce.300ms="search" 
-                label="Cari Pegawai" 
-                placeholder="Ketik Nama atau NIP..."
-                icon="magnifying-glass"
-                clearable
-            />
+    {{-- DataTable Toolbar with Search, Filters, and Per-Page Selector --}}
+    <x-datatable.toolbar 
+        :search="$search" 
+        search-placeholder="Ketik Nama atau NIP pegawai..."
+        :per-page="$perPage"
+        :active-filters-count="$this->activeFiltersCount"
+    >
+        <flux:select wire:model.live="unitFilter" label="Unit / Bagian">
+            <flux:select.option value="all">Semua Unit</flux:select.option>
+            @foreach($units as $u)
+                <flux:select.option value="{{ $u->id }}">{{ $u->name }}</flux:select.option>
+            @endforeach
+        </flux:select>
 
-            <flux:select wire:model.live="unitFilter" label="Unit / Bagian">
-                <flux:select.option value="all">Semua Unit</flux:select.option>
-                @foreach($units as $u)
-                    <flux:select.option value="{{ $u->id }}">{{ $u->name }}</flux:select.option>
-                @endforeach
-            </flux:select>
+        <flux:select wire:model.live="contractFilter" label="Ikatan Kerja">
+            <flux:select.option value="all">Semua Ikatan Kerja</flux:select.option>
+            <flux:select.option value="permanent">Tetap (PKWTT)</flux:select.option>
+            <flux:select.option value="contract">Kontrak (PKWT)</flux:select.option>
+            <flux:select.option value="probation">Masa Percobaan</flux:select.option>
+        </flux:select>
 
-            <flux:select wire:model.live="contractFilter" label="Ikatan Kerja">
-                <flux:select.option value="all">Semua Ikatan Kerja</flux:select.option>
-                <flux:select.option value="permanent">Tetap (PKWTT)</flux:select.option>
-                <flux:select.option value="contract">Kontrak (PKWT)</flux:select.option>
-                <flux:select.option value="probation">Masa Percobaan</flux:select.option>
-            </flux:select>
-
-            <flux:select wire:model.live="statusFilter" label="Status Keaktifan">
-                <flux:select.option value="all">Semua Status</flux:select.option>
-                <flux:select.option value="active">Aktif</flux:select.option>
-                <flux:select.option value="inactive">Nonaktif</flux:select.option>
-            </flux:select>
-        </div>
-    </flux:card>
+        <flux:select wire:model.live="statusFilter" label="Status Keaktifan">
+            <flux:select.option value="all">Semua Status</flux:select.option>
+            <flux:select.option value="active">Aktif</flux:select.option>
+            <flux:select.option value="inactive">Nonaktif</flux:select.option>
+        </flux:select>
+    </x-datatable.toolbar>
 
     {{-- Native Flux Table --}}
-    <flux:card class="p-0 overflow-hidden">
+    <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
         <flux:table :paginate="$employees">
             <flux:table.columns>
-                <flux:table.column>Pegawai</flux:table.column>
-                <flux:table.column>Unit Kerja</flux:table.column>
-                <flux:table.column>Jabatan</flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'full_name'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('full_name')"
+                >
+                    Pegawai
+                </flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'unit'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('unit')"
+                >
+                    Unit Kerja
+                </flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'position'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('position')"
+                >
+                    Jabatan
+                </flux:table.column>
                 <flux:table.column>Ikatan Kerja</flux:table.column>
                 <flux:table.column>Kontak</flux:table.column>
-                <flux:table.column>Status</flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'status'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('status')"
+                >
+                    Status
+                </flux:table.column>
                 <flux:table.column align="end">Aksi</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @forelse($employees as $emp)
-                    <flux:table.row :key="$emp->id">
+                    <flux:table.row :key="$emp->id" class="hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40 transition-colors">
                         <flux:table.cell>
                             <div class="flex items-center gap-3">
                                 <flux:avatar initials="{{ strtoupper(substr($emp->full_name, 0, 2)) }}" size="sm" color="zinc" />
                                 <div>
-                                    <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $emp->full_name }}</div>
+                                    <div class="font-medium text-zinc-900 dark:text-zinc-100 hover:text-emerald-600 transition-colors">
+                                        <a href="{{ route('employees.show', $emp->id) }}">{{ $emp->full_name }}</a>
+                                    </div>
                                     <div class="text-xs font-mono text-zinc-400">{{ $emp->nip }}</div>
                                 </div>
                             </div>
@@ -163,8 +193,11 @@
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="7" class="text-center py-8 text-zinc-400 italic">
-                            Tidak ditemukan data pegawai yang sesuai dengan kriteria pencarian.
+                        <flux:table.cell colspan="7" class="p-0">
+                            <x-datatable.empty 
+                                title="Data Pegawai Tidak Ditemukan" 
+                                description="Tidak ada data pegawai yang sesuai dengan filter atau kata kunci pencarian Anda." 
+                            />
                         </flux:table.cell>
                     </flux:table.row>
                 @endforelse

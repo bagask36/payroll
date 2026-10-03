@@ -11,6 +11,7 @@ use App\Livewire\Employee\EmployeeIndex;
 use App\Livewire\Employee\EmployeeShow;
 use App\Livewire\Leave\LeaveApply;
 use App\Livewire\Leave\LeaveIndex;
+use App\Livewire\Master\MasterIndex;
 use App\Livewire\Payroll\MyPayslips;
 use App\Livewire\Payroll\PayrollIndex;
 use App\Livewire\Schedule\ScheduleRoster;
@@ -49,6 +50,9 @@ Route::middleware('auth')->group(function () {
 
     // System Audit Trail Explorer
     Route::get('/audit-logs', AuditLogIndex::class)->name('audit-logs.index');
+
+    // Master Data Hub
+    Route::get('/master', MasterIndex::class)->name('master.index');
 
     // Attendance & Geofencing Routes
     Route::get('/attendance', AttendanceIndex::class)->name('attendance.index');

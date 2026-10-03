@@ -2,28 +2,31 @@
 
 namespace App\Livewire\Employee;
 
+use App\Livewire\Concerns\WithDataTable;
 use App\Models\Employee;
 use App\Models\EmployeeEmployment;
 use App\Models\Position;
 use App\Models\Unit;
 use App\Services\Audit\AuditService;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithPagination;
 
 #[Title('Direktori Pegawai - RS Juwita')]
 class EmployeeIndex extends Component
 {
-    use WithPagination;
+    use WithDataTable;
 
-    public string $search = '';
-
+    #[Url(except: 'all')]
     public string $unitFilter = 'all';
 
+    #[Url(except: 'active')]
     public string $statusFilter = 'active';
 
+    #[Url(except: 'all')]
     public string $contractFilter = 'all';
 
     // Create Employee Modal State
@@ -74,6 +77,32 @@ class EmployeeIndex extends Component
         $this->birthDate = Carbon::today()->subYears(25)->toDateString();
         $this->birthPlace = 'Jakarta';
         $this->address = 'Jl. Teratai No. 12, Jakarta';
+    }
+
+    protected function sortableColumns(): array
+    {
+        return [
+            'full_name' => 'full_name',
+            'nip' => 'nip',
+            'status' => 'status',
+            'unit' => fn (Builder $q, string $dir) => $q->orderBy(
+                Unit::select('name')->whereColumn('units.id', 'employees.unit_id'),
+                $dir
+            ),
+            'position' => fn (Builder $q, string $dir) => $q->orderBy(
+                Position::select('title')->whereColumn('positions.id', 'employees.position_id'),
+                $dir
+            ),
+        ];
+    }
+
+    protected function filterProperties(): array
+    {
+        return [
+            'unitFilter' => 'all',
+            'statusFilter' => 'active',
+            'contractFilter' => 'all',
+        ];
     }
 
     public function openCreateModal(): void
@@ -130,8 +159,7 @@ class EmployeeIndex extends Component
 
     public function render()
     {
-        $query = Employee::with(['unit', 'position', 'currentEmployment'])
-            ->orderBy('full_name', 'asc');
+        $query = Employee::with(['unit', 'position', 'currentEmployment']);
 
         if (! empty($this->search)) {
             $term = '%'.$this->search.'%';
@@ -155,7 +183,9 @@ class EmployeeIndex extends Component
             });
         }
 
-        $employees = $query->paginate(15);
+        $this->applySorting($query, 'full_name', 'asc');
+
+        $employees = $query->paginate($this->perPageValue());
         $units = Unit::orderBy('name')->get();
         $positions = Position::orderBy('title')->get();
 

@@ -92,145 +92,180 @@
         {{-- KPI Summary Cards for Selected Run --}}
         @if($selectedRun)
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                <div class="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/60 dark:border-zinc-700/60">
-                    <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Total Gaji Pokok & Tunjangan</span>
-                    <div class="text-xl font-bold font-mono text-zinc-900 dark:text-zinc-100 mt-1">
-                        Rp {{ number_format((float) $selectedRun->total_gross_pay, 0, ',', '.') }}
-                    </div>
-                    <div class="text-[11px] text-zinc-400 mt-0.5">Penghasilan bruto seluruh personil</div>
-                </div>
-
-                <div class="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/60 dark:border-zinc-700/60">
-                    <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Total Potongan (BPJS & Pajak)</span>
-                    <div class="text-xl font-bold font-mono text-rose-600 dark:text-rose-400 mt-1">
-                        Rp {{ number_format((float) $selectedRun->total_deductions, 0, ',', '.') }}
-                    </div>
-                    <div class="text-[11px] text-zinc-400 mt-0.5">Iuran BPJS Karyawan & Potongan</div>
-                </div>
-
-                <div class="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50">
-                    <span class="text-xs font-semibold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider">Total Gaji Bersih (Net Pay)</span>
-                    <div class="text-xl font-bold font-mono text-emerald-700 dark:text-emerald-400 mt-1">
-                        Rp {{ number_format((float) $selectedRun->total_net_pay, 0, ',', '.') }}
-                    </div>
-                    <div class="text-[11px] text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">Total komitmen dana pencairan bank</div>
-                </div>
-
-                <div class="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/60 dark:border-zinc-700/60">
-                    <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Informasi Audit Batch</span>
-                    <div class="text-xs text-zinc-700 dark:text-zinc-300 mt-1.5 space-y-0.5">
-                        <div>Diproses: <span class="font-medium">{{ $selectedRun->processedBy?->name ?? '-' }}</span></div>
-                        <div>Difinalisasi: <span class="font-medium">{{ $selectedRun->finalizedBy?->name ?? 'Belum' }}</span></div>
-                    </div>
-                </div>
+                <x-stat-card 
+                    label="Total Penghasilan Bruto" 
+                    value="Rp {{ number_format((float) $selectedRun->total_gross_pay, 0, ',', '.') }}" 
+                    icon="banknotes" 
+                    color="zinc" 
+                    sublabel="Gaji pokok & seluruh tunjangan" 
+                />
+                <x-stat-card 
+                    label="Total Potongan (BPJS & Pajak)" 
+                    value="Rp {{ number_format((float) $selectedRun->total_deductions, 0, ',', '.') }}" 
+                    icon="receipt-refund" 
+                    color="red" 
+                    sublabel="Iuran BPJS karyawan & potongan" 
+                />
+                <x-stat-card 
+                    label="Total Gaji Bersih (Net Pay)" 
+                    value="Rp {{ number_format((float) $selectedRun->total_net_pay, 0, ',', '.') }}" 
+                    icon="check-circle" 
+                    color="emerald" 
+                    sublabel="Komitmen transfer pencairan bank" 
+                />
+                <x-stat-card 
+                    label="Status Pemrosesan" 
+                    value="{{ strtoupper($selectedRun->status) }}" 
+                    icon="shield-check" 
+                    color="blue" 
+                    sublabel="Diproses: {{ $selectedRun->processedBy?->name ?? '-' }}" 
+                />
             </div>
         @endif
     </flux:card>
 
     {{-- Items Breakdown Table --}}
     @if($selectedRun)
-        <flux:card class="p-0 overflow-hidden">
-            <div class="p-4 border-b border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <flux:heading size="md">Rincian Slip Gaji Personil</flux:heading>
+                    <flux:heading size="lg" class="font-bold text-zinc-900 dark:text-zinc-100">
+                        Rincian Slip Gaji Personil
+                    </flux:heading>
                     <flux:badge size="xs" color="zinc">{{ $items->total() }} Pegawai</flux:badge>
-                </div>
-
-                <div class="w-full sm:w-64">
-                    <flux:input 
-                        wire:model.live.debounce.300ms="searchEmployee" 
-                        placeholder="Cari nama pegawai / NIP..." 
-                        icon="magnifying-glass"
-                        size="sm"
-                    />
                 </div>
             </div>
 
-            <flux:table>
-                <flux:table.columns>
-                    <flux:table.column>Pegawai</flux:table.column>
-                    <flux:table.column>Unit & Jabatan</flux:table.column>
-                    <flux:table.column align="end">Gaji Pokok</flux:table.column>
-                    <flux:table.column align="end">BPJS Kes (1%)</flux:table.column>
-                    <flux:table.column align="end">BPJS TK (3%)</flux:table.column>
-                    <flux:table.column align="end">Gaji Bersih</flux:table.column>
-                    <flux:table.column>Rekening Bank</flux:table.column>
-                    <flux:table.column align="end">Aksi</flux:table.column>
-                </flux:table.columns>
+            <x-datatable.toolbar 
+                :search="$search" 
+                search-placeholder="Cari nama pegawai atau NIP..."
+                :per-page="$perPage"
+                :active-filters-count="$this->activeFiltersCount"
+            />
 
-                <flux:table.rows>
-                    @forelse($items as $item)
-                        <flux:table.row :key="$item->id">
-                            <flux:table.cell>
-                                <div class="font-semibold text-zinc-900 dark:text-zinc-100">
-                                    {{ $item->employee?->full_name }}
-                                </div>
-                                <div class="text-xs font-mono text-zinc-400">
-                                    {{ $item->employee?->nip }}
-                                </div>
-                            </flux:table.cell>
+            <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+                <flux:table :paginate="$items">
+                    <flux:table.columns>
+                        <flux:table.column 
+                            sortable 
+                            :sorted="$sortBy === 'employee'" 
+                            :direction="$sortDirection" 
+                            wire:click="sort('employee')"
+                        >
+                            Pegawai
+                        </flux:table.column>
+                        <flux:table.column>Unit & Jabatan</flux:table.column>
+                        <flux:table.column 
+                            align="end" 
+                            sortable 
+                            :sorted="$sortBy === 'basic_salary'" 
+                            :direction="$sortDirection" 
+                            wire:click="sort('basic_salary')"
+                        >
+                            Gaji Pokok
+                        </flux:table.column>
+                        <flux:table.column 
+                            align="end" 
+                            sortable 
+                            :sorted="$sortBy === 'bpjs_kes'" 
+                            :direction="$sortDirection" 
+                            wire:click="sort('bpjs_kes')"
+                        >
+                            BPJS Kes (1%)
+                        </flux:table.column>
+                        <flux:table.column 
+                            align="end" 
+                            sortable 
+                            :sorted="$sortBy === 'bpjs_tk'" 
+                            :direction="$sortDirection" 
+                            wire:click="sort('bpjs_tk')"
+                        >
+                            BPJS TK (3%)
+                        </flux:table.column>
+                        <flux:table.column 
+                            align="end" 
+                            sortable 
+                            :sorted="$sortBy === 'net_salary'" 
+                            :direction="$sortDirection" 
+                            wire:click="sort('net_salary')"
+                        >
+                            Gaji Bersih
+                        </flux:table.column>
+                        <flux:table.column>Rekening Bank</flux:table.column>
+                        <flux:table.column align="end">Aksi</flux:table.column>
+                    </flux:table.columns>
 
-                            <flux:table.cell class="text-xs text-zinc-500">
-                                <div>{{ $item->employee?->unit?->name ?? '-' }}</div>
-                                <div class="text-[11px] text-zinc-400">
-                                    {{ $item->employee?->position?->title ?? '-' }}
-                                </div>
-                            </flux:table.cell>
+                    <flux:table.rows>
+                        @forelse($items as $item)
+                            <flux:table.row :key="$item->id" class="hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40 transition-colors">
+                                <flux:table.cell>
+                                    <div class="font-semibold text-zinc-900 dark:text-zinc-100">
+                                        {{ $item->employee?->full_name }}
+                                    </div>
+                                    <div class="text-xs font-mono text-zinc-400">
+                                        {{ $item->employee?->nip }}
+                                    </div>
+                                </flux:table.cell>
 
-                            <flux:table.cell align="end" class="font-mono text-xs text-zinc-700 dark:text-zinc-300">
-                                Rp {{ number_format((float) $item->basic_salary, 0, ',', '.') }}
-                            </flux:table.cell>
+                                <flux:table.cell class="text-xs text-zinc-500">
+                                    <div>{{ $item->employee?->unit?->name ?? '-' }}</div>
+                                    <div class="text-[11px] text-zinc-400">
+                                        {{ $item->employee?->position?->title ?? '-' }}
+                                    </div>
+                                </flux:table.cell>
 
-                            <flux:table.cell align="end" class="font-mono text-xs text-rose-600 dark:text-rose-400">
-                                -Rp {{ number_format((float) $item->bpjs_kes_employee, 0, ',', '.') }}
-                            </flux:table.cell>
+                                <flux:table.cell align="end" class="font-mono text-xs text-zinc-700 dark:text-zinc-300">
+                                    Rp {{ number_format((float) $item->basic_salary, 0, ',', '.') }}
+                                </flux:table.cell>
 
-                            <flux:table.cell align="end" class="font-mono text-xs text-rose-600 dark:text-rose-400">
-                                -Rp {{ number_format((float) $item->bpjs_tk_employee, 0, ',', '.') }}
-                            </flux:table.cell>
+                                <flux:table.cell align="end" class="font-mono text-xs text-rose-600 dark:text-rose-400">
+                                    -Rp {{ number_format((float) $item->bpjs_kes_employee, 0, ',', '.') }}
+                                </flux:table.cell>
 
-                            <flux:table.cell align="end" class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                                Rp {{ number_format((float) $item->net_salary, 0, ',', '.') }}
-                            </flux:table.cell>
+                                <flux:table.cell align="end" class="font-mono text-xs text-rose-600 dark:text-rose-400">
+                                    -Rp {{ number_format((float) $item->bpjs_tk_employee, 0, ',', '.') }}
+                                </flux:table.cell>
 
-                            <flux:table.cell class="text-xs text-zinc-500">
-                                <div>{{ $item->bank_name ?? '-' }}</div>
-                                <div class="text-[11px] font-mono text-zinc-400">
-                                    @if($item->bank_account_number)
-                                        **** {{ substr($item->bank_account_number, -4) }}
-                                    @else
-                                        -
-                                    @endif
-                                </div>
-                            </flux:table.cell>
+                                <flux:table.cell align="end" class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                    Rp {{ number_format((float) $item->net_salary, 0, ',', '.') }}
+                                </flux:table.cell>
 
-                            <flux:table.cell align="end">
-                                <flux:button 
-                                    size="xs" 
-                                    variant="subtle" 
-                                    icon="document-magnifying-glass"
-                                    wire:click="viewItemDetail({{ $item->id }})"
-                                >
-                                    Rincian
-                                </flux:button>
-                            </flux:table.cell>
-                        </flux:table.row>
-                    @empty
-                        <flux:table.row>
-                            <flux:table.cell colspan="8" class="text-center py-10 text-zinc-400 italic">
-                                Belum ada rincian slip gaji untuk batch payroll ini.
-                            </flux:table.cell>
-                        </flux:table.row>
-                    @endforelse
-                </flux:table.rows>
-            </flux:table>
+                                <flux:table.cell class="text-xs text-zinc-500">
+                                    <div>{{ $item->bank_name ?? '-' }}</div>
+                                    <div class="text-[11px] font-mono text-zinc-400">
+                                        @if($item->bank_account_number)
+                                            **** {{ substr($item->bank_account_number, -4) }}
+                                        @else
+                                            -
+                                        @endif
+                                    </div>
+                                </flux:table.cell>
 
-            @if($items->hasPages())
-                <div class="p-4 border-t border-zinc-100 dark:border-zinc-800">
-                    {{ $items->links() }}
-                </div>
-            @endif
-        </flux:card>
+                                <flux:table.cell align="end">
+                                    <flux:button 
+                                        size="xs" 
+                                        variant="subtle" 
+                                        icon="document-magnifying-glass"
+                                        wire:click="viewItemDetail({{ $item->id }})"
+                                    >
+                                        Rincian
+                                    </flux:button>
+                                </flux:table.cell>
+                            </flux:table.row>
+                        @empty
+                            <flux:table.row>
+                                <flux:table.cell colspan="8" class="p-0">
+                                    <x-datatable.empty 
+                                        title="Slip Gaji Tidak Ditemukan" 
+                                        description="Belum ada rincian slip gaji untuk batch payroll ini atau tidak ada data yang cocok dengan kata kunci pencarian Anda." 
+                                    />
+                                </flux:table.cell>
+                            </flux:table.row>
+                        @endforelse
+                    </flux:table.rows>
+                </flux:table>
+            </flux:card>
+        </div>
     @else
         <flux:card class="text-center py-16">
             <flux:icon name="banknotes" class="size-12 mx-auto text-zinc-300 dark:text-zinc-600 mb-3" />

@@ -22,83 +22,109 @@
         </div>
     @endif
 
-    {{-- KPI Metric Cards (like Table / Sales Demo) --}}
+    {{-- KPI Metric Cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <flux:card variant="soft" class="relative">
-            <flux:text class="truncate font-medium">Total Dokter Terdaftar</flux:text>
-            <flux:heading size="xl" class="mt-2">{{ $stats['total'] }}</flux:heading>
-            <flux:text class="text-xs text-zinc-500 mt-1">Spesialis & Dokter Jaga</flux:text>
-        </flux:card>
-
-        <flux:card variant="soft" class="relative">
-            <flux:text class="truncate font-medium">Dokter Organik RS</flux:text>
-            <flux:heading size="xl" class="mt-2 text-emerald-600 dark:text-emerald-400">{{ $stats['organic'] }}</flux:heading>
-            <flux:text class="text-xs text-zinc-500 mt-1">Status Pegawai RS Juwita</flux:text>
-        </flux:card>
-
-        <flux:card variant="soft" class="relative">
-            <flux:text class="truncate font-medium">Dokter Mitra / Tamu</flux:text>
-            <flux:heading size="xl" class="mt-2 text-blue-600 dark:text-blue-400">{{ $stats['partner'] }}</flux:heading>
-            <flux:text class="text-xs text-zinc-500 mt-1">Kemitraan Klinis</flux:text>
-        </flux:card>
-
-        <flux:card variant="soft" class="relative">
-            <flux:text class="truncate font-medium">Perlu Perhatian Lisensi</flux:text>
-            <flux:heading size="xl" class="mt-2 {{ $stats['attention'] > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-zinc-600' }}">
-                {{ $stats['attention'] }}
-            </flux:heading>
-            <flux:text class="text-xs text-zinc-500 mt-1">&lt; 60 Hari / Kedaluwarsa</flux:text>
-        </flux:card>
+        <x-stat-card 
+            label="Total Dokter Terdaftar" 
+            :value="$stats['total']" 
+            icon="users" 
+            color="zinc" 
+            sublabel="Spesialis & dokter jaga" 
+        />
+        <x-stat-card 
+            label="Dokter Organik RS" 
+            :value="$stats['organic']" 
+            icon="check-circle" 
+            color="emerald" 
+            sublabel="Staf medis tetap RS Juwita" 
+        />
+        <x-stat-card 
+            label="Dokter Mitra / Tamu" 
+            :value="$stats['partner']" 
+            icon="user-group" 
+            color="blue" 
+            sublabel="Kerjasama kemitraan klinis" 
+        />
+        <x-stat-card 
+            label="Perlu Perhatian Lisensi" 
+            :value="$stats['attention']" 
+            icon="exclamation-triangle" 
+            color="amber" 
+            sublabel="< 60 Hari / Kedaluwarsa" 
+        />
     </div>
 
-    {{-- Search & Filters --}}
-    <flux:card class="space-y-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            <flux:input 
-                wire:model.live.debounce.300ms="search" 
-                label="Cari Dokter" 
-                placeholder="Ketik Nama, Spesialisasi, No. STR/SIP..."
-                icon="magnifying-glass"
-                clearable
-            />
+    {{-- DataTable Toolbar with Search, Filters, and Per-Page Selector --}}
+    <x-datatable.toolbar 
+        :search="$search" 
+        search-placeholder="Ketik Nama, Spesialisasi, No. STR/SIP..."
+        :per-page="$perPage"
+        :active-filters-count="$this->activeFiltersCount"
+    >
+        <flux:select wire:model.live="specializationFilter" label="Spesialisasi Medis">
+            <flux:select.option value="all">Semua Spesialisasi</flux:select.option>
+            @foreach($specializations as $spec)
+                <flux:select.option value="{{ $spec }}">{{ $spec }}</flux:select.option>
+            @endforeach
+        </flux:select>
 
-            <flux:select wire:model.live="specializationFilter" label="Spesialisasi Medis">
-                <flux:select.option value="all">Semua Spesialisasi</flux:select.option>
-                @foreach($specializations as $spec)
-                    <flux:select.option value="{{ $spec }}">{{ $spec }}</flux:select.option>
-                @endforeach
-            </flux:select>
+        <flux:select wire:model.live="licenseStatusFilter" label="Status Kepatuhan Lisensi">
+            <flux:select.option value="all">Semua Kepatuhan</flux:select.option>
+            <flux:select.option value="expiring_soon">Segera Berakhir (&lt; 60 Hari)</flux:select.option>
+            <flux:select.option value="expired">Telah Kedaluwarsa</flux:select.option>
+            <flux:select.option value="valid">Masa Berlaku Aman</flux:select.option>
+        </flux:select>
 
-            <flux:select wire:model.live="licenseStatusFilter" label="Status Kepatuhan Lisensi">
-                <flux:select.option value="all">Semua Kepatuhan</flux:select.option>
-                <flux:select.option value="expiring_soon">Segera Berakhir (&lt; 60 Hari)</flux:select.option>
-                <flux:select.option value="expired">Telah Kedaluwarsa</flux:select.option>
-                <flux:select.option value="valid">Masa Berlaku Aman</flux:select.option>
-            </flux:select>
-
-            <flux:select wire:model.live="doctorTypeFilter" label="Kategori Dokter">
-                <flux:select.option value="all">Semua Kategori</flux:select.option>
-                <flux:select.option value="organic">Dokter Organik (Pegawai RS)</flux:select.option>
-                <flux:select.option value="partner">Dokter Mitra / Tamu</flux:select.option>
-            </flux:select>
-        </div>
-    </flux:card>
+        <flux:select wire:model.live="doctorTypeFilter" label="Kategori Dokter">
+            <flux:select.option value="all">Semua Kategori</flux:select.option>
+            <flux:select.option value="organic">Dokter Organik (Pegawai RS)</flux:select.option>
+            <flux:select.option value="partner">Dokter Mitra / Tamu</flux:select.option>
+        </flux:select>
+    </x-datatable.toolbar>
 
     {{-- Native Flux Table --}}
-    <flux:card class="p-0 overflow-hidden">
+    <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
         <flux:table :paginate="$doctors">
             <flux:table.columns>
-                <flux:table.column>Dokter & Spesialisasi</flux:table.column>
-                <flux:table.column>Kategori</flux:table.column>
-                <flux:table.column>Lisensi STR (Kemenkes)</flux:table.column>
-                <flux:table.column>Izin Praktik SIP (Dinkes)</flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'name'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('name')"
+                >
+                    Dokter & Spesialisasi
+                </flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'doctor_type'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('doctor_type')"
+                >
+                    Kategori
+                </flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'str_valid_until'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('str_valid_until')"
+                >
+                    Lisensi STR (Kemenkes)
+                </flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'sip_valid_until'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('sip_valid_until')"
+                >
+                    Izin Praktik SIP (Dinkes)
+                </flux:table.column>
                 <flux:table.column>Kontak</flux:table.column>
                 <flux:table.column align="end">Aksi</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @forelse($doctors as $doc)
-                    <flux:table.row :key="$doc->id">
+                    <flux:table.row :key="$doc->id" class="hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40 transition-colors">
                         <flux:table.cell>
                             <div class="flex items-center gap-3">
                                 <flux:avatar initials="{{ strtoupper(substr(str_replace(['dr. ', 'drg. ', 'Sp.'], '', $doc->name), 0, 2)) }}" size="sm" color="zinc" />
@@ -163,8 +189,11 @@
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="6" class="text-center py-8 text-zinc-400 italic">
-                            Tidak ditemukan dokter sesuai kriteria filter yang dipilih.
+                        <flux:table.cell colspan="6" class="p-0">
+                            <x-datatable.empty 
+                                title="Data Tenaga Medis Tidak Ditemukan" 
+                                description="Tidak ditemukan data dokter yang sesuai dengan filter atau kata kunci pencarian Anda." 
+                            />
                         </flux:table.cell>
                     </flux:table.row>
                 @endforelse

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Leave;
 
+use App\Livewire\Concerns\WithDataTable;
 use App\Models\LeaveBalance;
 use App\Models\LeaveRequest;
 use App\Services\Audit\AuditService;
@@ -10,17 +11,35 @@ use DomainException;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithPagination;
 
 #[Title('Manajemen Cuti & Izin - RS Juwita')]
 class LeaveIndex extends Component
 {
-    use WithPagination;
+    use WithDataTable;
 
     public string $activeTab = 'my_requests';
 
+    #[Url(except: 'all')]
     public string $statusFilter = 'all';
+
+    protected function sortableColumns(): array
+    {
+        return [
+            'created_at' => 'created_at',
+            'start_date' => 'start_date',
+            'total_days' => 'total_days',
+            'status' => 'status',
+        ];
+    }
+
+    protected function filterProperties(): array
+    {
+        return [
+            'statusFilter' => 'all',
+        ];
+    }
 
     // Rejection Modal State
     public bool $showRejectModal = false;
@@ -191,13 +210,23 @@ class LeaveIndex extends Component
                 } else {
                     $q->where('created_by', $user->id);
                 }
-            })
-            ->latest();
+            });
+
+        if (! empty($this->search)) {
+            $term = '%'.$this->search.'%';
+            $myRequestsQuery->where(function ($q) use ($term) {
+                $q->where('reason', 'like', $term)
+                    ->orWhereHas('leaveType', fn ($sq) => $sq->where('name', 'like', $term));
+            });
+        }
 
         if ($this->statusFilter !== 'all') {
             $myRequestsQuery->where('status', $this->statusFilter);
         }
-        $myRequests = $myRequestsQuery->paginate(10);
+
+        $this->applySorting($myRequestsQuery, 'created_at', 'desc');
+
+        $myRequests = $myRequestsQuery->paginate($this->perPageValue());
 
         // Tier 1 Approvals Queue (Supervisor)
         $tier1Queue = $user->hasPermission('leave.approve_tier1')

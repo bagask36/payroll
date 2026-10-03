@@ -77,49 +77,119 @@
         </flux:card>
     @endif
 
-    {{-- Filter Bar --}}
-    <flux:card class="flex flex-col md:flex-row md:items-center gap-4">
-        <div class="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <flux:input 
-                wire:model.live="startDate" 
-                label="Dari Tanggal" 
-                type="date" 
-            />
+    {{-- KPI Metric Cards --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <x-stat-card 
+            label="Total Presensi" 
+            :value="$stats['total']" 
+            icon="clipboard-document-list" 
+            color="zinc" 
+            sublabel="Log tercatat pada periode ini" 
+        />
+        <x-stat-card 
+            label="Tepat Waktu" 
+            :value="$stats['present']" 
+            icon="check-circle" 
+            color="emerald" 
+            sublabel="Sesuai jadwal shift kerja" 
+        />
+        <x-stat-card 
+            label="Terlambat" 
+            :value="$stats['late']" 
+            icon="clock" 
+            color="amber" 
+            sublabel="Melewati toleransi jam masuk" 
+        />
+        <x-stat-card 
+            label="Tidak Hadir / Absen" 
+            :value="$stats['absent']" 
+            icon="x-circle" 
+            color="red" 
+            sublabel="Tanpa keterangan presensi" 
+        />
+    </div>
 
-            <flux:input 
-                wire:model.live="endDate" 
-                label="Sampai Tanggal" 
-                type="date" 
-            />
+    {{-- DataTable Toolbar with Search, Filters, and Per-Page Selector --}}
+    <x-datatable.toolbar 
+        :search="$search" 
+        search-placeholder="Ketik Nama atau NIP pegawai..."
+        :per-page="$perPage"
+        :active-filters-count="$this->activeFiltersCount"
+    >
+        <flux:input 
+            wire:model.live="startDate" 
+            label="Dari Tanggal" 
+            type="date" 
+        />
 
-            <flux:select wire:model.live="statusFilter" label="Status Kehadiran">
-                <flux:select.option value="all">Semua Status</flux:select.option>
-                <flux:select.option value="present">Tepat Waktu (Present)</flux:select.option>
-                <flux:select.option value="late">Terlambat (Late)</flux:select.option>
-                <flux:select.option value="absent">Absen (Absent)</flux:select.option>
-            </flux:select>
-        </div>
-    </flux:card>
+        <flux:input 
+            wire:model.live="endDate" 
+            label="Sampai Tanggal" 
+            type="date" 
+        />
+
+        <flux:select wire:model.live="statusFilter" label="Status Kehadiran">
+            <flux:select.option value="all">Semua Status</flux:select.option>
+            <flux:select.option value="present">Tepat Waktu (Present)</flux:select.option>
+            <flux:select.option value="late">Terlambat (Late)</flux:select.option>
+            <flux:select.option value="absent">Absen (Absent)</flux:select.option>
+        </flux:select>
+    </x-datatable.toolbar>
 
     {{-- Native Flux Table --}}
-    <flux:card class="p-0 overflow-hidden">
+    <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
         <flux:table :paginate="$attendances">
             <flux:table.columns>
-                <flux:table.column>Tanggal</flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'date'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('date')"
+                >
+                    Tanggal
+                </flux:table.column>
                 @if(auth()->user()->hasPermission('attendance.view_all') || auth()->user()->hasPermission('attendance.view_team'))
                     <flux:table.column>Pegawai / Dokter</flux:table.column>
                 @endif
                 <flux:table.column>Shift</flux:table.column>
-                <flux:table.column>Masuk</flux:table.column>
-                <flux:table.column>Pulang</flux:table.column>
-                <flux:table.column>Durasi</flux:table.column>
-                <flux:table.column>Status</flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'clock_in'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('clock_in')"
+                >
+                    Masuk
+                </flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'clock_out'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('clock_out')"
+                >
+                    Pulang
+                </flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'work_duration_minutes'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('work_duration_minutes')"
+                >
+                    Durasi
+                </flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'status'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('status')"
+                >
+                    Status
+                </flux:table.column>
                 <flux:table.column align="end">Aksi</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @forelse($attendances as $row)
-                    <flux:table.row :key="$row->id">
+                    <flux:table.row :key="$row->id" class="hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40 transition-colors">
                         <flux:table.cell class="font-medium text-zinc-900 dark:text-zinc-100">
                             {{ $row->date->format('d/m/Y') }}
                         </flux:table.cell>
@@ -127,7 +197,7 @@
                         @if(auth()->user()->hasPermission('attendance.view_all') || auth()->user()->hasPermission('attendance.view_team'))
                             <flux:table.cell>
                                 <div class="font-medium text-zinc-900 dark:text-zinc-100">
-                                    {{ $row->employee?->name ?? $row->doctor?->name ?? '-' }}
+                                    {{ $row->employee?->full_name ?? $row->employee?->name ?? $row->doctor?->name ?? '-' }}
                                 </div>
                                 <div class="text-xs text-zinc-400">
                                     {{ $row->employee?->nip ?? $row->doctor?->specialization ?? '' }}
@@ -175,8 +245,11 @@
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="8" class="text-center py-8 text-zinc-400 italic">
-                            Tidak ada catatan presensi pada rentang tanggal yang dipilih.
+                        <flux:table.cell colspan="8" class="p-0">
+                            <x-datatable.empty 
+                                title="Catatan Presensi Tidak Ditemukan" 
+                                description="Tidak ada catatan presensi pada rentang tanggal atau kata kunci yang dipilih." 
+                            />
                         </flux:table.cell>
                     </flux:table.row>
                 @endforelse

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Attendance;
 
+use App\Livewire\Concerns\WithDataTable;
 use App\Models\Attendance;
 use App\Models\AttendanceAdjustment;
 use App\Models\User;
@@ -10,19 +11,42 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithPagination;
 
 #[Title('Riwayat Presensi - RS Juwita')]
 class AttendanceIndex extends Component
 {
-    use WithPagination;
+    use WithDataTable;
 
+    #[Url(except: 'all')]
     public string $statusFilter = 'all';
 
+    #[Url(except: '')]
     public string $startDate = '';
 
+    #[Url(except: '')]
     public string $endDate = '';
+
+    protected function sortableColumns(): array
+    {
+        return [
+            'date' => 'date',
+            'clock_in' => 'clock_in',
+            'clock_out' => 'clock_out',
+            'work_duration_minutes' => 'work_duration_minutes',
+            'status' => 'status',
+        ];
+    }
+
+    protected function filterProperties(): array
+    {
+        return [
+            'statusFilter' => 'all',
+            'startDate' => Carbon::today()->startOfMonth()->toDateString(),
+            'endDate' => Carbon::today()->toDateString(),
+        ];
+    }
 
     // Adjustment Request Modal State
     public bool $showAdjustmentModal = false;
@@ -118,8 +142,16 @@ class AttendanceIndex extends Component
     public function render()
     {
         $user = Auth::user();
-        $query = Attendance::with(['employee', 'doctor', 'scheduleAssignment.shift', 'adjustments'])
-            ->orderBy('date', 'desc');
+        $query = Attendance::with(['employee', 'doctor', 'scheduleAssignment.shift', 'adjustments']);
+
+        // Search by employee or doctor name/nip
+        if (! empty($this->search)) {
+            $term = '%'.$this->search.'%';
+            $query->where(function ($q) use ($term) {
+                $q->whereHas('employee', fn ($sq) => $sq->where('full_name', 'like', $term)->orWhere('nip', 'like', $term))
+                    ->orWhereHas('doctor', fn ($sq) => $sq->where('name', 'like', $term));
+            });
+        }
 
         // RBAC filtering: if cannot view all, filter to own attendance
         if (! $user->hasPermission('attendance.view_all') && ! $user->hasPermission('attendance.view_team')) {
@@ -148,7 +180,17 @@ class AttendanceIndex extends Component
             $query->whereDate('date', '<=', $this->endDate);
         }
 
-        $attendances = $query->paginate(15);
+        $statsQuery = clone $query;
+        $stats = [
+            'total' => (clone $statsQuery)->count(),
+            'present' => (clone $statsQuery)->where('status', 'present')->count(),
+            'late' => (clone $statsQuery)->where('status', 'late')->count(),
+            'absent' => (clone $statsQuery)->where('status', 'absent')->count(),
+        ];
+
+        $this->applySorting($query, 'date', 'desc');
+
+        $attendances = $query->paginate($this->perPageValue());
 
         // Fetch pending adjustments if user can approve
         $pendingAdjustments = $user->hasPermission('attendance.adjust_approve')
@@ -161,6 +203,7 @@ class AttendanceIndex extends Component
         return view('livewire.attendance.attendance-index', [
             'attendances' => $attendances,
             'pendingAdjustments' => $pendingAdjustments,
+            'stats' => $stats,
         ]);
     }
 }
