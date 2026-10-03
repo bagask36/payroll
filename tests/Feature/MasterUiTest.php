@@ -234,4 +234,68 @@ class MasterUiTest extends TestCase
             'wage_ceiling' => 15000000,
         ]);
     }
+
+    public function test_hr_admin_can_access_all_individual_master_breakdown_routes(): void
+    {
+        $admin = User::where('email', 'admin@juwitahospital.com')->firstOrFail();
+        $this->actingAs($admin);
+
+        $routes = [
+            'master.units',
+            'master.positions',
+            'master.shifts',
+            'master.leave-types',
+            'master.geofences',
+            'master.payroll-periods',
+            'master.bpjs',
+        ];
+
+        foreach ($routes as $route) {
+            $this->get(route($route))->assertStatus(200);
+        }
+    }
+
+    public function test_individual_unit_index_component_crud(): void
+    {
+        $admin = User::where('email', 'admin@juwitahospital.com')->firstOrFail();
+        $department = Department::firstOrFail();
+        $this->actingAs($admin);
+
+        Livewire::test(\App\Livewire\Master\UnitIndex::class)
+            ->assertStatus(200)
+            ->call('openCreateUnit')
+            ->set('unitCode', 'LAB-CLIN')
+            ->set('unitName', 'Laboratorium Patologi Klinik')
+            ->set('unitDepartmentId', $department->id)
+            ->call('saveUnit')
+            ->assertHasNoErrors()
+            ->assertSee('Laboratorium Patologi Klinik berhasil disimpan');
+
+        $this->assertDatabaseHas('units', [
+            'code' => 'LAB-CLIN',
+            'name' => 'Laboratorium Patologi Klinik',
+        ]);
+    }
+
+    public function test_individual_geofence_index_component_crud(): void
+    {
+        $admin = User::where('email', 'admin@juwitahospital.com')->firstOrFail();
+        $this->actingAs($admin);
+
+        Livewire::test(\App\Livewire\Master\GeofenceIndex::class)
+            ->assertStatus(200)
+            ->call('openCreateGeofence')
+            ->set('geofenceName', 'Gedung Bedah Sentral IBS')
+            ->set('geofenceLat', -6.208111)
+            ->set('geofenceLng', 106.845222)
+            ->set('geofenceRadius', 80)
+            ->call('saveGeofence')
+            ->assertHasNoErrors()
+            ->assertSee('Gedung Bedah Sentral IBS berhasil disimpan');
+
+        $this->assertDatabaseHas('geofence_locations', [
+            'name' => 'Gedung Bedah Sentral IBS',
+            'radius_meters' => 80,
+        ]);
+    }
 }

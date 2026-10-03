@@ -10,3 +10,5 @@ L.Icon.Default.mergeOptions({
 });
 
 window.L = L;
+
+import './../../vendor/power-components/livewire-powergrid/dist/powergrid';

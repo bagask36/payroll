@@ -102,9 +102,34 @@
                     @endcan
 
                     @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasPermission('system.config_view'))
-                        <flux:sidebar.item icon="cog-6-tooth" href="{{ route('master.index') }}" :current="request()->routeIs('master.*')">
-                            Master Data RS
-                        </flux:sidebar.item>
+                        <flux:sidebar.group 
+                            expandable 
+                            :expanded="request()->routeIs('master.*')" 
+                            heading="Data Master" 
+                            icon="circle-stack"
+                        >
+                            <flux:sidebar.item icon="building-office-2" href="{{ route('master.units') }}" :current="request()->routeIs('master.units')">
+                                Unit Kerja
+                            </flux:sidebar.item>
+                            <flux:sidebar.item icon="briefcase" href="{{ route('master.positions') }}" :current="request()->routeIs('master.positions')">
+                                Standar Jabatan
+                            </flux:sidebar.item>
+                            <flux:sidebar.item icon="clock" href="{{ route('master.shifts') }}" :current="request()->routeIs('master.shifts')">
+                                Shift Kerja
+                            </flux:sidebar.item>
+                            <flux:sidebar.item icon="calendar-days" href="{{ route('master.leave-types') }}" :current="request()->routeIs('master.leave-types')">
+                                Jenis Cuti
+                            </flux:sidebar.item>
+                            <flux:sidebar.item icon="map-pin" href="{{ route('master.geofences') }}" :current="request()->routeIs('master.geofences')">
+                                Titik Geofence
+                            </flux:sidebar.item>
+                            <flux:sidebar.item icon="calendar" href="{{ route('master.payroll-periods') }}" :current="request()->routeIs('master.payroll-periods')">
+                                Periode Payroll
+                            </flux:sidebar.item>
+                            <flux:sidebar.item icon="scale" href="{{ route('master.bpjs') }}" :current="request()->routeIs('master.bpjs')">
+                                Regulasi BPJS
+                            </flux:sidebar.item>
+                        </flux:sidebar.group>
                     @endif
                 </flux:sidebar.group>
             </flux:sidebar.nav>

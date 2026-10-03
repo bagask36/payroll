@@ -53,8 +53,15 @@ Route::middleware('auth')->group(function () {
     // System Audit Trail Explorer
     Route::get('/audit-logs', AuditLogIndex::class)->name('audit-logs.index');
 
-    // Master Data Hub
+    // Master Data Hub & Breakdown Sub-menus
     Route::get('/master', MasterIndex::class)->name('master.index');
+    Route::get('/master/units', \App\Livewire\Master\UnitIndex::class)->name('master.units');
+    Route::get('/master/positions', \App\Livewire\Master\PositionIndex::class)->name('master.positions');
+    Route::get('/master/shifts', \App\Livewire\Master\ShiftIndex::class)->name('master.shifts');
+    Route::get('/master/leave-types', \App\Livewire\Master\LeaveTypeIndex::class)->name('master.leave-types');
+    Route::get('/master/geofences', \App\Livewire\Master\GeofenceIndex::class)->name('master.geofences');
+    Route::get('/master/payroll-periods', \App\Livewire\Master\PayrollPeriodIndex::class)->name('master.payroll-periods');
+    Route::get('/master/bpjs', \App\Livewire\Master\BpjsIndex::class)->name('master.bpjs');
 
     // Attendance & Geofencing Routes
     Route::get('/attendance', AttendanceIndex::class)->name('attendance.index');
