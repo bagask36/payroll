@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Document;
 
+use App\Livewire\Concerns\WithDataTable;
 use App\Models\Doctor;
 use App\Models\Document;
 use App\Models\Employee;
@@ -10,18 +11,34 @@ use App\Services\Document\DocumentService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use Livewire\WithPagination;
 
 #[Title('Arsip Dokumen Kepatuhan - RS Juwita')]
 class DocumentIndex extends Component
 {
-    use WithFileUploads, WithPagination;
+    use WithDataTable, WithFileUploads;
 
+    #[Url(except: 'all')]
     public string $documentTypeFilter = 'all';
 
-    public string $search = '';
+    protected function sortableColumns(): array
+    {
+        return [
+            'created_at' => 'created_at',
+            'original_name' => 'original_name',
+            'document_type' => 'document_type',
+            'file_size' => 'file_size',
+        ];
+    }
+
+    protected function filterProperties(): array
+    {
+        return [
+            'documentTypeFilter' => 'all',
+        ];
+    }
 
     // Upload Modal State
     public bool $showUploadModal = false;
@@ -164,7 +181,9 @@ class DocumentIndex extends Component
             });
         }
 
-        $documents = $query->paginate(15);
+        $this->applySorting($query, 'created_at', 'desc');
+
+        $documents = $query->paginate($this->perPageValue());
         $employees = $user->hasPermission('document.upload_all')
             ? Employee::active()->orderBy('full_name')->get()
             : collect();

@@ -2,24 +2,40 @@
 
 namespace App\Livewire\Audit;
 
+use App\Livewire\Concerns\WithDataTable;
 use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\WithPagination;
 
 #[Title('Audit Trail Kepatuhan Sistem - RS Juwita')]
 class AuditLogIndex extends Component
 {
-    use WithPagination;
+    use WithDataTable;
 
+    #[Url(except: 'all')]
     public string $actionFilter = 'all';
-
-    public string $search = '';
 
     public bool $showDetailModal = false;
 
     public ?int $selectedLogId = null;
+
+    protected function sortableColumns(): array
+    {
+        return [
+            'created_at' => 'created_at',
+            'action' => 'action',
+            'ip_address' => 'ip_address',
+        ];
+    }
+
+    protected function filterProperties(): array
+    {
+        return [
+            'actionFilter' => 'all',
+        ];
+    }
 
     public function mount(): void
     {
@@ -37,7 +53,7 @@ class AuditLogIndex extends Component
 
     public function render()
     {
-        $query = AuditLog::with('user')->orderByDesc('created_at');
+        $query = AuditLog::with('user');
 
         if ($this->actionFilter !== 'all') {
             $query->where('action', 'LIKE', $this->actionFilter.'%');
@@ -55,7 +71,9 @@ class AuditLogIndex extends Component
             });
         }
 
-        $logs = $query->paginate(20);
+        $this->applySorting($query, 'created_at', 'desc');
+
+        $logs = $query->paginate($this->perPageValue());
 
         $selectedLog = $this->selectedLogId ? AuditLog::with('user')->find($this->selectedLogId) : null;
 

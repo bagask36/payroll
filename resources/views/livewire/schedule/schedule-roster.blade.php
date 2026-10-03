@@ -151,8 +151,11 @@
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="7" class="text-center py-12 text-zinc-400 italic">
-                            Tidak ada penugasan shift pada rentang minggu ini.
+                        <flux:table.cell colspan="7" class="p-0">
+                            <x-datatable.empty 
+                                title="Tidak Ada Jadwal Shift" 
+                                description="Tidak ada penugasan shift dinas pada rentang minggu ini atau kriteria filter yang dipilih." 
+                            />
                         </flux:table.cell>
                     </flux:table.row>
                 @endforelse

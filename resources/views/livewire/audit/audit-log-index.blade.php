@@ -11,44 +11,60 @@
         </div>
     </div>
 
-    {{-- Filter Card --}}
-    <flux:card class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div class="flex items-center gap-3">
-            <flux:select wire:model.live="actionFilter" class="w-56">
-                <flux:select.option value="all">Semua Kategori Aktivitas</flux:select.option>
-                <flux:select.option value="auth">Autentikasi (Login / Logout)</flux:select.option>
-                <flux:select.option value="attendance">Presensi & Geofence</flux:select.option>
-                <flux:select.option value="leave">Cuti & Persetujuan Berjenjang</flux:select.option>
-                <flux:select.option value="payroll">Penggajian & Finalisasi</flux:select.option>
-                <flux:select.option value="document">Dokumen & Berkas</flux:select.option>
-                <flux:select.option value="schedule">Penugasan Shift Dinas</flux:select.option>
-            </flux:select>
-        </div>
-
-        <div class="w-full sm:w-72">
-            <flux:input 
-                wire:model.live.debounce.300ms="search" 
-                placeholder="Cari user, aksi, atau IP address..." 
-                icon="magnifying-glass"
-            />
-        </div>
-    </flux:card>
+    {{-- DataTable Toolbar with Search, Filters, and Per-Page Selector --}}
+    <x-datatable.toolbar 
+        :search="$search" 
+        search-placeholder="Cari user, aksi, atau IP address..." 
+        :per-page="$perPage"
+        :active-filters-count="$this->activeFiltersCount"
+    >
+        <flux:select wire:model.live="actionFilter" label="Kategori Aktivitas">
+            <flux:select.option value="all">Semua Kategori Aktivitas</flux:select.option>
+            <flux:select.option value="auth">Autentikasi (Login / Logout)</flux:select.option>
+            <flux:select.option value="attendance">Presensi & Geofence</flux:select.option>
+            <flux:select.option value="leave">Cuti & Persetujuan Berjenjang</flux:select.option>
+            <flux:select.option value="payroll">Penggajian & Finalisasi</flux:select.option>
+            <flux:select.option value="document">Dokumen & Berkas</flux:select.option>
+            <flux:select.option value="schedule">Penugasan Shift Dinas</flux:select.option>
+        </flux:select>
+    </x-datatable.toolbar>
 
     {{-- Audit Logs Table --}}
-    <flux:card class="p-0 overflow-hidden">
-        <flux:table>
+    <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <flux:table :paginate="$logs">
             <flux:table.columns>
-                <flux:table.column>Waktu & Tanggal</flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'created_at'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('created_at')"
+                >
+                    Waktu & Tanggal
+                </flux:table.column>
                 <flux:table.column>Pelaku (Actor)</flux:table.column>
-                <flux:table.column>Aktivitas (Action)</flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'action'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('action')"
+                >
+                    Aktivitas (Action)
+                </flux:table.column>
                 <flux:table.column>Entitas Target</flux:table.column>
-                <flux:table.column>IP Address</flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'ip_address'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('ip_address')"
+                >
+                    IP Address
+                </flux:table.column>
                 <flux:table.column align="end">Detail</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @forelse($logs as $log)
-                    <flux:table.row :key="$log->id">
+                    <flux:table.row :key="$log->id" class="hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40 transition-colors">
                         <flux:table.cell class="font-mono text-xs text-zinc-500 whitespace-nowrap">
                             <div>{{ $log->created_at->format('d/m/Y') }}</div>
                             <div class="text-[11px] text-zinc-400">{{ $log->created_at->format('H:i:s') }} WIB</div>
@@ -74,7 +90,7 @@
                                     default => 'zinc',
                                 };
                             @endphp
-                            <flux:badge size="xs" color="{{ $color }}">
+                            <flux:badge size="xs" color="{{ $color }}" inset="top bottom">
                                 {{ $log->action }}
                             </flux:badge>
                         </flux:table.cell>
@@ -105,19 +121,16 @@
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="6" class="text-center py-12 text-zinc-400 italic">
-                            Tidak ditemukan rekaman log aktivitas.
+                        <flux:table.cell colspan="6" class="p-0">
+                            <x-datatable.empty 
+                                title="Audit Log Tidak Ditemukan" 
+                                description="Tidak ditemukan rekaman jejak log aktivitas yang sesuai dengan filter atau kata kunci pencarian Anda." 
+                            />
                         </flux:table.cell>
                     </flux:table.row>
                 @endforelse
             </flux:table.rows>
         </flux:table>
-
-        @if($logs->hasPages())
-            <div class="p-4 border-t border-zinc-100 dark:border-zinc-800">
-                {{ $logs->links() }}
-            </div>
-        @endif
     </flux:card>
 
     {{-- Payload Inspection Modal --}}

@@ -40,46 +40,69 @@
         </div>
     @endif
 
-    {{-- Filter Card --}}
-    <flux:card class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div class="flex items-center gap-3">
-            <flux:select wire:model.live="documentTypeFilter" class="w-56">
-                <flux:select.option value="all">Semua Jenis Dokumen</flux:select.option>
-                <flux:select.option value="ktp">Kartu Tanda Penduduk (KTP)</flux:select.option>
-                <flux:select.option value="kk">Kartu Keluarga (KK)</flux:select.option>
-                <flux:select.option value="ijazah">Ijazah & Transkrip</flux:select.option>
-                <flux:select.option value="contract">Perjanjian Kontrak Kerja</flux:select.option>
-                <flux:select.option value="str">Surat Tanda Registrasi (STR)</flux:select.option>
-                <flux:select.option value="sip">Surat Izin Praktik (SIP)</flux:select.option>
-                <flux:select.option value="certificate">Sertifikat Pelatihan Medis</flux:select.option>
-                <flux:select.option value="other">Dokumen Lainnya</flux:select.option>
-            </flux:select>
-        </div>
-
-        <div class="w-full sm:w-72">
-            <flux:input 
-                wire:model.live.debounce.300ms="search" 
-                placeholder="Cari nama berkas dokumen..." 
-                icon="magnifying-glass"
-            />
-        </div>
-    </flux:card>
+    {{-- DataTable Toolbar with Search, Filters, and Per-Page Selector --}}
+    <x-datatable.toolbar 
+        :search="$search" 
+        search-placeholder="Cari nama berkas dokumen..." 
+        :per-page="$perPage"
+        :active-filters-count="$this->activeFiltersCount"
+    >
+        <flux:select wire:model.live="documentTypeFilter" label="Jenis Dokumen">
+            <flux:select.option value="all">Semua Jenis Dokumen</flux:select.option>
+            <flux:select.option value="ktp">Kartu Tanda Penduduk (KTP)</flux:select.option>
+            <flux:select.option value="kk">Kartu Keluarga (KK)</flux:select.option>
+            <flux:select.option value="ijazah">Ijazah & Transkrip</flux:select.option>
+            <flux:select.option value="contract">Perjanjian Kontrak Kerja</flux:select.option>
+            <flux:select.option value="str">Surat Tanda Registrasi (STR)</flux:select.option>
+            <flux:select.option value="sip">Surat Izin Praktik (SIP)</flux:select.option>
+            <flux:select.option value="certificate">Sertifikat Pelatihan Medis</flux:select.option>
+            <flux:select.option value="other">Dokumen Lainnya</flux:select.option>
+        </flux:select>
+    </x-datatable.toolbar>
 
     {{-- Documents Table --}}
-    <flux:card class="p-0 overflow-hidden">
-        <flux:table>
+    <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <flux:table :paginate="$documents">
             <flux:table.columns>
-                <flux:table.column>Nama Dokumen & Berkas</flux:table.column>
-                <flux:table.column>Jenis Dokumen</flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'original_name'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('original_name')"
+                >
+                    Nama Dokumen & Berkas
+                </flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'document_type'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('document_type')"
+                >
+                    Jenis Dokumen
+                </flux:table.column>
                 <flux:table.column>Pemilik (Personil)</flux:table.column>
-                <flux:table.column>Format & Ukuran</flux:table.column>
-                <flux:table.column>Tanggal Unggah</flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'file_size'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('file_size')"
+                >
+                    Format & Ukuran
+                </flux:table.column>
+                <flux:table.column 
+                    sortable 
+                    :sorted="$sortBy === 'created_at'" 
+                    :direction="$sortDirection" 
+                    wire:click="sort('created_at')"
+                >
+                    Tanggal Unggah
+                </flux:table.column>
                 <flux:table.column align="end">Aksi</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @forelse($documents as $doc)
-                    <flux:table.row :key="$doc->id">
+                    <flux:table.row :key="$doc->id" class="hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40 transition-colors">
                         <flux:table.cell>
                             <div class="font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                                 <flux:icon name="document-text" class="size-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -100,7 +123,7 @@
                                     default => 'zinc',
                                 };
                             @endphp
-                            <flux:badge size="xs" color="{{ $badgeColor }}">
+                            <flux:badge size="xs" color="{{ $badgeColor }}" inset="top bottom">
                                 {{ strtoupper($doc->document_type) }}
                             </flux:badge>
                         </flux:table.cell>
@@ -141,19 +164,16 @@
                     </flux:table.row>
                 @empty
                     <flux:table.row>
-                        <flux:table.cell colspan="6" class="text-center py-12 text-zinc-400 italic">
-                            Belum ada dokumen kepatuhan yang tersimpan dalam arsip.
+                        <flux:table.cell colspan="6" class="p-0">
+                            <x-datatable.empty 
+                                title="Dokumen Tidak Ditemukan" 
+                                description="Belum ada dokumen kepatuhan yang tersimpan dalam arsip atau tidak ada data yang cocok dengan kriteria pencarian Anda." 
+                            />
                         </flux:table.cell>
                     </flux:table.row>
                 @endforelse
             </flux:table.rows>
         </flux:table>
-
-        @if($documents->hasPages())
-            <div class="p-4 border-t border-zinc-100 dark:border-zinc-800">
-                {{ $documents->links() }}
-            </div>
-        @endif
     </flux:card>
 
     {{-- Upload Document Modal --}}
