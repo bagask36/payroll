@@ -381,6 +381,11 @@ class MasterIndex extends Component
         $this->geofenceRadius = 150;
         $this->geofenceIsActive = true;
         $this->showGeofenceModal = true;
+        $this->dispatch('init-geofence-map', [
+            'lat' => $this->geofenceLat,
+            'lng' => $this->geofenceLng,
+            'radius' => $this->geofenceRadius,
+        ]);
     }
 
     public function editGeofence(int $id): void
@@ -393,6 +398,11 @@ class MasterIndex extends Component
         $this->geofenceRadius = $geo->radius_meters;
         $this->geofenceIsActive = $geo->is_active;
         $this->showGeofenceModal = true;
+        $this->dispatch('init-geofence-map', [
+            'lat' => $this->geofenceLat,
+            'lng' => $this->geofenceLng,
+            'radius' => $this->geofenceRadius,
+        ]);
     }
 
     public function saveGeofence(AuditService $auditService): void
@@ -554,6 +564,8 @@ class MasterIndex extends Component
 
         $bpjsRules = BpjsRule::orderBy('program_name')->get();
 
+        $allActiveGeofences = GeofenceLocation::where('is_active', true)->get();
+
         return view('livewire.master.master-index', [
             'departments' => $departments,
             'units' => $units,
@@ -561,6 +573,7 @@ class MasterIndex extends Component
             'shifts' => $shifts,
             'leaveTypes' => $leaveTypes,
             'geofences' => $geofences,
+            'allActiveGeofences' => $allActiveGeofences,
             'periods' => $periods,
             'bpjsRules' => $bpjsRules,
         ]);

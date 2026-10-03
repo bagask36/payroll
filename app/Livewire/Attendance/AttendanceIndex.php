@@ -71,6 +71,7 @@ class AttendanceIndex extends Component
         $this->endDate = Carbon::today()->toDateString();
     }
 
+    #[\Livewire\Attributes\On('open-adjustment-modal')]
     public function openAdjustmentModal(int $attendanceId): void
     {
         $this->authorize('requestAdjustment', Attendance::class);

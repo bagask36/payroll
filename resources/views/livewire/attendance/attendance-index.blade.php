@@ -109,43 +109,12 @@
         />
     </div>
 
-    {{-- DataTable Toolbar with Search, Filters, and Per-Page Selector --}}
-    <x-datatable.toolbar 
-        :search="$search" 
-        search-placeholder="Ketik Nama atau NIP pegawai..."
-        :per-page="$perPage"
-        :active-filters-count="$this->activeFiltersCount"
-    >
-        <flux:input 
-            wire:model.live="startDate" 
-            label="Dari Tanggal" 
-            type="date" 
-        />
 
-        <flux:input 
-            wire:model.live="endDate" 
-            label="Sampai Tanggal" 
-            type="date" 
-        />
-
-        <flux:select wire:model.live="statusFilter" label="Status Kehadiran">
-            <flux:select.option value="all">Semua Status</flux:select.option>
-            <flux:select.option value="present">Tepat Waktu (Present)</flux:select.option>
-            <flux:select.option value="late">Terlambat (Late)</flux:select.option>
-            <flux:select.option value="absent">Absen (Absent)</flux:select.option>
-        </flux:select>
-    </x-datatable.toolbar>
-
-    {{-- Native Flux Table --}}
-    <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
-        <flux:table :paginate="$attendances">
-            <flux:table.columns>
-                <flux:table.column 
-                    sortable 
-                    :sorted="$sortBy === 'date'" 
-                    :direction="$sortDirection" 
-                    wire:click="sort('date')"
-                >
+    {{-- PowerGrid Datatable --}}
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <livewire:tables.attendance-table />
+    </flux:card>
+    {{-- removed --}}
                     Tanggal
                 </flux:table.column>
                 @if(auth()->user()->hasPermission('attendance.view_all') || auth()->user()->hasPermission('attendance.view_team'))
