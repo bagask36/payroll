@@ -8,7 +8,7 @@ use App\Models\Doctor;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
-use PowerComponents\LivewirePowerGrid\Exportable;
+use PowerComponents\LivewirePowerGrid\Components\SetUp\Exportable;
 use PowerComponents\LivewirePowerGrid\Facades\PowerGrid;
 use PowerComponents\LivewirePowerGrid\PowerGridComponent;
 use PowerComponents\LivewirePowerGrid\PowerGridFields;
@@ -46,7 +46,7 @@ final class DoctorReportTable extends PowerGridComponent
             ->add('name', fn (Doctor $doc) => '<span class="font-medium text-zinc-900 dark:text-zinc-100">'.e($doc->name).'</span>')
             ->add('specialization', fn (Doctor $doc) => '<span class="text-xs text-zinc-600 dark:text-zinc-400">'.e($doc->specialization ?? 'Dokter Umum').'</span>')
             ->add('category_badge', function (Doctor $doc) {
-                if ($doc->is_organic) {
+                if ($doc->employee_id !== null) {
                     return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800">Dokter Tetap (Organik)</span>';
                 }
 
@@ -63,7 +63,7 @@ final class DoctorReportTable extends PowerGridComponent
                 return '<div><div class="font-mono text-xs text-zinc-800 dark:text-zinc-200">'.e($doc->sip_number ?? '-').'</div><div class="text-2xs text-zinc-400">s/d '.e($expiry).'</div></div>';
             })
             ->add('status_badge', function (Doctor $doc) {
-                if ($doc->is_active) {
+                if ($doc->status === 'active') {
                     return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800">Aktif</span>';
                 }
 
@@ -88,7 +88,7 @@ final class DoctorReportTable extends PowerGridComponent
 
             Column::make('Izin Praktik SIP', 'sip_display'),
 
-            Column::make('Status', 'status_badge', 'doctors.is_active')
+            Column::make('Status', 'status_badge', 'doctors.status')
                 ->sortable(),
 
             Column::action('Aksi'),

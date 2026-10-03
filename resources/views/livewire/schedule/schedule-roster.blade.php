@@ -69,98 +69,13 @@
         </div>
     </flux:card>
 
-    {{-- Native Flux Table --}}
-    <flux:card class="p-0 overflow-hidden">
-        <flux:table>
-            <flux:table.columns>
-                <flux:table.column>Tanggal Tugas</flux:table.column>
-                <flux:table.column>Personil Medis / Staf</flux:table.column>
-                <flux:table.column>Peran / Unit</flux:table.column>
-                <flux:table.column>Shift & Jam Kerja</flux:table.column>
-                <flux:table.column>Toleransi</flux:table.column>
-                <flux:table.column>Catatan</flux:table.column>
-                <flux:table.column align="end">Aksi</flux:table.column>
-            </flux:table.columns>
-
-            <flux:table.rows>
-                @forelse($assignments as $item)
-                    <flux:table.row :key="$item->id">
-                        <flux:table.cell>
-                            <div class="font-medium text-zinc-900 dark:text-zinc-100">
-                                {{ $item->schedule_date->translatedFormat('l') }}
-                            </div>
-                            <div class="text-xs text-zinc-400 font-mono">
-                                {{ $item->schedule_date->format('d/m/Y') }}
-                            </div>
-                        </flux:table.cell>
-
-                        <flux:table.cell>
-                            @if($item->doctor)
-                                <div class="font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                                    <flux:icon name="user-group" class="size-4" />
-                                    <span>{{ $item->doctor->name }}</span>
-                                </div>
-                                <div class="text-xs text-zinc-400">{{ $item->doctor->specialization }}</div>
-                            @elseif($item->employee)
-                                <div class="font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                                    <flux:icon name="user" class="size-4" />
-                                    <span>{{ $item->employee->full_name }}</span>
-                                </div>
-                                <div class="text-xs text-zinc-400 font-mono">{{ $item->employee->nip }}</div>
-                            @else
-                                <span class="text-zinc-400">-</span>
-                            @endif
-                        </flux:table.cell>
-
-                        <flux:table.cell class="text-zinc-600 dark:text-zinc-300 text-xs">
-                            {{ $item->employee?->unit?->name ?? 'Pelayanan Medis' }}
-                        </flux:table.cell>
-
-                        <flux:table.cell>
-                            <div class="font-medium text-zinc-900 dark:text-zinc-100">{{ $item->shift?->name }}</div>
-                            <div class="text-xs font-mono text-zinc-500">
-                                {{ substr($item->shift?->start_time ?? '', 0, 5) }} - {{ substr($item->shift?->end_time ?? '', 0, 5) }}
-                                @if($item->shift?->is_overnight)
-                                    <flux:badge size="xs" color="purple" inset="top bottom" class="ml-1">Overnight</flux:badge>
-                                @endif
-                            </div>
-                        </flux:table.cell>
-
-                        <flux:table.cell class="text-xs text-zinc-500">
-                            {{ $item->shift?->late_tolerance_minutes ?? 0 }} Menit
-                        </flux:table.cell>
-
-                        <flux:table.cell class="text-xs text-zinc-500 max-w-xs truncate">
-                            {{ $item->notes ?? '-' }}
-                        </flux:table.cell>
-
-                        <flux:table.cell align="end">
-                            @can('delete', $item)
-                                <flux:button 
-                                    size="xs" 
-                                    variant="subtle" 
-                                    icon="x-mark"
-                                    class="text-red-600 dark:text-red-400"
-                                    wire:click="cancelAssignment({{ $item->id }})"
-                                    wire:confirm="Yakin ingin membatalkan jadwal shift ini?"
-                                >
-                                    Batalkan
-                                </flux:button>
-                            @endcan
-                        </flux:table.cell>
-                    </flux:table.row>
-                @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="7" class="p-0">
-                            <x-datatable.empty 
-                                title="Tidak Ada Jadwal Shift" 
-                                description="Tidak ada penugasan shift dinas pada rentang minggu ini atau kriteria filter yang dipilih." 
-                            />
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforelse
-            </flux:table.rows>
-        </flux:table>
+    {{-- PowerGrid Schedule Table --}}
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <livewire:tables.schedule-table 
+            :week-start-date="$weekStartDate" 
+            :person-type-filter="$personTypeFilter" 
+            :shift-filter="$shiftFilter" 
+        />
     </flux:card>
 
     {{-- Flux Native Modal for Assign Shift --}}

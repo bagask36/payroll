@@ -11,6 +11,7 @@ use App\Models\Unit;
 use App\Models\User;
 use Database\Seeders\MasterPayrollAndSystemSeeder;
 use Database\Seeders\RoleAndPermissionSeeder;
+use Database\Seeders\TestUserSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -28,6 +29,7 @@ class SidebarAndModulesTest extends TestCase
         parent::setUp();
 
         $this->seed(RoleAndPermissionSeeder::class);
+        $this->seed(TestUserSeeder::class);
         $this->seed(MasterPayrollAndSystemSeeder::class);
 
         $this->adminUser = User::where('email', 'admin@juwitahospital.com')->first();
@@ -42,14 +44,13 @@ class SidebarAndModulesTest extends TestCase
     public function test_sidebar_contains_all_seven_menu_sections_for_admin(): void
     {
         $response = $this->actingAs($this->adminUser)->get('/dashboard');
-        file_put_contents('/Users/bagas/Projects/Other-copy/payroll-juwita/storage/framework/test_response.html', $response->getContent());
 
         $response->assertStatus(200);
-        $response->assertSee('DATA MASTER');
+        $response->assertSee('Data Master');
         $response->assertSee('KEPEGAWAIAN & MEDIS');
         $response->assertSee('WAKTU & OPERASIONAL');
         $response->assertSee('KEUANGAN & DOKUMEN');
-        $response->assertSee('LAPORAN');
+        $response->assertSee('Laporan');
         $response->assertSee('ADMINISTRASI & SISTEM');
 
         // Check individual items

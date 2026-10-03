@@ -29,51 +29,9 @@
         </div>
     </div>
 
-    {{-- Data Table --}}
-    <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
-        <flux:table>
-            <flux:table.columns>
-                <flux:table.column>Program Jaminan Sosial</flux:table.column>
-                <flux:table.column align="end">Tarif Pegawai</flux:table.column>
-                <flux:table.column align="end">Tarif RS (Pemberi Kerja)</flux:table.column>
-                <flux:table.column align="end">Plafon Maksimal Upah</flux:table.column>
-                <flux:table.column>Status</flux:table.column>
-                <flux:table.column align="end">Aksi</flux:table.column>
-            </flux:table.columns>
-
-            <flux:table.rows>
-                @foreach($bpjsRules as $rule)
-                    <flux:table.row :key="$rule->id">
-                        <flux:table.cell class="font-semibold text-zinc-900 dark:text-zinc-100 uppercase">
-                            BPJS {{ $rule->program_name }}
-                        </flux:table.cell>
-                        <flux:table.cell align="end" class="font-mono text-xs font-semibold text-rose-600 dark:text-rose-400">
-                            {{ number_format($rule->employee_rate * 100, 2) }}%
-                        </flux:table.cell>
-                        <flux:table.cell align="end" class="font-mono text-xs font-semibold text-blue-600 dark:text-blue-400">
-                            {{ number_format($rule->employer_rate * 100, 2) }}%
-                        </flux:table.cell>
-                        <flux:table.cell align="end" class="font-mono text-xs text-zinc-700 dark:text-zinc-300">
-                            @if($rule->wage_ceiling)
-                                Rp {{ number_format((float) $rule->wage_ceiling, 0, ',', '.') }}
-                            @else
-                                <span class="text-zinc-400">Tanpa Batas</span>
-                            @endif
-                        </flux:table.cell>
-                        <flux:table.cell>
-                            <flux:badge size="xs" :color="$rule->is_active ? 'emerald' : 'zinc'">
-                                {{ $rule->is_active ? 'Aktif' : 'Nonaktif' }}
-                            </flux:badge>
-                        </flux:table.cell>
-                        <flux:table.cell align="end">
-                            <flux:button size="xs" variant="subtle" icon="pencil-square" wire:click="editBpjs({{ $rule->id }})">
-                                Ubah Tarif
-                            </flux:button>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforeach
-            </flux:table.rows>
-        </flux:table>
+    {{-- PowerGrid Data Table --}}
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <livewire:tables.bpjs-rule-table />
     </flux:card>
 
     {{-- MODAL BPJS RULE --}}

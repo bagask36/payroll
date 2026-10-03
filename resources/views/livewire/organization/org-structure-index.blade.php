@@ -6,7 +6,7 @@
         activeDropTarget: null,
 
         init() {
-            // Expand all by default initially
+            // Expand all by default initially for immediate clarity
             document.querySelectorAll('[data-node-id]').forEach(el => {
                 const id = el.getAttribute('data-node-id');
                 if (id) this.expanded[id] = true;
@@ -52,11 +52,7 @@
         handleDragOver(targetType, targetId, event) {
             if (!this.draggedItem) return;
 
-            // Only allow valid drop combinations:
-            // 1. position -> unit
-            // 2. unit -> department
-            // 3. department -> department (or root)
-            if (this.draggedItem.type === 'position' && targetType === 'unit') {
+            if (this.draggedItem.type === 'position' && (targetType === 'unit' || targetType === 'department')) {
                 event.preventDefault();
                 event.dataTransfer.dropEffect = 'move';
                 this.activeDropTarget = `${targetType}-${targetId}`;
@@ -83,7 +79,6 @@
 
         handleDrop(targetType, targetId, event) {
             event.preventDefault();
-            const targetKey = `${targetType}-${targetId}`;
             this.activeDropTarget = null;
 
             if (!this.draggedItem) {
@@ -100,8 +95,8 @@
 
             if (!item) return;
 
-            if (item.type === 'position' && targetType === 'unit') {
-                $wire.movePosition(item.id, targetId);
+            if (item.type === 'position' && (targetType === 'unit' || targetType === 'department')) {
+                $wire.movePosition(item.id, targetId, targetType);
             } else if (item.type === 'unit' && targetType === 'department') {
                 $wire.moveUnit(item.id, targetId);
             } else if (item.type === 'department' && targetType === 'department') {
@@ -111,150 +106,160 @@
             }
         }
     }"
-    class="space-y-6"
+    class="space-y-6 w-full"
 >
     {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200 dark:border-zinc-800">
         <div>
-            <div class="flex items-center gap-2 mb-1">
-                <span class="text-xs text-zinc-500 dark:text-zinc-400">Kepegawaian & Medis</span>
-                <span class="text-xs text-zinc-400">/</span>
-                <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Struktur Organisasi</span>
-            </div>
-            <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-2.5">
-                <flux:icon name="building-office" class="size-7 text-emerald-600" />
-                Struktur & Bagan Organisasi RS Juwita
+            <h1 class="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2.5">
+                <flux:icon name="building-office" class="size-6 text-emerald-600 dark:text-emerald-400" />
+                Struktur Organisasi RS Juwita
             </h1>
-            <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                Bagan hierarki faskes interaktif: Departemen, Unit Operasional, dan Posisi Jabatan. Dilengkapi kontrol lipat (expand/collapse) dan pengaturan tata letak via drag & drop.
+            <p class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
+                Bagan hierarki faskes (Departemen &bull; Unit Kerja &bull; Jabatan). Klik baris untuk melipat/membuka, atau seret (drag &amp; drop) untuk memindahkan.
             </p>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2.5">
-            <flux:badge size="md" color="emerald" class="px-3 py-1 font-mono shadow-2xs">
-                {{ $totalDepartments }} Departemen &bull; {{ $totalUnits }} Unit &bull; {{ $totalPositions }} Jabatan
-            </flux:badge>
+        <div class="flex items-center gap-2 shrink-0">
+            <span class="text-xs font-mono text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 hidden md:inline-block">
+                {{ $totalDepartments }} Dept &bull; {{ $totalUnits }} Unit &bull; {{ $totalPositions }} Jabatan
+            </span>
+
+            @if ($canCreate)
+                <flux:dropdown align="end">
+                    <flux:button variant="primary" icon="plus" size="sm">
+                        Tambah Baru
+                    </flux:button>
+                    <flux:menu class="w-48">
+                        <flux:menu.item wire:click="openCreateDepartment()" icon="building-office">
+                            Tambah Departemen
+                        </flux:menu.item>
+                        <flux:menu.item wire:click="openCreateUnit()" icon="building-office-2">
+                            Tambah Unit Kerja
+                        </flux:menu.item>
+                        <flux:menu.item wire:click="openCreatePosition()" icon="briefcase">
+                            Tambah Jabatan
+                        </flux:menu.item>
+                    </flux:menu>
+                </flux:dropdown>
+            @endif
         </div>
     </div>
 
-    {{-- Feedback & Error Alerts --}}
+    {{-- Feedback Messages --}}
     @if ($feedbackMessage)
-        <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 flex items-center justify-between shadow-xs transition-all">
-            <div class="flex items-center gap-3">
-                <flux:icon name="check-circle" class="size-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span class="text-sm font-medium">{{ $feedbackMessage }}</span>
+        <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 flex items-center justify-between text-sm">
+            <div class="flex items-center gap-2.5">
+                <flux:icon name="check-circle" class="size-4.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>{{ $feedbackMessage }}</span>
             </div>
-            <flux:button size="sm" variant="subtle" wire:click="$set('feedbackMessage', null)">Tutup</flux:button>
+            <button wire:click="$set('feedbackMessage', null)" class="text-emerald-600 hover:text-emerald-800 dark:hover:text-emerald-200 text-xs font-semibold">Tutup</button>
         </div>
     @endif
 
     @if ($errorMessage)
-        <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-300 flex items-center justify-between shadow-xs transition-all">
-            <div class="flex items-center gap-3">
-                <flux:icon name="exclamation-triangle" class="size-5 text-rose-600 dark:text-rose-400 shrink-0" />
-                <span class="text-sm font-medium">{{ $errorMessage }}</span>
+        <div class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 flex items-center justify-between text-sm">
+            <div class="flex items-center gap-2.5">
+                <flux:icon name="exclamation-triangle" class="size-4.5 text-rose-600 dark:text-rose-400 shrink-0" />
+                <span>{{ $errorMessage }}</span>
             </div>
-            <flux:button size="sm" variant="subtle" wire:click="$set('errorMessage', null)">Tutup</flux:button>
+            <button wire:click="$set('errorMessage', null)" class="text-rose-600 hover:text-rose-800 dark:hover:text-rose-200 text-xs font-semibold">Tutup</button>
         </div>
     @endif
 
-    {{-- Controls Toolbar & Instructions Banner --}}
-    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 shadow-xs space-y-4">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            {{-- Search Bar --}}
-            <div class="relative flex-1 max-w-md">
-                <flux:icon name="magnifying-glass" class="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
-                <input 
-                    type="text" 
-                    x-model="search" 
-                    placeholder="Cari departemen, unit, atau jabatan..."
-                    class="w-full pl-10 pr-4 py-2 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700/80 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
-                />
-                <button 
-                    x-show="search.length > 0" 
-                    @click="search = ''"
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
-                    title="Bersihkan pencarian"
-                >
-                    <flux:icon name="x-mark" class="size-4" />
-                </button>
-            </div>
-
-            {{-- Expand / Collapse & Reorganize Controls --}}
-            <div class="flex items-center gap-2">
-                <flux:button size="sm" variant="filled" @click="expandAll()" icon="arrows-pointing-out">
-                    Buka Semua
-                </flux:button>
-                <flux:button size="sm" variant="outline" @click="collapseAll()" icon="arrows-pointing-in">
-                    Tutup Semua
-                </flux:button>
-            </div>
+    {{-- Clean Minimalist Toolbar --}}
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50 dark:bg-zinc-800/40 p-2.5 rounded-xl border border-zinc-200/80 dark:border-zinc-800">
+        {{-- Search Input --}}
+        <div class="relative flex-1 max-w-sm">
+            <flux:icon name="magnifying-glass" class="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
+            <input 
+                type="text" 
+                x-model="search" 
+                placeholder="Cari departemen, unit, jabatan..."
+                class="w-full pl-9 pr-8 py-1.5 bg-white dark:bg-zinc-850 border border-zinc-200 dark:border-zinc-700 rounded-lg text-xs sm:text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-hidden focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+            <button 
+                x-show="search.length > 0" 
+                @click="search = ''"
+                class="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+            >
+                <flux:icon name="x-mark" class="size-3.5" />
+            </button>
         </div>
 
-        {{-- Guide Banner --}}
-        @if ($canManage)
-            <div class="flex items-center gap-3 p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 text-xs text-emerald-800 dark:text-emerald-300">
-                <flux:icon name="arrows-up-down" class="size-4.5 text-emerald-600 shrink-0" />
-                <div class="leading-relaxed">
-                    <strong class="font-semibold">Fitur Drag & Drop Aktif:</strong>
-                    Tarik ikon grip <span class="inline-block px-1 py-0.5 rounded bg-emerald-200/50 dark:bg-emerald-900/60 font-mono font-bold text-2xs">⋮⋮</span> pada suatu Posisi untuk memindahkannya ke Unit lain, atau tarik Unit ke Departemen lain untuk mengatur ulang struktur organisasi faskes.
-                </div>
-            </div>
-        @else
-            <div class="flex items-center gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/70 dark:border-zinc-700/50 text-xs text-zinc-600 dark:text-zinc-400">
-                <flux:icon name="information-circle" class="size-4.5 text-zinc-400 shrink-0" />
-                <div class="leading-relaxed">
-                    Mode penampil (Read-Only). Anda dapat melipat dan memperluas hierarki atau menggunakan filter pencarian. Pengubahan struktur hanya dapat dilakukan oleh pengguna dengan hak akses manajerial.
-                </div>
-            </div>
-        @endif
+        {{-- Expand / Collapse Buttons --}}
+        <div class="flex items-center gap-2 self-end sm:self-auto">
+            <button 
+                type="button" 
+                @click="expandAll()" 
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-750 shadow-2xs"
+            >
+                <flux:icon name="arrows-pointing-out" class="size-3.5 text-zinc-400" />
+                <span>Buka Semua</span>
+            </button>
+            <button 
+                type="button" 
+                @click="collapseAll()" 
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-750 shadow-2xs"
+            >
+                <flux:icon name="arrows-pointing-in" class="size-3.5 text-zinc-400" />
+                <span>Tutup Semua</span>
+            </button>
+        </div>
     </div>
 
-    {{-- Nestable List Container --}}
-    <div class="space-y-4">
-        {{-- Root Drop Zone (to promote a department to root level) --}}
+    {{-- Tree View Container --}}
+    <div class="space-y-3">
+        {{-- Root Drop Zone (appears only when dragging a department) --}}
         @if ($canManage)
             <div 
                 x-show="draggedItem && draggedItem.type === 'department'"
                 @dragover="handleDragOver('root', 0, $event)"
                 @dragleave="handleDragLeave('root', 0, $event)"
                 @drop="handleDrop('root', 0, $event)"
-                class="p-4 rounded-2xl border-2 border-dashed transition-all flex items-center justify-center gap-2 text-sm font-semibold"
-                :class="activeDropTarget === 'root' ? 'border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 scale-[1.01]' : 'border-zinc-300 dark:border-zinc-700 text-zinc-400 hover:border-emerald-400'"
+                class="p-3.5 rounded-xl border-2 border-dashed transition-all flex items-center justify-center gap-2 text-xs font-semibold"
+                :class="activeDropTarget === 'root' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300' : 'border-zinc-300 dark:border-zinc-700 text-zinc-400'"
             >
-                <flux:icon name="arrow-up-circle" class="size-5" />
-                <span>Lepaskan di sini untuk memindahkan Departemen ke Tingkat Utama (Root)</span>
+                <flux:icon name="arrow-up-circle" class="size-4 text-emerald-600" />
+                <span>Lepaskan di sini untuk menjadikan Departemen Tingkat Utama (Root)</span>
             </div>
         @endif
 
-        {{-- Loop Root Departments --}}
+        {{-- Root Departments --}}
         @forelse ($rootDepartments as $rootDept)
             @include('livewire.organization.partials.department-node', [
                 'dept' => $rootDept,
                 'level' => 1,
+                'canCreate' => $canCreate,
+                'canUpdate' => $canUpdate,
+                'canDelete' => $canDelete,
                 'canManage' => $canManage,
             ])
         @empty
-            <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-12 text-center text-zinc-400">
-                <flux:icon name="building-office-2" class="size-12 mx-auto mb-3 text-zinc-300" />
-                <h3 class="text-base font-bold text-zinc-700 dark:text-zinc-300">Belum Ada Struktur Organisasi</h3>
-                <p class="text-sm mt-1">Data master departemen belum diatur dalam basis data faskes.</p>
+            <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-8 text-center text-zinc-400">
+                <flux:icon name="building-office-2" class="size-10 mx-auto mb-2 text-zinc-300" />
+                <p class="text-sm font-medium text-zinc-600 dark:text-zinc-400">Belum ada struktur organisasi tersimpan.</p>
+                @if ($canCreate)
+                    <flux:button variant="primary" size="sm" icon="plus" wire:click="openCreateDepartment()" class="mt-3">
+                        Tambah Departemen Pertama
+                    </flux:button>
+                @endif
             </div>
         @endforelse
 
         {{-- Standalone Departments (if any) --}}
         @if ($standaloneDepartments->isNotEmpty())
-            <div class="mt-8 pt-4 border-t border-zinc-200 dark:border-zinc-800 space-y-4">
-                <div class="flex items-center gap-2 px-1">
-                    <flux:icon name="exclamation-circle" class="size-4 text-amber-500" />
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                        Departemen Tanpa Induk Terdaftar
-                    </h3>
-                </div>
+            <div class="pt-4 border-t border-zinc-200 dark:border-zinc-800 space-y-3">
+                <span class="text-2xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 px-1">
+                    Departemen Lainnya (Tanpa Induk):
+                </span>
                 @foreach ($standaloneDepartments as $standaloneDept)
                     @include('livewire.organization.partials.department-node', [
                         'dept' => $standaloneDept,
                         'level' => 1,
+                        'canCreate' => $canCreate,
+                        'canUpdate' => $canUpdate,
+                        'canDelete' => $canDelete,
                         'canManage' => $canManage,
                     ])
                 @endforeach
@@ -262,25 +267,164 @@
         @endif
     </div>
 
-    {{-- Visual Legend --}}
-    <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 flex flex-wrap items-center justify-between gap-4 text-xs text-zinc-500 dark:text-zinc-400">
-        <div class="flex flex-wrap items-center gap-6">
-            <span class="font-bold text-zinc-700 dark:text-zinc-300">Keterangan Node:</span>
-            <div class="flex items-center gap-2">
-                <span class="size-3 rounded-full bg-emerald-500 inline-block"></span>
-                <span>Departemen / Divisi</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="size-3 rounded-full bg-sky-500 inline-block"></span>
-                <span>Unit Kerja / Instalasi</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <span class="size-3 rounded-full bg-indigo-500 inline-block"></span>
-                <span>Posisi / Formasi Jabatan</span>
-            </div>
+    {{-- Visual Legend (Simple and compact) --}}
+    <div class="flex items-center justify-between text-2xs text-zinc-400 px-1 pt-2">
+        <div class="flex items-center gap-4">
+            <span class="inline-flex items-center gap-1.5">
+                <span class="size-2 rounded-full bg-emerald-500"></span> Departemen
+            </span>
+            <span class="inline-flex items-center gap-1.5">
+                <span class="size-2 rounded-full bg-sky-500"></span> Unit Kerja
+            </span>
+            <span class="inline-flex items-center gap-1.5">
+                <span class="size-2 rounded-full bg-zinc-400"></span> Formasi Jabatan
+            </span>
         </div>
-        <div class="text-2xs text-zinc-400 font-mono">
-            RS Juwita Organization Engine &bull; Standard Compliant
-        </div>
+        <span>Seret ikon grip <span class="font-mono">⋮⋮</span> untuk mengatur hierarki</span>
     </div>
+
+    {{-- MODAL: CREATE / EDIT DEPARTMENT --}}
+    <flux:modal wire:model="showDepartmentModal" class="md:w-md space-y-4">
+        <div>
+            <flux:heading size="lg">{{ $editingDeptId ? 'Edit Departemen' : 'Tambah Departemen Baru' }}</flux:heading>
+            <flux:subheading class="text-xs text-zinc-500">Kelola departemen atau divisi faskes.</flux:subheading>
+        </div>
+
+        <form wire:submit="saveDepartment" class="space-y-4">
+            <flux:input wire:model="deptCode" label="Kode Departemen" placeholder="Misal: YANMED, KEP, KEU" required />
+            <flux:input wire:model="deptName" label="Nama Departemen / Divisi" placeholder="Misal: Pelayanan Medik" required />
+            
+            <flux:select wire:model="deptParentId" label="Departemen Induk (Opsional)">
+                <flux:select.option value="">-- Tingkat Tertinggi (Root) --</flux:select.option>
+                @foreach($allDepartments as $d)
+                    @if($editingDeptId !== $d->id)
+                        <flux:select.option value="{{ $d->id }}">{{ $d->name }} ({{ $d->code }})</flux:select.option>
+                    @endif
+                @endforeach
+            </flux:select>
+
+            <div class="flex items-center gap-2 pt-1">
+                <input type="checkbox" wire:model="deptIsActive" id="deptActive" class="rounded text-emerald-600 focus:ring-emerald-500">
+                <label for="deptActive" class="text-sm font-medium text-zinc-800 dark:text-zinc-200">Departemen Aktif</label>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <flux:modal.close><flux:button variant="subtle">Batal</flux:button></flux:modal.close>
+                <flux:button type="submit" variant="primary">Simpan Departemen</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    {{-- MODAL: CREATE / EDIT UNIT --}}
+    <flux:modal wire:model="showUnitModal" class="md:w-md space-y-4">
+        <div>
+            <flux:heading size="lg">{{ $editingUnitId ? 'Edit Unit Kerja' : 'Tambah Unit Kerja Baru' }}</flux:heading>
+            <flux:subheading class="text-xs text-zinc-500">Kelola instalasi faskes atau ruangan rawat.</flux:subheading>
+        </div>
+
+        <form wire:submit="saveUnit" class="space-y-4">
+            <flux:input wire:model="unitCode" label="Kode Unit" placeholder="Misal: IGD, ICU, FAR" required />
+            <flux:input wire:model="unitName" label="Nama Unit / Instalasi" placeholder="Misal: Instalasi Gawat Darurat" required />
+            
+            <flux:select wire:model="unitDepartmentId" label="Departemen Induk" required>
+                <flux:select.option value="">-- Pilih Departemen --</flux:select.option>
+                @foreach($allDepartments as $d)
+                    <flux:select.option value="{{ $d->id }}">{{ $d->name }} ({{ $d->code }})</flux:select.option>
+                @endforeach
+            </flux:select>
+
+            <div class="flex items-center gap-2 pt-1">
+                <input type="checkbox" wire:model="unitIsActive" id="unitActive" class="rounded text-emerald-600 focus:ring-emerald-500">
+                <label for="unitActive" class="text-sm font-medium text-zinc-800 dark:text-zinc-200">Unit Aktif</label>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <flux:modal.close><flux:button variant="subtle">Batal</flux:button></flux:modal.close>
+                <flux:button type="submit" variant="primary">Simpan Unit</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    {{-- MODAL: CREATE / EDIT POSITION --}}
+    <flux:modal wire:model="showPositionModal" class="md:w-md space-y-4">
+        <div>
+            <flux:heading size="lg">{{ $editingPositionId ? 'Edit Formasi Jabatan' : 'Tambah Formasi Jabatan Baru' }}</flux:heading>
+            <flux:subheading class="text-xs text-zinc-500">Kelola standar jabatan struktural di Departemen atau fungsional di Unit Kerja.</flux:subheading>
+        </div>
+
+        <form wire:submit="savePosition" class="space-y-4">
+            <flux:input wire:model="positionTitle" label="Judul / Nama Jabatan" placeholder="Misal: Direktur Medis, Dokter Jaga IGD, Karu ICU" required />
+            
+            {{-- Placement Level Selector --}}
+            <div>
+                <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">Penempatan Jabatan:</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-all {{ $positionPlacementType === 'department' ? 'border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 font-semibold' : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400' }}">
+                        <input type="radio" wire:model.live="positionPlacementType" value="department" class="text-emerald-600 focus:ring-emerald-500" />
+                        <span class="text-xs">Tingkat Departemen</span>
+                    </label>
+                    <label class="flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-all {{ $positionPlacementType === 'unit' ? 'border-sky-500 bg-sky-50/60 dark:bg-sky-950/40 text-sky-800 dark:text-sky-200 font-semibold' : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400' }}">
+                        <input type="radio" wire:model.live="positionPlacementType" value="unit" class="text-sky-600 focus:ring-sky-500" />
+                        <span class="text-xs">Tingkat Unit Kerja</span>
+                    </label>
+                </div>
+            </div>
+
+            @if ($positionPlacementType === 'department')
+                <flux:select wire:model="positionDepartmentId" label="Departemen / Divisi" required>
+                    <flux:select.option value="">-- Pilih Departemen --</flux:select.option>
+                    @foreach($allDepartments as $d)
+                        <flux:select.option value="{{ $d->id }}">{{ $d->name }} ({{ $d->code }})</flux:select.option>
+                    @endforeach
+                </flux:select>
+            @else
+                <flux:select wire:model="positionUnitId" label="Unit Kerja Penempatan" required>
+                    <flux:select.option value="">-- Pilih Unit Kerja --</flux:select.option>
+                    @foreach($allUnits as $u)
+                        <flux:select.option value="{{ $u->id }}">{{ $u->name }} ({{ $u->code }})</flux:select.option>
+                    @endforeach
+                </flux:select>
+            @endif
+
+            <flux:select wire:model="positionGradeLevel" label="Tingkatan / Grade" required>
+                <flux:select.option value="staff">Staff (Pelaksana)</flux:select.option>
+                <flux:select.option value="specialist">Specialist (Tenaga Medis / Ahli)</flux:select.option>
+                <flux:select.option value="supervisor">Supervisor (Penanggung Jawab / Karu)</flux:select.option>
+                <flux:select.option value="manager">Manager (Kepala Bagian / Instalasi)</flux:select.option>
+                <flux:select.option value="director">Director (Direksi / Pimpinan Faskes)</flux:select.option>
+            </flux:select>
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <flux:modal.close><flux:button variant="subtle">Batal</flux:button></flux:modal.close>
+                <flux:button type="submit" variant="primary">Simpan Jabatan</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    {{-- MODAL: DELETE CONFIRMATION --}}
+    <flux:modal wire:model="showDeleteModal" class="md:w-md space-y-4">
+        <div class="flex items-start gap-3">
+            <div class="size-9 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                <flux:icon name="exclamation-triangle" class="size-5" />
+            </div>
+            <div>
+                <flux:heading size="lg">Konfirmasi Hapus Data</flux:heading>
+                <p class="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                    Hapus data <strong class="text-zinc-900 dark:text-zinc-100 font-semibold">{{ $deleteName }}</strong>?
+                </p>
+                <p class="text-xs text-rose-600 dark:text-rose-400 mt-1.5">
+                    Data tidak dapat dihapus jika masih memiliki sub-unit, jabatan, atau data pegawai terkait.
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+            <flux:modal.close>
+                <flux:button variant="subtle">Batal</flux:button>
+            </flux:modal.close>
+            <flux:button wire:click="executeDelete" variant="danger">
+                Hapus Data
+            </flux:button>
+        </div>
+    </flux:modal>
 </div>

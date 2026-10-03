@@ -65,6 +65,16 @@ class Department extends Model
     }
 
     /**
+     * Direct leadership / executive positions within this department.
+     *
+     * @return HasMany<Position, $this>
+     */
+    public function positions(): HasMany
+    {
+        return $this->hasMany(Position::class);
+    }
+
+    /**
      * Scope to active departments only.
      *
      * @param  Builder<$this>  $query

@@ -8,7 +8,7 @@ use App\Models\ScheduleAssignment;
 use App\Models\Shift;
 use App\Services\Audit\AuditService;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -118,8 +118,10 @@ class ScheduleRoster extends Component
         $this->showAssignModal = false;
         $this->feedbackMessage = 'Penugasan shift dinas berhasil diterbitkan.';
         $this->reset(['selectedEmployeeId', 'selectedDoctorId', 'notes']);
+        $this->dispatch('pg:eventRefresh-schedules_table');
     }
 
+    #[On('cancelAssignment')]
     public function cancelAssignment(int $assignmentId, AuditService $auditService): void
     {
         $assignment = ScheduleAssignment::findOrFail($assignmentId);
@@ -134,6 +136,7 @@ class ScheduleRoster extends Component
             newValues: ['status' => 'cancelled'],
         );
 
+        $this->dispatch('pg:eventRefresh-schedules_table');
         $this->feedbackMessage = 'Jadwal shift berhasil dibatalkan.';
     }
 

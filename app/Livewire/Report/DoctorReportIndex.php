@@ -20,8 +20,8 @@ class DoctorReportIndex extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        if (! $user || (! $user->can('doctor.view') && ! $user->hasRole('super_admin') && ! $user->hasRole('hr_admin') && ! $user->hasRole('hr_manager'))) {
-            abort(403, 'Akses ke laporan dokter ditolak.');
+        if (! $user || (! $user->can('doctor.view_credentials') && ! $user->hasRole('super_admin') && ! $user->hasRole('hr_admin') && ! $user->hasRole('hr_manager'))) {
+            abort(403, 'Akses ke laporan kredensial dokter ditolak.');
         }
     }
 

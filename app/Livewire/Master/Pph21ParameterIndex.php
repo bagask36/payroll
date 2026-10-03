@@ -4,7 +4,7 @@ namespace App\Livewire\Master;
 
 use App\Models\Pph21Parameter;
 use App\Services\Audit\AuditService;
-use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -45,6 +45,7 @@ class Pph21ParameterIndex extends Component
         }
     }
 
+    #[On('editPph21Param')]
     public function edit(int $id): void
     {
         $param = Pph21Parameter::findOrFail($id);
@@ -90,6 +91,8 @@ class Pph21ParameterIndex extends Component
 
         $this->showModal = false;
         $this->feedbackMessage = "Parameter PPh 21 '{$param->name}' berhasil diperbarui!";
+        $this->dispatch('pg:eventRefresh-pph21_ptkp_table');
+        $this->dispatch('pg:eventRefresh-pph21_tarif_table');
     }
 
     public function render()

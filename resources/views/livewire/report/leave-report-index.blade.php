@@ -42,82 +42,8 @@
         </div>
     </div>
 
-    {{-- Filters --}}
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-        <flux:input wire:model.live="startDate" label="Mulai Tanggal" type="date" />
-        <flux:input wire:model.live="endDate" label="Sampai Tanggal" type="date" />
-
-        <div>
-            <label class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Status Pengajuan</label>
-            <flux:select wire:model.live="statusFilter">
-                <flux:select.option value="all">Semua Status</flux:select.option>
-                <flux:select.option value="approved">Disetujui (Approved)</flux:select.option>
-                <flux:select.option value="submitted">Diajukan (Submitted)</flux:select.option>
-                <flux:select.option value="rejected">Ditolak (Rejected)</flux:select.option>
-            </flux:select>
-        </div>
-
-        <div>
-            <label class="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Jenis Cuti</label>
-            <flux:select wire:model.live="leaveTypeFilter">
-                <flux:select.option value="">Semua Jenis Cuti</flux:select.option>
-                @foreach($leaveTypes as $lt)
-                    <flux:select.option value="{{ $lt->id }}">{{ $lt->name }}</flux:select.option>
-                @endforeach
-            </flux:select>
-        </div>
-    </div>
-
-    {{-- Table --}}
-    <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
-        <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
-            <thead class="bg-zinc-50 dark:bg-zinc-800/50">
-                <tr>
-                    <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold text-zinc-500 uppercase">No. Pengajuan & Tgl</th>
-                    <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold text-zinc-500 uppercase">Pegawai & Unit</th>
-                    <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold text-zinc-500 uppercase">Jenis Cuti</th>
-                    <th scope="col" class="px-5 py-3.5 text-center text-xs font-semibold text-zinc-500 uppercase">Periode & Durasi</th>
-                    <th scope="col" class="px-5 py-3.5 text-center text-xs font-semibold text-zinc-500 uppercase">Status</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
-                @forelse ($leaveRequests as $req)
-                    <tr class="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30 transition-colors">
-                        <td class="px-5 py-3.5 whitespace-nowrap">
-                            <div class="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400">#LR-{{ substr($req->uuid, 0, 8) }}</div>
-                            <div class="text-2xs text-zinc-500">{{ $req->created_at->format('d/m/Y H:i') }}</div>
-                        </td>
-                        <td class="px-5 py-3.5">
-                            <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $req->employee?->full_name ?? ($req->doctor?->name ?? '-') }}</div>
-                            <div class="text-xs text-zinc-500">{{ $req->employee?->unit?->name ?? ($req->doctor ? 'Pelayanan Medis' : '-') }}</div>
-                        </td>
-                        <td class="px-5 py-3.5 text-xs text-zinc-800 dark:text-zinc-200">
-                            {{ $req->leaveType->name ?? '-' }}
-                        </td>
-                        <td class="px-5 py-3.5 text-center whitespace-nowrap text-xs">
-                            <div class="font-medium text-zinc-800 dark:text-zinc-200">
-                                {{ $req->start_date->format('d M') }} - {{ $req->end_date->format('d M Y') }}
-                            </div>
-                            <div class="text-2xs font-semibold text-emerald-600 dark:text-emerald-400">{{ $req->total_days }} Hari Kerja</div>
-                        </td>
-                        <td class="px-5 py-3.5 text-center whitespace-nowrap">
-                            <flux:badge size="sm" color="{{ $req->status === 'approved' ? 'emerald' : ($req->status === 'rejected' ? 'rose' : 'amber') }}">
-                                {{ $req->status }}
-                            </flux:badge>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="px-5 py-10 text-center text-zinc-500">
-                            Tidak ditemukan data permohonan cuti pada rentang tanggal tersebut.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    <div>
-        {{ $leaveRequests->links() }}
-    </div>
+    {{-- PowerGrid Datatable --}}
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <livewire:tables.leave-report-table />
+    </flux:card>
 </div>

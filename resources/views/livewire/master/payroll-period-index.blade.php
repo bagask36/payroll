@@ -24,57 +24,9 @@
         </div>
     @endif
 
-    {{-- Data Table --}}
-    <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
-        <flux:table>
-            <flux:table.columns>
-                <flux:table.column>Nama Periode</flux:table.column>
-                <flux:table.column>Rentang Tanggal Penggajian</flux:table.column>
-                <flux:table.column>Tanggal Cut-Off Presensi</flux:table.column>
-                <flux:table.column>Status Buku</flux:table.column>
-                <flux:table.column align="end">Aksi</flux:table.column>
-            </flux:table.columns>
-
-            <flux:table.rows>
-                @forelse($periods as $per)
-                    <flux:table.row :key="$per->id">
-                        <flux:table.cell class="font-semibold text-zinc-900 dark:text-zinc-100">
-                            {{ $per->name }}
-                        </flux:table.cell>
-                        <flux:table.cell class="text-xs text-zinc-600 dark:text-zinc-400 font-mono">
-                            {{ $per->start_date?->format('d/m/Y') }} - {{ $per->end_date?->format('d/m/Y') }}
-                        </flux:table.cell>
-                        <flux:table.cell class="font-mono text-xs text-zinc-700 dark:text-zinc-300">
-                            {{ $per->cutoff_date ? $per->cutoff_date->format('d/m/Y') : '-' }}
-                        </flux:table.cell>
-                        <flux:table.cell>
-                            @if($per->is_closed)
-                                <flux:badge size="xs" color="rose">Tutup Buku (Closed)</flux:badge>
-                            @else
-                                <flux:badge size="xs" color="emerald">Terbuka (Open)</flux:badge>
-                            @endif
-                        </flux:table.cell>
-                        <flux:table.cell align="end">
-                            <flux:button size="xs" variant="subtle" icon="pencil-square" wire:click="editPeriod({{ $per->id }})">
-                                Edit
-                            </flux:button>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="5" class="text-center py-8 text-zinc-400 italic">
-                            Belum ada periode payroll yang terdaftar.
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforelse
-            </flux:table.rows>
-        </flux:table>
-
-        @if($periods->hasPages())
-            <div class="p-4 border-t border-zinc-100 dark:border-zinc-800">
-                {{ $periods->links() }}
-            </div>
-        @endif
+    {{-- PowerGrid Datatable --}}
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <livewire:tables.payroll-period-table />
     </flux:card>
 
     {{-- MODAL PAYROLL PERIOD --}}

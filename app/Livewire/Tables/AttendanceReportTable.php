@@ -7,7 +7,7 @@ namespace App\Livewire\Tables;
 use App\Models\Attendance;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Column;
-use PowerComponents\LivewirePowerGrid\Exportable;
+use PowerComponents\LivewirePowerGrid\Components\SetUp\Exportable;
 use PowerComponents\LivewirePowerGrid\Facades\PowerGrid;
 use PowerComponents\LivewirePowerGrid\PowerGridComponent;
 use PowerComponents\LivewirePowerGrid\PowerGridFields;
@@ -44,14 +44,14 @@ final class AttendanceReportTable extends PowerGridComponent
                 'employees.nip as employee_nip',
                 'units.name as unit_name',
             ])
-            ->latest('attendances.work_date');
+            ->latest('attendances.date');
     }
 
     public function fields(): PowerGridFields
     {
         return PowerGrid::fields()
             ->add('id')
-            ->add('work_date_display', fn (Attendance $att) => '<span class="font-mono text-xs font-semibold text-zinc-800 dark:text-zinc-200">'.($att->work_date ? $att->work_date->format('d/m/Y') : '-').'</span>')
+            ->add('work_date_display', fn (Attendance $att) => '<span class="font-mono text-xs font-semibold text-zinc-800 dark:text-zinc-200">'.($att->date ? $att->date->format('d/m/Y') : '-').'</span>')
             ->add('person_display', function (Attendance $att) {
                 $name = $att->employee?->full_name ?? $att->employee_name ?? 'Staf';
                 $nip = $att->employee?->nip ?? $att->employee_nip ?? '-';
@@ -60,8 +60,8 @@ final class AttendanceReportTable extends PowerGridComponent
             })
             ->add('unit_name', fn (Attendance $att) => '<span class="text-zinc-600 dark:text-zinc-400 text-xs">'.e($att->employee?->unit?->name ?? $att->unit_name ?? '-').'</span>')
             ->add('time_display', function (Attendance $att) {
-                $in = $att->clock_in_at ? $att->clock_in_at->format('H:i') : '--:--';
-                $out = $att->clock_out_at ? $att->clock_out_at->format('H:i') : '--:--';
+                $in = $att->clock_in ? $att->clock_in->format('H:i') : '--:--';
+                $out = $att->clock_out ? $att->clock_out->format('H:i') : '--:--';
 
                 return '<span class="font-mono text-xs font-semibold text-zinc-700 dark:text-zinc-300">'.e($in).' - '.e($out).' WIB</span>';
             })
@@ -79,8 +79,8 @@ final class AttendanceReportTable extends PowerGridComponent
                 return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800">'.e(ucfirst((string) $att->status)).'</span>';
             })
             ->add('late_display', function (Attendance $att) {
-                if ($att->late_minutes > 0) {
-                    return '<span class="font-mono text-xs font-semibold text-amber-600 dark:text-amber-400">'.$att->late_minutes.' Menit</span>';
+                if (($att->late_duration_minutes ?? 0) > 0) {
+                    return '<span class="font-mono text-xs font-semibold text-amber-600 dark:text-amber-400">'.$att->late_duration_minutes.' Menit</span>';
                 }
 
                 return '<span class="text-zinc-400 text-xs">0 m</span>';
@@ -90,7 +90,7 @@ final class AttendanceReportTable extends PowerGridComponent
     public function columns(): array
     {
         return [
-            Column::make('Tanggal Tugas', 'work_date_display', 'attendances.work_date')
+            Column::make('Tanggal Tugas', 'work_date_display', 'attendances.date')
                 ->sortable(),
 
             Column::make('Pegawai / Staf Medis', 'person_display', 'employees.full_name')
@@ -106,7 +106,7 @@ final class AttendanceReportTable extends PowerGridComponent
             Column::make('Status', 'status_badge', 'attendances.status')
                 ->sortable(),
 
-            Column::make('Keterlambatan', 'late_display', 'attendances.late_minutes')
+            Column::make('Keterlambatan', 'late_display', 'attendances.late_duration_minutes')
                 ->sortable(),
         ];
     }

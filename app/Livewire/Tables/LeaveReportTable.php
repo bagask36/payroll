@@ -7,7 +7,7 @@ namespace App\Livewire\Tables;
 use App\Models\LeaveRequest;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Column;
-use PowerComponents\LivewirePowerGrid\Exportable;
+use PowerComponents\LivewirePowerGrid\Components\SetUp\Exportable;
 use PowerComponents\LivewirePowerGrid\Facades\PowerGrid;
 use PowerComponents\LivewirePowerGrid\PowerGridComponent;
 use PowerComponents\LivewirePowerGrid\PowerGridFields;
@@ -64,7 +64,7 @@ final class LeaveReportTable extends PowerGridComponent
 
                 return '<span class="font-mono text-xs text-zinc-700 dark:text-zinc-300">'.e($start).' - '.e($end).'</span>';
             })
-            ->add('days_display', fn (LeaveRequest $lr) => '<span class="font-mono text-xs font-semibold text-zinc-800 dark:text-zinc-200">'.$lr->days_count.' Hari</span>')
+            ->add('days_display', fn (LeaveRequest $lr) => '<span class="font-mono text-xs font-semibold text-zinc-800 dark:text-zinc-200">'.$lr->total_days.' Hari</span>')
             ->add('status_badge', function (LeaveRequest $lr) {
                 if ($lr->status === 'approved') {
                     return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800">Disetujui</span>';
@@ -91,7 +91,7 @@ final class LeaveReportTable extends PowerGridComponent
 
             Column::make('Rentang Tanggal', 'date_range'),
 
-            Column::make('Durasi', 'days_display', 'leave_requests.days_count')
+            Column::make('Durasi', 'days_display', 'leave_requests.total_days')
                 ->sortable(),
 
             Column::make('Status Permohonan', 'status_badge', 'leave_requests.status')

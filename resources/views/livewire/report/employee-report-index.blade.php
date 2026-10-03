@@ -42,79 +42,8 @@
         </div>
     </div>
 
-    {{-- Filters --}}
-    <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-        <flux:input wire:model.live.debounce.300ms="search" placeholder="Cari NIP atau nama staf..." icon="magnifying-glass" clearable />
-
-        <flux:select wire:model.live="statusFilter">
-            <flux:select.option value="all">Semua Status</flux:select.option>
-            <flux:select.option value="active">Aktif Saja</flux:select.option>
-            <flux:select.option value="inactive">Nonaktif</flux:select.option>
-        </flux:select>
-
-        <flux:select wire:model.live="contractTypeFilter">
-            <flux:select.option value="all">Semua Tipe Kontrak</flux:select.option>
-            <flux:select.option value="permanent">Tetap (PKWTT)</flux:select.option>
-            <flux:select.option value="contract">Kontrak (PKWT)</flux:select.option>
-            <flux:select.option value="intern">Magang / Residen</flux:select.option>
-        </flux:select>
-
-        <flux:select wire:model.live="unitFilter">
-            <flux:select.option value="">Semua Unit Kerja</flux:select.option>
-            @foreach($units as $u)
-                <flux:select.option value="{{ $u->id }}">{{ $u->name }}</flux:select.option>
-            @endforeach
-        </flux:select>
-    </div>
-
-    {{-- Table --}}
-    <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
-        <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
-            <thead class="bg-zinc-50 dark:bg-zinc-800/50">
-                <tr>
-                    <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold text-zinc-500 uppercase">NIP & Nama</th>
-                    <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold text-zinc-500 uppercase">Unit & Posisi</th>
-                    <th scope="col" class="px-5 py-3.5 text-center text-xs font-semibold text-zinc-500 uppercase">Status & Kontrak</th>
-                    <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold text-zinc-500 uppercase">Masa Kerja</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
-                @forelse ($employees as $emp)
-                    <tr class="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30 transition-colors">
-                        <td class="px-5 py-3.5">
-                            <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $emp->full_name }}</div>
-                            <div class="text-xs font-mono text-zinc-500">NIP: {{ $emp->nip }}</div>
-                        </td>
-                        <td class="px-5 py-3.5">
-                            <div class="text-sm text-zinc-800 dark:text-zinc-200">{{ $emp->position?->title ?? '-' }}</div>
-                            <div class="text-xs text-zinc-500">{{ $emp->unit?->name ?? '-' }}</div>
-                        </td>
-                        <td class="px-5 py-3.5 text-center">
-                            <div class="flex items-center justify-center gap-1.5">
-                                <flux:badge size="sm" color="{{ $emp->status === 'active' ? 'emerald' : 'zinc' }}">
-                                    {{ $emp->status }}
-                                </flux:badge>
-                                <flux:badge size="sm" color="blue">
-                                    {{ $emp->currentEmployment?->contract_type ?? '-' }}
-                                </flux:badge>
-                            </div>
-                        </td>
-                        <td class="px-5 py-3.5 text-xs text-zinc-600 dark:text-zinc-400">
-                            {{ $emp->currentEmployment?->join_date ? $emp->currentEmployment->join_date->format('d M Y') : '-' }}
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="4" class="px-5 py-10 text-center text-zinc-500">
-                            Tidak ditemukan data pegawai sesuai filter yang dipilih.
-                        </td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    <div>
-        {{ $employees->links() }}
-    </div>
+    {{-- PowerGrid Datatable --}}
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <livewire:tables.employee-report-table />
+    </flux:card>
 </div>

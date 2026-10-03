@@ -1,143 +1,204 @@
 @props([
     'dept',
     'level' => 1,
+    'canCreate' => false,
+    'canUpdate' => false,
+    'canDelete' => false,
     'canManage' => false,
 ])
 
 <div 
     data-node-id="dept-{{ $dept->id }}"
     x-show="matchesSearch('{{ addslashes($dept->name) }}') || matchesSearch('{{ addslashes($dept->code) }}') || search.length === 0"
-    class="rounded-2xl transition-all duration-200 border {{ $level === 1 ? 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs' : 'border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/70 dark:bg-zinc-800/40' }}"
-    :class="activeDropTarget === 'department-{{ $dept->id }}' ? 'ring-2 ring-emerald-500 border-dashed border-emerald-500 bg-emerald-50/70 dark:bg-emerald-950/40' : ''"
-    @dragover="handleDragOver('department', {{ $dept->id }}, $event)"
-    @dragleave="handleDragLeave('department', {{ $dept->id }}, $event)"
-    @drop="handleDrop('department', {{ $dept->id }}, $event)"
+    class="space-y-2 w-full"
 >
-    {{-- Node Header / Bar --}}
-    <div class="p-3.5 sm:p-4 flex items-center justify-between gap-3">
-        <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
-            {{-- Drag Handle (for moving department itself) --}}
+    {{-- Department Row Card --}}
+    <div 
+        class="flex items-center justify-between p-3 rounded-xl border border-zinc-200/90 dark:border-zinc-800 bg-white dark:bg-zinc-850 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all shadow-2xs group w-full"
+        :class="activeDropTarget === 'department-{{ $dept->id }}' ? 'ring-2 ring-emerald-500 border-dashed border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/40' : ''"
+        @dragover="handleDragOver('department', {{ $dept->id }}, $event)"
+        @dragleave="handleDragLeave('department', {{ $dept->id }}, $event)"
+        @drop="handleDrop('department', {{ $dept->id }}, $event)"
+    >
+        <div class="flex items-center gap-2.5 min-w-0">
+            {{-- Drag Handle --}}
             @if ($canManage)
                 <div 
                     draggable="true"
                     @dragstart="handleDragStart('department', {{ $dept->id }}, '{{ addslashes($dept->name) }}', $event)"
                     @dragend="handleDragEnd()"
-                    class="cursor-grab active:cursor-grabbing text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 p-1 -ml-1 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0"
-                    title="Tarik untuk memindahkan departemen ini ke departemen lain atau tingkat utama"
+                    class="cursor-grab active:cursor-grabbing text-zinc-300 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 p-0.5 rounded transition-colors shrink-0"
+                    title="Seret untuk memindahkan departemen"
                 >
-                    <flux:icon name="bars-2" class="size-4 rotate-90" />
+                    <flux:icon name="bars-2" class="size-3.5 rotate-90" />
                 </div>
             @endif
 
-            {{-- Expand / Collapse Toggle Button --}}
+            {{-- Toggle Button --}}
             <button 
                 type="button"
                 @click="toggle('dept-{{ $dept->id }}')"
-                class="size-7 rounded-lg flex items-center justify-center text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-transform"
-                title="Buka / Tutup cabang"
+                class="size-6 rounded flex items-center justify-center text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-transform"
+                title="Buka / Tutup"
             >
                 <flux:icon 
                     name="chevron-right" 
-                    class="size-4 transition-transform duration-200" 
-                    ::class="isExpanded('dept-{{ $dept->id }}') ? 'rotate-90 text-emerald-600 dark:text-emerald-400' : ''" 
+                    class="size-3.5 transition-transform duration-200" 
+                    ::class="isExpanded('dept-{{ $dept->id }}') ? 'rotate-90 text-emerald-600' : ''" 
                 />
             </button>
 
             {{-- Department Icon & Title --}}
-            <div class="flex items-center gap-2.5 min-w-0">
-                <div class="size-8 rounded-xl {{ $level === 1 ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300' : 'bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300' }} flex items-center justify-center shrink-0 font-bold text-xs shadow-2xs">
-                    <flux:icon name="building-office" class="size-4.5" />
+            <div 
+                @click="toggle('dept-{{ $dept->id }}')" 
+                class="flex items-center gap-2 min-w-0 cursor-pointer select-none"
+            >
+                <div class="size-6.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                    <flux:icon name="building-office" class="size-3.5" />
                 </div>
-                <div class="min-w-0">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="text-xs font-mono font-bold px-1.5 py-0.5 rounded {{ $level === 1 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800' : 'bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-200 dark:border-teal-800' }}">
-                            {{ $dept->code }}
-                        </span>
-                        <h3 class="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate">
-                            {{ $dept->name }}
-                        </h3>
-                        @if (!$dept->is_active)
-                            <flux:badge size="2xs" color="zinc">Nonaktif</flux:badge>
-                        @endif
-                    </div>
-                    @if ($level === 1 && $dept->parent_id === null)
-                        <span class="text-2xs text-emerald-600 dark:text-emerald-400 font-medium">Tingkat Tertinggi / Direktorat</span>
+                <div class="flex items-center gap-2 flex-wrap min-w-0">
+                    <span class="text-xs font-mono font-semibold px-1.5 py-0.2 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
+                        {{ $dept->code }}
+                    </span>
+                    <span class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                        {{ $dept->name }}
+                    </span>
+                    @if (!$dept->is_active)
+                        <span class="text-3xs font-mono px-1 py-0.2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-400">Nonaktif</span>
                     @endif
                 </div>
             </div>
         </div>
 
-        {{-- Right Side Badges & Drop Indicator --}}
+        {{-- Right Side Counts & Actions --}}
         <div class="flex items-center gap-2 shrink-0">
             <template x-if="activeDropTarget === 'department-{{ $dept->id }}'">
-                <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 animate-pulse hidden sm:inline-block">
-                    &larr; Lepaskan Unit / Sub-Departemen ke sini
+                <span class="text-xs font-semibold text-emerald-600 dark:text-emerald-400 animate-pulse hidden md:inline-block">
+                    &larr; Lepaskan Unit / Jabatan di sini
                 </span>
             </template>
 
-            @if ($dept->children->isNotEmpty())
-                <flux:badge size="sm" color="teal">
-                    {{ $dept->children->count() }} Sub-Dept
-                </flux:badge>
-            @endif
-
-            <flux:badge size="sm" color="emerald">
+            <span class="text-xs text-zinc-400 font-medium hidden sm:inline-block">
+                @if($dept->positions->isNotEmpty())
+                    {{ $dept->positions->count() }} Jabatan &bull;
+                @endif
+                @if($dept->children->isNotEmpty())
+                    {{ $dept->children->count() }} Sub-Dept &bull;
+                @endif
                 {{ $dept->units->count() }} Unit
-            </flux:badge>
+            </span>
+
+            {{-- Actions --}}
+            @if ($canCreate || $canUpdate || $canDelete)
+                <div class="flex items-center gap-1 border-l border-zinc-200 dark:border-zinc-700 pl-2">
+                    @if ($canCreate)
+                        <button 
+                            type="button"
+                            wire:click="openCreatePosition(null, {{ $dept->id }})" 
+                            class="px-2 py-0.8 text-2xs font-medium rounded text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 transition-colors"
+                            title="Tambah Jabatan langsung di departemen ini"
+                        >
+                            + Jabatan
+                        </button>
+                        <button 
+                            type="button"
+                            wire:click="openCreateUnit({{ $dept->id }})" 
+                            class="px-2 py-0.8 text-2xs font-medium rounded text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 transition-colors"
+                            title="Tambah Unit Kerja di departemen ini"
+                        >
+                            + Unit
+                        </button>
+                    @endif
+
+                    @if ($canUpdate || $canDelete)
+                        <flux:dropdown align="end">
+                            <button type="button" class="p-1 rounded text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors" aria-label="Menu Aksi">
+                                <flux:icon name="ellipsis-vertical" class="size-3.5" />
+                            </button>
+                            <flux:menu class="w-44">
+                                @if ($canCreate)
+                                    <flux:menu.item icon="plus" wire:click="openCreateDepartment({{ $dept->id }})">
+                                        Sub-Departemen
+                                    </flux:menu.item>
+                                @endif
+                                @if ($canUpdate)
+                                    <flux:menu.item icon="pencil-square" wire:click="editDepartment({{ $dept->id }})">
+                                        Edit Departemen
+                                    </flux:menu.item>
+                                @endif
+                                @if ($canDelete)
+                                    <flux:menu.item icon="trash" variant="danger" wire:click="confirmDelete('department', {{ $dept->id }}, '{{ addslashes($dept->name) }}')">
+                                        Hapus Departemen
+                                    </flux:menu.item>
+                                @endif
+                            </flux:menu>
+                        </flux:dropdown>
+                    @endif
+                </div>
+            @endif
         </div>
     </div>
 
-    {{-- Expandable Child Area --}}
+    {{-- Expandable Children (Indented with clean vertical guide lines) --}}
     <div 
         x-show="isExpanded('dept-{{ $dept->id }}')"
-        x-transition:enter="transition ease-out duration-150"
-        x-transition:enter-start="opacity-0 -translate-y-1"
-        x-transition:enter-end="opacity-100 translate-y-0"
-        class="border-t border-zinc-100 dark:border-zinc-800/80 p-3.5 sm:p-5 space-y-4 bg-zinc-50/40 dark:bg-zinc-900/50 rounded-b-2xl"
+        class="border-l-2 border-zinc-200 dark:border-zinc-800 ml-4 sm:ml-5 pl-3 sm:pl-4 space-y-2.5 py-1"
     >
-        {{-- Sub-Departments (if any) --}}
-        @if ($dept->children->isNotEmpty())
-            <div class="space-y-3 pl-3 sm:pl-6 border-l-2 border-teal-200 dark:border-teal-800/60">
-                <div class="text-2xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400 flex items-center gap-1.5">
-                    <flux:icon name="queue-list" class="size-3.5" />
-                    Sub-Departemen / Divisi Turunan:
-                </div>
-                @foreach ($dept->children as $child)
-                    @include('livewire.organization.partials.department-node', [
-                        'dept' => $child,
-                        'level' => $level + 1,
+        {{-- 1. Direct Department Positions (Leadership / Structural) --}}
+        @if ($dept->positions->isNotEmpty())
+            <div class="space-y-1.5 py-0.5">
+                <span class="text-3xs font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                    <flux:icon name="briefcase" class="size-3" />
+                    Jabatan Struktural Departemen ({{ $dept->positions->count() }}):
+                </span>
+                @foreach ($dept->positions as $deptPos)
+                    @include('livewire.organization.partials.position-node', [
+                        'pos' => $deptPos,
+                        'canCreate' => $canCreate,
+                        'canUpdate' => $canUpdate,
+                        'canDelete' => $canDelete,
                         'canManage' => $canManage,
                     ])
                 @endforeach
             </div>
         @endif
 
-        {{-- Units under this Department --}}
-        <div class="space-y-3 pl-3 sm:pl-6 border-l-2 border-emerald-200 dark:border-emerald-800/60">
-            <div class="flex items-center justify-between text-2xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                <span class="flex items-center gap-1.5">
-                    <flux:icon name="building-office-2" class="size-3.5" />
-                    Daftar Unit Kerja & Instalasi ({{ $dept->units->count() }}):
-                </span>
-                <span class="text-zinc-400 lowercase font-normal">Tarik unit untuk memindahkan</span>
-            </div>
-
-            @forelse ($dept->units as $unit)
-                @include('livewire.organization.partials.unit-node', [
-                    'unit' => $unit,
+        {{-- 2. Sub-departments --}}
+        @if ($dept->children->isNotEmpty())
+            @foreach ($dept->children as $child)
+                @include('livewire.organization.partials.department-node', [
+                    'dept' => $child,
+                    'level' => $level + 1,
+                    'canCreate' => $canCreate,
+                    'canUpdate' => $canUpdate,
+                    'canDelete' => $canDelete,
                     'canManage' => $canManage,
                 ])
-            @empty
-                <div 
-                    class="p-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 text-center text-xs text-zinc-400 flex flex-col items-center justify-center gap-1 py-6 bg-white/60 dark:bg-zinc-800/30"
-                >
-                    <flux:icon name="inbox-stack" class="size-5 text-zinc-300 dark:text-zinc-600" />
-                    <span>Belum ada unit kerja terpasang pada departemen ini.</span>
-                    @if ($canManage)
-                        <span class="text-2xs text-emerald-600 dark:text-emerald-400 font-medium">Tarik unit dari departemen lain dan lepaskan ke kartu departemen ini.</span>
+            @endforeach
+        @endif
+
+        {{-- 3. Units under this department --}}
+        @forelse ($dept->units as $unit)
+            @include('livewire.organization.partials.unit-node', [
+                'unit' => $unit,
+                'canCreate' => $canCreate,
+                'canUpdate' => $canUpdate,
+                'canDelete' => $canDelete,
+                'canManage' => $canManage,
+            ])
+        @empty
+            @if ($dept->children->isEmpty() && $dept->positions->isEmpty())
+                <div class="py-2.5 px-3 rounded-lg border border-dashed border-zinc-200 dark:border-zinc-800 text-xs text-zinc-400 bg-zinc-50/50 dark:bg-zinc-900/30 flex items-center justify-between">
+                    <span>Belum ada unit kerja atau jabatan langsung di departemen ini.</span>
+                    @if ($canCreate)
+                        <div class="flex items-center gap-2">
+                            <button type="button" wire:click="openCreatePosition(null, {{ $dept->id }})" class="text-indigo-600 hover:underline text-2xs font-semibold">+ Jabatan</button>
+                            <span>&bull;</span>
+                            <button type="button" wire:click="openCreateUnit({{ $dept->id }})" class="text-emerald-600 hover:underline text-2xs font-semibold">+ Unit</button>
+                        </div>
                     @endif
                 </div>
-            @endforelse
-        </div>
+            @endif
+        @endforelse
     </div>
 </div>

@@ -41,7 +41,9 @@
     @endif
 
     {{-- Documents PowerGrid Table --}}
-    <livewire:tables.document-table />
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <livewire:tables.document-table />
+    </flux:card>
 
     {{-- Upload Document Modal --}}
     <flux:modal wire:model="showUploadModal" class="md:w-96 space-y-4">

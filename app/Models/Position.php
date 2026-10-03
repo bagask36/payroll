@@ -16,13 +16,24 @@ class Position extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'department_id',
         'unit_id',
         'title',
         'grade_level',
     ];
 
     /**
-     * Unit association.
+     * Department association (for direct departmental positions like Directors, Division Heads).
+     *
+     * @return BelongsTo<Department, $this>
+     */
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
+    }
+
+    /**
+     * Unit association (for unit-level operational positions like Ward In-charge, Nurses).
      *
      * @return BelongsTo<Unit, $this>
      */

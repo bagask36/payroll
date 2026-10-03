@@ -5,6 +5,7 @@ namespace App\Livewire\Master;
 use App\Models\SalaryComponent;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -59,6 +60,7 @@ class EarningComponentIndex extends Component
         $this->showModal = true;
     }
 
+    #[On('editComponent')]
     public function edit(int $id): void
     {
         $component = SalaryComponent::where('type', 'allowance')->findOrFail($id);
@@ -117,6 +119,7 @@ class EarningComponentIndex extends Component
         }
 
         $this->showModal = false;
+        $this->dispatch('pg:eventRefresh-earning_components_table');
     }
 
     public function toggleStatus(int $id, AuditService $auditService): void

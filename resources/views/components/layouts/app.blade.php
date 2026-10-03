@@ -149,7 +149,16 @@
                 </flux:sidebar.group>
 
                 {{-- 5. LAPORAN --}}
-                @if(auth()->user()?->can('employee.view') || auth()->user()?->can('payroll.view_all'))
+                @if(
+                    auth()->user()?->can('employee.view') || 
+                    auth()->user()?->can('attendance.view_all') || 
+                    auth()->user()?->can('leave.view_all') || 
+                    auth()->user()?->can('payroll.view_all') || 
+                    auth()->user()?->can('doctor.view') || 
+                    auth()->user()?->hasRole('super_admin') || 
+                    auth()->user()?->hasRole('hr_admin') ||
+                    auth()->user()?->hasRole('hr_manager')
+                )
                     <flux:sidebar.group 
                         expandable 
                         :expanded="request()->routeIs('reports.*')" 
@@ -157,35 +166,35 @@
                         icon="chart-bar"
                         class="mt-3"
                     >
-                        @can('employee.view')
+                        @if(auth()->user()?->can('employee.view') || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('hr_manager'))
                             <flux:sidebar.item icon="users" href="{{ route('reports.employees') }}" :current="request()->routeIs('reports.employees')">
                                 Laporan Kepegawaian
                             </flux:sidebar.item>
-                        @endcan
+                        @endif
 
-                        @if(auth()->user()?->can('attendance.view_all') || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin'))
+                        @if(auth()->user()?->can('attendance.view_all') || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('hr_manager') || auth()->user()?->hasRole('payroll'))
                             <flux:sidebar.item icon="clock" href="{{ route('reports.attendance') }}" :current="request()->routeIs('reports.attendance')">
                                 Laporan Kehadiran
                             </flux:sidebar.item>
                         @endif
 
-                        @if(auth()->user()?->can('leave.view_all') || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin'))
+                        @if(auth()->user()?->can('leave.view_all') || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('hr_manager') || auth()->user()?->hasRole('payroll'))
                             <flux:sidebar.item icon="calendar-days" href="{{ route('reports.leaves') }}" :current="request()->routeIs('reports.leaves')">
                                 Laporan Cuti & Izin
                             </flux:sidebar.item>
                         @endif
 
-                        @can('payroll.view_all')
+                        @if(auth()->user()?->can('payroll.view_all') || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_manager') || auth()->user()?->hasRole('payroll') || auth()->user()?->hasRole('finance'))
                             <flux:sidebar.item icon="banknotes" href="{{ route('reports.payroll') }}" :current="request()->routeIs('reports.payroll')">
                                 Laporan Payroll
                             </flux:sidebar.item>
-                        @endcan
+                        @endif
 
-                        @can('doctor.view')
+                        @if(auth()->user()?->can('doctor.view_credentials') || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('hr_manager'))
                             <flux:sidebar.item icon="user-group" href="{{ route('reports.doctors') }}" :current="request()->routeIs('reports.doctors')">
                                 Laporan Dokter
                             </flux:sidebar.item>
-                        @endcan
+                        @endif
                     </flux:sidebar.group>
                 @endif
 

@@ -30,7 +30,7 @@ final class EarningComponentTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return SalaryComponent::query()->where('type', 'earning');
+        return SalaryComponent::query()->whereIn('type', ['allowance', 'earning']);
     }
 
     public function fields(): PowerGridFields

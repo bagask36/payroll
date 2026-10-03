@@ -5,6 +5,7 @@ namespace App\Livewire\Master;
 use App\Models\PayrollPeriod;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -45,6 +46,7 @@ class PayrollPeriodIndex extends Component
         $this->showPeriodModal = true;
     }
 
+    #[On('editPeriod')]
     public function editPeriod(int $id): void
     {
         $period = PayrollPeriod::findOrFail($id);
@@ -90,6 +92,7 @@ class PayrollPeriodIndex extends Component
         $auditService->log(action: $action, auditable: $period, newValues: ['name' => $period->name]);
         $this->showPeriodModal = false;
         $this->feedbackMessage = "{$period->name} berhasil disimpan!";
+        $this->dispatch('pg:eventRefresh-payroll_periods_table');
     }
 
     public function render()

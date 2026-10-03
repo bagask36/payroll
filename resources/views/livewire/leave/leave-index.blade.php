@@ -101,9 +101,9 @@
 
     {{-- Tab 1: My Personal Requests --}}
     @if($activeTab === 'my_requests')
-        <div class="space-y-4">
+        <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
             <livewire:tables.leave-request-table />
-        </div>
+        </flux:card>
     @endif
 
     {{-- Tab 2: Tier 1 Approvals (Supervisor) --}}

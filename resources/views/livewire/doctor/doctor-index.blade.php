@@ -55,7 +55,9 @@
     </div>
 
     {{-- PowerGrid Table Component --}}
-    <livewire:tables.doctor-table />
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <livewire:tables.doctor-table />
+    </flux:card>
 
     {{-- Flux Native Modal for Credential Renewal --}}
     @if($showRenewalModal)

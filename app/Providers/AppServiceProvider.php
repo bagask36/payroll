@@ -36,6 +36,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (! class_exists('PowerComponents\LivewirePowerGrid\Exportable')) {
+            class_alias(\PowerComponents\LivewirePowerGrid\Components\SetUp\Exportable::class, 'PowerComponents\LivewirePowerGrid\Exportable');
+        }
+
         Gate::before(function (User $user, string $ability): ?bool {
             if ($user->isSuperAdmin()) {
                 return true;

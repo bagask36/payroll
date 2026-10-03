@@ -5,6 +5,7 @@ namespace App\Livewire\Master;
 use App\Models\SalaryComponent;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -56,6 +57,7 @@ class DeductionComponentIndex extends Component
         $this->showModal = true;
     }
 
+    #[On('editComponent')]
     public function edit(int $id): void
     {
         $component = SalaryComponent::where('type', 'deduction')->findOrFail($id);
@@ -113,6 +115,7 @@ class DeductionComponentIndex extends Component
         }
 
         $this->showModal = false;
+        $this->dispatch('pg:eventRefresh-deduction_components_table');
     }
 
     public function toggleStatus(int $id, AuditService $auditService): void
