@@ -12,6 +12,7 @@ use App\Services\Payroll\PayrollCalculationService;
 use Carbon\Carbon;
 use DomainException;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -201,6 +202,7 @@ class PayrollIndex extends Component
         ]);
     }
 
+    #[On('view-item-detail')]
     public function viewItemDetail(int $itemId): void
     {
         $item = PayrollItem::with(['employee.unit', 'employee.position'])->findOrFail($itemId);

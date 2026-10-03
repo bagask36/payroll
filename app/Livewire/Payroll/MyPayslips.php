@@ -5,6 +5,7 @@ namespace App\Livewire\Payroll;
 use App\Models\Employee;
 use App\Models\PayrollItem;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -27,6 +28,7 @@ class MyPayslips extends Component
         }
     }
 
+    #[On('view-slip-detail')]
     public function viewSlip(int $itemId): void
     {
         $item = PayrollItem::findOrFail($itemId);

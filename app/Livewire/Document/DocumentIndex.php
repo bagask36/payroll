@@ -9,6 +9,7 @@ use App\Models\Employee;
 use App\Services\Audit\AuditService;
 use App\Services\Document\DocumentService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -123,8 +124,10 @@ class DocumentIndex extends Component
 
         $this->reset(['uploadedFile', 'showUploadModal']);
         $this->feedbackMessage = 'Dokumen berhasil diunggah dan diarsipkan dengan aman!';
+        $this->dispatch('pg:eventRefresh-documents_table');
     }
 
+    #[On('download-document')]
     public function generateDownloadUrl(int $documentId, AuditService $auditService): ?string
     {
         $doc = Document::findOrFail($documentId);

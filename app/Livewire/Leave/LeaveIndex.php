@@ -9,6 +9,7 @@ use App\Services\Audit\AuditService;
 use Carbon\Carbon;
 use DomainException;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -76,6 +77,7 @@ class LeaveIndex extends Component
         $this->resetMessages();
     }
 
+    #[On('cancel-leave-request')]
     public function cancelRequest(int $requestId, AuditService $auditService): void
     {
         $user = Auth::user();
@@ -93,6 +95,7 @@ class LeaveIndex extends Component
         );
 
         $this->feedbackMessage = 'Pengajuan cuti berhasil dibatalkan.';
+        $this->dispatch('pg:eventRefresh-leave_requests_table');
     }
 
     public function approveTier1(int $requestId, AuditService $auditService): void

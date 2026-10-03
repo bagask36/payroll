@@ -7,6 +7,7 @@ use App\Models\Doctor;
 use App\Services\Audit\AuditService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -72,6 +73,7 @@ class DoctorIndex extends Component
         $this->authorize('viewAny', Doctor::class);
     }
 
+    #[On('open-renewal-modal')]
     public function openRenewalModal(int $doctorId): void
     {
         $doctor = Doctor::findOrFail($doctorId);
@@ -120,6 +122,7 @@ class DoctorIndex extends Component
 
         $this->showRenewalModal = false;
         $this->feedbackMessage = "Data kredensial STR dan SIP untuk {$doctor->name} berhasil diperbarui.";
+        $this->dispatch('pg:eventRefresh-doctors_table');
     }
 
     public function render()

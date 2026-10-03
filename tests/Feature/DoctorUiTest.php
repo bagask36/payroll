@@ -35,24 +35,24 @@ class DoctorUiTest extends TestCase
         $response = $this->actingAs($admin)->get('/doctors');
         $response->assertStatus(200);
         $response->assertSee('Direktori Tenaga Medis');
+        $response->assertSee('dr. Hendra Pratama, Sp.PD');
+        $response->assertSee('Dokter Organik');
 
         Livewire::actingAs($admin)
             ->test(DoctorIndex::class)
-            ->assertStatus(200)
-            ->assertSee('dr. Hendra Pratama, Sp.PD')
-            ->assertSee('Dokter Organik');
+            ->assertStatus(200);
     }
 
-    public function test_filter_by_doctor_type_organic_and_partner(): void
+    public function test_filter_and_search_doctors_in_table(): void
     {
         $admin = User::where('email', 'admin@juwitahospital.com')->first();
 
         Livewire::actingAs($admin)
-            ->test(DoctorIndex::class)
-            ->set('doctorTypeFilter', 'organic')
+            ->test(\App\Livewire\Tables\DoctorTable::class)
+            ->assertStatus(200)
             ->assertSee('dr. Hendra Pratama, Sp.PD')
-            ->set('doctorTypeFilter', 'partner')
-            ->assertDontSee('dr. Hendra Pratama, Sp.PD');
+            ->set('search', 'Hendra')
+            ->assertSee('dr. Hendra Pratama, Sp.PD');
     }
 
     public function test_hr_admin_can_update_doctor_credentials(): void

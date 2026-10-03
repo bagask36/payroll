@@ -69,7 +69,12 @@ class DocumentUiTest extends TestCase
 
         $this->actingAs($nurseUser);
 
-        Livewire::test(DocumentIndex::class)
+        $this->get('/documents')
+            ->assertStatus(200)
+            ->assertSee('ijazah_perawat_dewi.pdf')
+            ->assertDontSee('rahasia_pegawai_lain.pdf');
+
+        Livewire::test(\App\Livewire\Tables\DocumentTable::class)
             ->assertStatus(200)
             ->assertSee('ijazah_perawat_dewi.pdf')
             ->assertDontSee('rahasia_pegawai_lain.pdf');

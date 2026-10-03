@@ -39,82 +39,8 @@
         </flux:card>
     @endif
 
-    {{-- Payslips Table --}}
-    <flux:card class="p-0 overflow-hidden">
-        <flux:table>
-            <flux:table.columns>
-                <flux:table.column>Periode Penggajian</flux:table.column>
-                <flux:table.column>Tanggal Pembayaran</flux:table.column>
-                <flux:table.column align="end">Gaji Pokok</flux:table.column>
-                <flux:table.column align="end">Total Potongan</flux:table.column>
-                <flux:table.column align="end">Gaji Bersih Diterima</flux:table.column>
-                <flux:table.column>Status</flux:table.column>
-                <flux:table.column align="end">Aksi</flux:table.column>
-            </flux:table.columns>
-
-            <flux:table.rows>
-                @forelse($payslips as $item)
-                    <flux:table.row :key="$item->id">
-                        <flux:table.cell>
-                            <div class="font-semibold text-zinc-900 dark:text-zinc-100">
-                                {{ $item->run?->period?->name }}
-                            </div>
-                            <div class="text-xs text-zinc-400">
-                                Cut-off: {{ $item->run?->period?->cutoff_date?->format('d M Y') ?? '-' }}
-                            </div>
-                        </flux:table.cell>
-
-                        <flux:table.cell class="text-xs text-zinc-500 font-mono">
-                            {{ $item->run?->run_date->format('d/m/Y') }}
-                        </flux:table.cell>
-
-                        <flux:table.cell align="end" class="font-mono text-xs text-zinc-700 dark:text-zinc-300">
-                            Rp {{ number_format((float) $item->basic_salary, 0, ',', '.') }}
-                        </flux:table.cell>
-
-                        <flux:table.cell align="end" class="font-mono text-xs text-rose-600 dark:text-rose-400">
-                            -Rp {{ number_format((float) ($item->bpjs_kes_employee + $item->bpjs_tk_employee + $item->pph21_tax + $item->deductions), 0, ',', '.') }}
-                        </flux:table.cell>
-
-                        <flux:table.cell align="end" class="font-mono text-sm font-bold text-emerald-600 dark:text-emerald-400">
-                            Rp {{ number_format((float) $item->net_salary, 0, ',', '.') }}
-                        </flux:table.cell>
-
-                        <flux:table.cell>
-                            @if($item->run?->status === 'finalized' || $item->run?->status === 'paid')
-                                <flux:badge size="xs" color="emerald">Final</flux:badge>
-                            @else
-                                <flux:badge size="xs" color="amber">Estimasi</flux:badge>
-                            @endif
-                        </flux:table.cell>
-
-                        <flux:table.cell align="end">
-                            <flux:button 
-                                size="xs" 
-                                variant="subtle" 
-                                icon="eye"
-                                wire:click="viewSlip({{ $item->id }})"
-                            >
-                                Lihat Slip
-                            </flux:button>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="7" class="text-center py-12 text-zinc-400 italic">
-                            Anda belum memiliki riwayat slip gaji yang diterbitkan.
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforelse
-            </flux:table.rows>
-        </flux:table>
-
-        @if($payslips->hasPages())
-            <div class="p-4 border-t border-zinc-100 dark:border-zinc-800">
-                {{ $payslips->links() }}
-            </div>
-        @endif
-    </flux:card>
+    {{-- Payslips PowerGrid Table --}}
+    <livewire:tables.my-payslip-table />
 
     {{-- Payslip Modal View --}}
     @if($selectedItem)
