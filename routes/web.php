@@ -2,9 +2,11 @@
 
 use App\Livewire\Attendance\AttendanceIndex;
 use App\Livewire\Attendance\ClockInOut;
+use App\Livewire\Audit\AuditLogIndex;
 use App\Livewire\Auth\Login;
 use App\Livewire\Dashboard;
 use App\Livewire\Doctor\DoctorIndex;
+use App\Livewire\Document\DocumentIndex;
 use App\Livewire\Employee\EmployeeIndex;
 use App\Livewire\Employee\EmployeeShow;
 use App\Livewire\Leave\LeaveApply;
@@ -41,6 +43,12 @@ Route::middleware('auth')->group(function () {
     // Payroll & Payslips
     Route::get('/payroll', PayrollIndex::class)->name('payroll.index');
     Route::get('/payroll/my-payslips', MyPayslips::class)->name('payroll.my-payslips');
+
+    // Document Compliance Archive
+    Route::get('/documents', DocumentIndex::class)->name('documents.index');
+
+    // System Audit Trail Explorer
+    Route::get('/audit-logs', AuditLogIndex::class)->name('audit-logs.index');
 
     // Attendance & Geofencing Routes
     Route::get('/attendance', AttendanceIndex::class)->name('attendance.index');

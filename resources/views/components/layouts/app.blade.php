@@ -87,9 +87,15 @@
                         </flux:sidebar.item>
                     @endif
 
-                    @can('document.view_metadata')
-                        <flux:sidebar.item icon="folder" href="{{ route('dashboard') }}">
+                    @if(auth()->user()?->can('document.view_own') || auth()->user()?->can('document.view_all'))
+                        <flux:sidebar.item icon="folder" href="{{ route('documents.index') }}" :current="request()->routeIs('documents.*')">
                             Arsip Dokumen Kepatuhan
+                        </flux:sidebar.item>
+                    @endif
+
+                    @can('system.audit_view')
+                        <flux:sidebar.item icon="shield-check" href="{{ route('audit-logs.index') }}" :current="request()->routeIs('audit-logs.*')">
+                            Audit Trail Sistem
                         </flux:sidebar.item>
                     @endcan
                 </flux:sidebar.group>
