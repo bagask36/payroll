@@ -218,10 +218,13 @@ class PayrollUiTest extends TestCase
         $response = $this->get(route('payroll.payslips.print', $item->id));
         $response->assertStatus(200);
         $response->assertSee('RUMAH SAKIT JUWITA');
+        $response->assertSee('KODE REGISTRASI FASKES KEMENKES');
         $response->assertSee('Slip Penghasilan Pegawai');
         $response->assertSee($nurse->full_name);
         $response->assertSee('PEG-2025042');
         $response->assertSee('Dokumen Rahasia');
+        $response->assertSee('Terbilang:');
+        $response->assertSee('Rupiah');
 
         $this->assertDatabaseHas('audit_logs', [
             'action' => 'payroll.payslip_printed',

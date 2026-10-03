@@ -6,10 +6,10 @@
             </div>
         </div>
         <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-            RS Juwita Portal
+            SIM SDM RS Juwita
         </flux:heading>
         <flux:subheading class="mt-1 text-zinc-500 dark:text-zinc-400">
-            Sistem Informasi SDM, Presensi, dan Penggajian
+            Sistem Informasi Manajemen SDM, Presensi, dan Penggajian
         </flux:subheading>
     </div>
 

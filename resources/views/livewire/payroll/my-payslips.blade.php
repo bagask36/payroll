@@ -53,7 +53,7 @@
                         <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="Logo RS Juwita" class="h-9 w-auto max-w-[110px] object-contain" />
                         <div>
                             <flux:heading size="lg">SLIP GAJI ELEKTRONIK</flux:heading>
-                            <div class="text-xs text-zinc-500 font-semibold tracking-wider uppercase mt-0.5">RS Juwita — Hospital HR System</div>
+                            <div class="text-xs text-zinc-500 font-semibold tracking-wider uppercase mt-0.5">SIM SDM RS Juwita</div>
                         </div>
                     </div>
                     <flux:badge size="sm" color="emerald">{{ $selectedItem->run?->period?->name }}</flux:badge>

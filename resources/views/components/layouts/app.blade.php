@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>{{ $title ?? config('app.name', 'RS Juwita') }}</title>
+        <title>{{ $title ?? config('app.name', 'SIM SDM RS Juwita') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
@@ -23,13 +23,13 @@
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 px-1 min-w-0">
                     <img 
                         src="{{ asset('assets/logo-rs-juwita.png') }}" 
-                        alt="RS Juwita" 
+                        alt="SIM SDM RS Juwita" 
                         class="h-8.5 w-auto max-w-[160px] object-contain in-data-flux-sidebar-collapsed-desktop:hidden" 
                     />
                     <div class="size-8 rounded-lg overflow-hidden shrink-0 hidden in-data-flux-sidebar-collapsed-desktop:flex items-center justify-center bg-white dark:bg-zinc-800 p-0.5 border border-zinc-200 dark:border-zinc-700 shadow-2xs">
                         <img 
                             src="{{ asset('assets/logo-rs-juwita.png') }}" 
-                            alt="RS Juwita" 
+                            alt="SIM SDM RS Juwita" 
                             class="w-full h-full object-contain" 
                         />
                     </div>
@@ -307,11 +307,11 @@
             <flux:sidebar.toggle class="me-3 lg:hidden" icon="bars-2" inset="left" />
 
             <a href="{{ route('dashboard') }}" class="flex items-center gap-2 lg:hidden me-3">
-                <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="RS Juwita" class="h-7 w-auto max-w-[110px] object-contain" />
+                <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="SIM SDM RS Juwita" class="h-7 w-auto max-w-[110px] object-contain" />
             </a>
 
             <flux:breadcrumbs class="max-sm:hidden">
-                <flux:breadcrumbs.item href="{{ route('dashboard') }}">RS Juwita</flux:breadcrumbs.item>
+                <flux:breadcrumbs.item href="{{ route('dashboard') }}">SIM SDM RS Juwita</flux:breadcrumbs.item>
                 @if(isset($title))
                     <flux:breadcrumbs.item>{{ $title }}</flux:breadcrumbs.item>
                 @endif

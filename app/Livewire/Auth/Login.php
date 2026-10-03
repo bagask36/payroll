@@ -14,7 +14,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.guest')]
-#[Title('Masuk - RS Juwita')]
+#[Title('Masuk - SIM SDM RS Juwita')]
 class Login extends Component
 {
     #[Rule(['required', 'string', 'email'])]
