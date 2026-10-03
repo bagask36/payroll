@@ -59,7 +59,7 @@
                     @endcan
 
                     @if(auth()->user()?->can('attendance.view_summary') || auth()->user()?->can('attendance.check_in_out'))
-                        <flux:navlist.item icon="clock" href="{{ route('dashboard') }}">
+                        <flux:navlist.item icon="clock" href="{{ route('attendance.index') }}" :current="request()->routeIs('attendance.*')">
                             Presensi & Geofence
                         </flux:navlist.item>
                     @endif

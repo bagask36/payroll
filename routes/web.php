@@ -1,5 +1,7 @@
 <?php
 
+use App\Livewire\Attendance\AttendanceIndex;
+use App\Livewire\Attendance\ClockInOut;
 use App\Livewire\Auth\Login;
 use App\Livewire\Dashboard;
 use App\Services\Audit\AuditService;
@@ -15,6 +17,10 @@ Route::get('/login', Login::class)->name('login')->middleware('guest');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
+
+    // Attendance & Geofencing Routes
+    Route::get('/attendance', AttendanceIndex::class)->name('attendance.index');
+    Route::get('/attendance/clock', ClockInOut::class)->name('attendance.clock');
 
     Route::post('/logout', function (Request $request, AuditService $auditService) {
         $user = Auth::user();
