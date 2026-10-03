@@ -82,7 +82,7 @@
                 @forelse ($employees as $emp)
                     <tr class="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30 transition-colors">
                         <td class="px-5 py-3.5">
-                            <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $emp->name }}</div>
+                            <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $emp->full_name }}</div>
                             <div class="text-xs font-mono text-zinc-500">NIP: {{ $emp->nip }}</div>
                         </td>
                         <td class="px-5 py-3.5">

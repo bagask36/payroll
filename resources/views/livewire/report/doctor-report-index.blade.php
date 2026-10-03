@@ -85,15 +85,15 @@
                         </td>
                         <td class="px-5 py-3.5 text-xs text-zinc-700 dark:text-zinc-300">
                             <div class="font-mono font-medium">{{ $doc->str_number ?? '-' }}</div>
-                            <div class="text-2xs text-zinc-500">Exp: {{ $doc->str_expiry_date ? $doc->str_expiry_date->format('d/m/Y') : 'Seumur Hidup' }}</div>
+                            <div class="text-2xs text-zinc-500">Exp: {{ $doc->str_valid_until ? $doc->str_valid_until->format('d/m/Y') : 'Seumur Hidup' }}</div>
                         </td>
                         <td class="px-5 py-3.5 text-xs text-zinc-700 dark:text-zinc-300">
                             <div class="font-mono font-medium">{{ $doc->sip_number ?? '-' }}</div>
-                            <div class="text-2xs text-zinc-500">Exp: {{ $doc->sip_expiry_date ? $doc->sip_expiry_date->format('d/m/Y') : '-' }}</div>
+                            <div class="text-2xs text-zinc-500">Exp: {{ $doc->sip_valid_until ? $doc->sip_valid_until->format('d/m/Y') : '-' }}</div>
                         </td>
                         <td class="px-5 py-3.5 text-center whitespace-nowrap">
-                            <flux:badge size="sm" color="{{ $doc->is_active ? 'emerald' : 'zinc' }}">
-                                {{ $doc->is_active ? 'Aktif' : 'Nonaktif' }}
+                            <flux:badge size="sm" color="{{ $doc->status === 'active' ? 'emerald' : 'zinc' }}">
+                                {{ $doc->status === 'active' ? 'Aktif' : 'Nonaktif' }}
                             </flux:badge>
                         </td>
                     </tr>

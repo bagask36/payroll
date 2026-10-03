@@ -24,79 +24,9 @@
         </div>
     @endif
 
-    {{-- Filter Toolbar --}}
-    <flux:card class="p-4">
-        <div class="max-w-md">
-            <flux:input 
-                wire:model.live.debounce.300ms="search" 
-                placeholder="Cari kode atau nama shift..." 
-                icon="magnifying-glass"
-                clearable
-            />
-        </div>
-    </flux:card>
-
-    {{-- Data Table --}}
-    <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
-        <flux:table>
-            <flux:table.columns>
-                <flux:table.column>Kode Shift</flux:table.column>
-                <flux:table.column>Nama Shift</flux:table.column>
-                <flux:table.column>Jam Kerja (Mulai - Selesai)</flux:table.column>
-                <flux:table.column>Tipe Shift</flux:table.column>
-                <flux:table.column>Toleransi Terlambat</flux:table.column>
-                <flux:table.column>Status</flux:table.column>
-                <flux:table.column align="end">Aksi</flux:table.column>
-            </flux:table.columns>
-
-            <flux:table.rows>
-                @forelse($shifts as $s)
-                    <flux:table.row :key="$s->id">
-                        <flux:table.cell class="font-mono font-semibold text-xs text-zinc-800 dark:text-zinc-200">
-                            {{ $s->code }}
-                        </flux:table.cell>
-                        <flux:table.cell class="font-medium text-zinc-900 dark:text-zinc-100">
-                            {{ $s->name }}
-                        </flux:table.cell>
-                        <flux:table.cell class="font-mono text-xs text-zinc-700 dark:text-zinc-300">
-                            {{ substr($s->start_time, 0, 5) }} - {{ substr($s->end_time, 0, 5) }}
-                        </flux:table.cell>
-                        <flux:table.cell>
-                            @if($s->is_overnight)
-                                <flux:badge size="xs" color="purple">Lintas Hari (Malam)</flux:badge>
-                            @else
-                                <flux:badge size="xs" color="zinc">Reguler Siang</flux:badge>
-                            @endif
-                        </flux:table.cell>
-                        <flux:table.cell class="font-mono text-xs text-zinc-600 dark:text-zinc-400">
-                            {{ $s->late_tolerance_minutes }} Menit
-                        </flux:table.cell>
-                        <flux:table.cell>
-                            <flux:badge size="xs" :color="$s->is_active ? 'emerald' : 'zinc'">
-                                {{ $s->is_active ? 'Aktif' : 'Nonaktif' }}
-                            </flux:badge>
-                        </flux:table.cell>
-                        <flux:table.cell align="end">
-                            <flux:button size="xs" variant="subtle" icon="pencil-square" wire:click="editShift({{ $s->id }})">
-                                Edit
-                            </flux:button>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="7" class="text-center py-8 text-zinc-400 italic">
-                            Belum ada shift kerja yang terdaftar.
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforelse
-            </flux:table.rows>
-        </flux:table>
-
-        @if($shifts->hasPages())
-            <div class="p-4 border-t border-zinc-100 dark:border-zinc-800">
-                {{ $shifts->links() }}
-            </div>
-        @endif
+    {{-- PowerGrid Datatable --}}
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <livewire:tables.shift-table />
     </flux:card>
 
     {{-- MODAL SHIFT --}}

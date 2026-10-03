@@ -5,6 +5,7 @@ namespace App\Livewire\Master;
 use App\Models\Shift;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -60,6 +61,7 @@ class ShiftIndex extends Component
         $this->showShiftModal = true;
     }
 
+    #[On('editShift')]
     public function editShift(int $id): void
     {
         $shift = Shift::findOrFail($id);
@@ -112,6 +114,7 @@ class ShiftIndex extends Component
         $auditService->log(action: $action, auditable: $shift, newValues: ['name' => $shift->name]);
         $this->showShiftModal = false;
         $this->feedbackMessage = "Shift kerja {$shift->name} berhasil disimpan!";
+        $this->dispatch('pg:eventRefresh-shifts_table');
     }
 
     public function render()

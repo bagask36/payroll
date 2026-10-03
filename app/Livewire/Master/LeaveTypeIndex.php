@@ -5,6 +5,7 @@ namespace App\Livewire\Master;
 use App\Models\LeaveType;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -57,6 +58,7 @@ class LeaveTypeIndex extends Component
         $this->showLeaveTypeModal = true;
     }
 
+    #[On('editLeaveType')]
     public function editLeaveType(int $id): void
     {
         $lt = LeaveType::findOrFail($id);
@@ -104,6 +106,7 @@ class LeaveTypeIndex extends Component
         $auditService->log(action: $action, auditable: $lt, newValues: ['name' => $lt->name]);
         $this->showLeaveTypeModal = false;
         $this->feedbackMessage = "Jenis cuti {$lt->name} berhasil disimpan!";
+        $this->dispatch('pg:eventRefresh-leave_types_table');
     }
 
     public function render()

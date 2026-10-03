@@ -5,6 +5,7 @@ namespace App\Livewire\Master;
 use App\Models\GeofenceLocation;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -60,6 +61,7 @@ class GeofenceIndex extends Component
         ]);
     }
 
+    #[On('editGeofence')]
     public function editGeofence(int $id): void
     {
         $geo = GeofenceLocation::findOrFail($id);
@@ -110,6 +112,7 @@ class GeofenceIndex extends Component
         $auditService->log(action: $action, auditable: $geo, newValues: ['name' => $geo->name]);
         $this->showGeofenceModal = false;
         $this->feedbackMessage = "Titik lokasi geofence {$geo->name} berhasil disimpan!";
+        $this->dispatch('pg:eventRefresh-geofences_table');
     }
 
     public function render()

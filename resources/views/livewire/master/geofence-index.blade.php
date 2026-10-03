@@ -52,67 +52,9 @@
         </div>
     </flux:card>
 
-    {{-- Filter Toolbar --}}
-    <flux:card class="p-4">
-        <div class="max-w-md">
-            <flux:input 
-                wire:model.live.debounce.300ms="search" 
-                placeholder="Cari nama titik lokasi geofence..." 
-                icon="magnifying-glass"
-                clearable
-            />
-        </div>
-    </flux:card>
-
-    {{-- Data Table --}}
-    <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
-        <flux:table>
-            <flux:table.columns>
-                <flux:table.column>Nama Titik Lokasi</flux:table.column>
-                <flux:table.column>Koordinat GPS (Latitude, Longitude)</flux:table.column>
-                <flux:table.column>Radius Geofence</flux:table.column>
-                <flux:table.column>Status</flux:table.column>
-                <flux:table.column align="end">Aksi</flux:table.column>
-            </flux:table.columns>
-
-            <flux:table.rows>
-                @forelse($geofences as $geo)
-                    <flux:table.row :key="$geo->id">
-                        <flux:table.cell class="font-semibold text-zinc-900 dark:text-zinc-100">
-                            {{ $geo->name }}
-                        </flux:table.cell>
-                        <flux:table.cell class="font-mono text-xs text-zinc-600 dark:text-zinc-400">
-                            {{ number_format($geo->latitude, 6) }}, {{ number_format($geo->longitude, 6) }}
-                        </flux:table.cell>
-                        <flux:table.cell class="font-mono text-xs font-bold text-emerald-600 dark:text-emerald-400">
-                            {{ $geo->radius_meters }} Meter
-                        </flux:table.cell>
-                        <flux:table.cell>
-                            <flux:badge size="xs" :color="$geo->is_active ? 'emerald' : 'zinc'">
-                                {{ $geo->is_active ? 'Aktif' : 'Nonaktif' }}
-                            </flux:badge>
-                        </flux:table.cell>
-                        <flux:table.cell align="end">
-                            <flux:button size="xs" variant="subtle" icon="pencil-square" wire:click="editGeofence({{ $geo->id }})">
-                                Edit
-                            </flux:button>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="5" class="text-center py-8 text-zinc-400 italic">
-                            Belum ada titik geofence presensi.
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforelse
-            </flux:table.rows>
-        </flux:table>
-
-        @if($geofences->hasPages())
-            <div class="p-4 border-t border-zinc-100 dark:border-zinc-800">
-                {{ $geofences->links() }}
-            </div>
-        @endif
+    {{-- PowerGrid Datatable --}}
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <livewire:tables.geofence-table />
     </flux:card>
 
     {{-- MODAL GEOFENCE DENGAN MAP PINPOINT & RADIUS SETUP --}}

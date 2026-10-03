@@ -24,63 +24,9 @@
         </div>
     @endif
 
-    {{-- Filter Toolbar --}}
-    <flux:card class="p-4">
-        <div class="max-w-md">
-            <flux:input 
-                wire:model.live.debounce.300ms="search" 
-                placeholder="Cari nama jabatan..." 
-                icon="magnifying-glass"
-                clearable
-            />
-        </div>
-    </flux:card>
-
-    {{-- Data Table --}}
-    <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
-        <flux:table>
-            <flux:table.columns>
-                <flux:table.column>Nama Jabatan</flux:table.column>
-                <flux:table.column>Unit Kerja Terkait</flux:table.column>
-                <flux:table.column>Golongan / Jenjang</flux:table.column>
-                <flux:table.column align="end">Aksi</flux:table.column>
-            </flux:table.columns>
-
-            <flux:table.rows>
-                @forelse($positions as $pos)
-                    <flux:table.row :key="$pos->id">
-                        <flux:table.cell class="font-medium text-zinc-900 dark:text-zinc-100">
-                            {{ $pos->title }}
-                        </flux:table.cell>
-                        <flux:table.cell class="text-zinc-600 dark:text-zinc-400 text-xs">
-                            {{ $pos->unit?->name ?? 'Lintas Unit' }}
-                        </flux:table.cell>
-                        <flux:table.cell>
-                            <flux:badge size="xs" color="blue">
-                                {{ $pos->grade_level ?? 'III/a' }}
-                            </flux:badge>
-                        </flux:table.cell>
-                        <flux:table.cell align="end">
-                            <flux:button size="xs" variant="subtle" icon="pencil-square" wire:click="editPosition({{ $pos->id }})">
-                                Edit
-                            </flux:button>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="4" class="text-center py-8 text-zinc-400 italic">
-                            Belum ada standar jabatan yang terdaftar.
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforelse
-            </flux:table.rows>
-        </flux:table>
-
-        @if($positions->hasPages())
-            <div class="p-4 border-t border-zinc-100 dark:border-zinc-800">
-                {{ $positions->links() }}
-            </div>
-        @endif
+    {{-- PowerGrid Datatable --}}
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <livewire:tables.position-table />
     </flux:card>
 
     {{-- MODAL POSITION --}}

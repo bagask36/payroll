@@ -71,7 +71,7 @@ class EmployeeReportIndex extends Component
             $query->where('unit_id', $this->unitFilter);
         }
 
-        $employees = $query->orderBy('name')->get();
+        $employees = $query->orderBy('full_name')->get();
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -85,7 +85,7 @@ class EmployeeReportIndex extends Component
             foreach ($employees as $emp) {
                 fputcsv($file, [
                     $emp->nip,
-                    $emp->name,
+                    $emp->full_name,
                     $emp->unit?->name ?? '-',
                     $emp->position?->title ?? '-',
                     $emp->status,
@@ -105,7 +105,7 @@ class EmployeeReportIndex extends Component
 
         if (! empty($this->search)) {
             $query->where(function ($q) {
-                $q->where('name', 'ilike', '%' . $this->search . '%')
+                $q->where('full_name', 'ilike', '%' . $this->search . '%')
                     ->orWhere('nip', 'ilike', '%' . $this->search . '%');
             });
         }
@@ -126,7 +126,7 @@ class EmployeeReportIndex extends Component
             $query->where('unit_id', $this->unitFilter);
         }
 
-        $employees = $query->orderBy('name')->paginate(15);
+        $employees = $query->orderBy('full_name')->paginate(15);
         $units = Unit::orderBy('name')->get();
 
         $totalActive = Employee::where('status', 'active')->count();

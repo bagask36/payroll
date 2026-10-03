@@ -20,7 +20,7 @@ class DoctorReportIndex extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        if (! $user || (! $user->can('doctor.view') && ! $user->hasRole('super_admin') && ! $user->hasRole('hr_admin'))) {
+        if (! $user || (! $user->can('doctor.view') && ! $user->hasRole('super_admin') && ! $user->hasRole('hr_admin') && ! $user->hasRole('hr_manager'))) {
             abort(403, 'Akses ke laporan dokter ditolak.');
         }
     }
@@ -40,9 +40,9 @@ class DoctorReportIndex extends Component
         $query = Doctor::with(['employee']);
 
         if ($this->statusFilter === 'active') {
-            $query->where('is_active', true);
+            $query->where('status', 'active');
         } elseif ($this->statusFilter === 'inactive') {
-            $query->where('is_active', false);
+            $query->where('status', '!=', 'active');
         }
 
         $doctors = $query->orderBy('name')->get();
@@ -59,12 +59,12 @@ class DoctorReportIndex extends Component
             foreach ($doctors as $doc) {
                 fputcsv($file, [
                     $doc->name,
-                    $doc->specialization ?? 'Umum',
+                    $doc->specialization ?? 'Dokter Umum',
                     $doc->str_number ?? '-',
-                    $doc->str_expiry_date ? $doc->str_expiry_date->format('d/m/Y') : '-',
+                    $doc->str_valid_until ? $doc->str_valid_until->format('d/m/Y') : '-',
                     $doc->sip_number ?? '-',
-                    $doc->sip_expiry_date ? $doc->sip_expiry_date->format('d/m/Y') : '-',
-                    $doc->is_active ? 'Aktif' : 'Nonaktif',
+                    $doc->sip_valid_until ? $doc->sip_valid_until->format('d/m/Y') : '-',
+                    $doc->status === 'active' ? 'Aktif' : 'Nonaktif',
                 ]);
             }
             fclose($file);
@@ -86,14 +86,14 @@ class DoctorReportIndex extends Component
         }
 
         if ($this->statusFilter === 'active') {
-            $query->where('is_active', true);
+            $query->where('status', 'active');
         } elseif ($this->statusFilter === 'inactive') {
-            $query->where('is_active', false);
+            $query->where('status', '!=', 'active');
         }
 
         $doctors = $query->orderBy('name')->paginate(15);
 
-        $totalActive = Doctor::where('is_active', true)->count();
+        $totalActive = Doctor::where('status', 'active')->count();
         $totalSpecialists = Doctor::whereNotNull('specialization')->where('specialization', '!=', 'Umum')->where('specialization', '!=', 'Dokter Umum')->count();
         $totalGeneral = Doctor::count() - $totalSpecialists;
 

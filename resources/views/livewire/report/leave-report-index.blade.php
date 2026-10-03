@@ -84,12 +84,12 @@
                 @forelse ($leaveRequests as $req)
                     <tr class="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30 transition-colors">
                         <td class="px-5 py-3.5 whitespace-nowrap">
-                            <div class="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400">{{ $req->request_number }}</div>
+                            <div class="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400">#LR-{{ substr($req->uuid, 0, 8) }}</div>
                             <div class="text-2xs text-zinc-500">{{ $req->created_at->format('d/m/Y H:i') }}</div>
                         </td>
                         <td class="px-5 py-3.5">
-                            <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $req->employee->name ?? '-' }}</div>
-                            <div class="text-xs text-zinc-500">{{ $req->employee->unit?->name ?? '-' }}</div>
+                            <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $req->employee?->full_name ?? ($req->doctor?->name ?? '-') }}</div>
+                            <div class="text-xs text-zinc-500">{{ $req->employee?->unit?->name ?? ($req->doctor ? 'Pelayanan Medis' : '-') }}</div>
                         </td>
                         <td class="px-5 py-3.5 text-xs text-zinc-800 dark:text-zinc-200">
                             {{ $req->leaveType->name ?? '-' }}

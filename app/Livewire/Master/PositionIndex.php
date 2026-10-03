@@ -6,6 +6,7 @@ use App\Models\Position;
 use App\Models\Unit;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -49,6 +50,7 @@ class PositionIndex extends Component
         $this->showPositionModal = true;
     }
 
+    #[On('editPosition')]
     public function editPosition(int $id): void
     {
         $pos = Position::findOrFail($id);
@@ -87,6 +89,7 @@ class PositionIndex extends Component
         $auditService->log(action: $action, auditable: $pos, newValues: ['title' => $pos->title]);
         $this->showPositionModal = false;
         $this->feedbackMessage = "Jabatan {$pos->title} berhasil disimpan!";
+        $this->dispatch('pg:eventRefresh-positions_table');
     }
 
     public function render()

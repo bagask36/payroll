@@ -26,7 +26,7 @@ class AttendanceReportIndex extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        if (! $user || (! $user->can('attendance.view_all') && ! $user->hasRole('super_admin') && ! $user->hasRole('hr_admin'))) {
+        if (! $user || (! $user->can('attendance.view_all') && ! $user->hasRole('super_admin') && ! $user->hasRole('hr_admin') && ! $user->hasRole('hr_manager') && ! $user->hasRole('payroll'))) {
             abort(403, 'Akses ke laporan kehadiran ditolak.');
         }
 
@@ -56,9 +56,9 @@ class AttendanceReportIndex extends Component
 
     public function exportCsv()
     {
-        $query = Attendance::with(['employee.unit'])
-            ->whereDate('work_date', '>=', $this->startDate)
-            ->whereDate('work_date', '<=', $this->endDate);
+        $query = Attendance::with(['employee.unit', 'doctor'])
+            ->whereDate('date', '>=', $this->startDate)
+            ->whereDate('date', '<=', $this->endDate);
 
         if ($this->statusFilter !== 'all') {
             $query->where('status', $this->statusFilter);
@@ -70,7 +70,7 @@ class AttendanceReportIndex extends Component
             });
         }
 
-        $records = $query->orderBy('work_date', 'desc')->get();
+        $records = $query->orderBy('date', 'desc')->get();
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -79,19 +79,23 @@ class AttendanceReportIndex extends Component
 
         $callback = function () use ($records) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['Tanggal', 'NIP', 'Nama Pegawai', 'Unit Kerja', 'Jam Masuk', 'Jam Pulang', 'Status', 'Menit Terlambat', 'Jam Kerja']);
+            fputcsv($file, ['Tanggal', 'NIP/Identitas', 'Nama Pegawai/Dokter', 'Unit Kerja', 'Jam Masuk', 'Jam Pulang', 'Status', 'Menit Terlambat', 'Jam Kerja']);
 
             foreach ($records as $att) {
+                $staffName = $att->employee?->full_name ?? ($att->doctor?->name ?? '-');
+                $staffNip = $att->employee?->nip ?? ($att->doctor ? 'Dokter' : '-');
+                $unitName = $att->employee?->unit?->name ?? ($att->doctor ? 'Pelayanan Medis' : '-');
+
                 fputcsv($file, [
-                    $att->work_date->format('d/m/Y'),
-                    $att->employee->nip ?? '-',
-                    $att->employee->name ?? '-',
-                    $att->employee->unit?->name ?? '-',
-                    $att->clock_in_time ? Carbon::parse($att->clock_in_time)->format('H:i') : '-',
-                    $att->clock_out_time ? Carbon::parse($att->clock_out_time)->format('H:i') : '-',
+                    $att->date->format('d/m/Y'),
+                    $staffNip,
+                    $staffName,
+                    $unitName,
+                    $att->clock_in ? Carbon::parse($att->clock_in)->format('H:i') : '-',
+                    $att->clock_out ? Carbon::parse($att->clock_out)->format('H:i') : '-',
                     $att->status,
-                    $att->late_minutes ?? 0,
-                    $att->work_hours ?? 0,
+                    $att->late_duration_minutes ?? 0,
+                    $att->work_duration_minutes ? round($att->work_duration_minutes / 60, 1) : 0,
                 ]);
             }
             fclose($file);
@@ -102,9 +106,9 @@ class AttendanceReportIndex extends Component
 
     public function render()
     {
-        $query = Attendance::with(['employee.unit'])
-            ->whereDate('work_date', '>=', $this->startDate)
-            ->whereDate('work_date', '<=', $this->endDate);
+        $query = Attendance::with(['employee.unit', 'doctor'])
+            ->whereDate('date', '>=', $this->startDate)
+            ->whereDate('date', '<=', $this->endDate);
 
         if ($this->statusFilter !== 'all') {
             $query->where('status', $this->statusFilter);
@@ -116,21 +120,21 @@ class AttendanceReportIndex extends Component
             });
         }
 
-        $attendances = $query->orderBy('work_date', 'desc')->paginate(15);
+        $attendances = $query->orderBy('date', 'desc')->paginate(15);
         $units = Unit::orderBy('name')->get();
 
-        $totalPresent = Attendance::whereDate('work_date', '>=', $this->startDate)
-            ->whereDate('work_date', '<=', $this->endDate)
+        $totalPresent = Attendance::whereDate('date', '>=', $this->startDate)
+            ->whereDate('date', '<=', $this->endDate)
             ->whereIn('status', ['present', 'late'])
             ->count();
 
-        $totalLate = Attendance::whereDate('work_date', '>=', $this->startDate)
-            ->whereDate('work_date', '<=', $this->endDate)
+        $totalLate = Attendance::whereDate('date', '>=', $this->startDate)
+            ->whereDate('date', '<=', $this->endDate)
             ->where('status', 'late')
             ->count();
 
-        $totalAbsent = Attendance::whereDate('work_date', '>=', $this->startDate)
-            ->whereDate('work_date', '<=', $this->endDate)
+        $totalAbsent = Attendance::whereDate('date', '>=', $this->startDate)
+            ->whereDate('date', '<=', $this->endDate)
             ->where('status', 'absent')
             ->count();
 

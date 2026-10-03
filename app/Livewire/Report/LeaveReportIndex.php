@@ -26,7 +26,7 @@ class LeaveReportIndex extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        if (! $user || (! $user->can('leave.view_all') && ! $user->hasRole('super_admin') && ! $user->hasRole('hr_admin'))) {
+        if (! $user || (! $user->can('leave.view_all') && ! $user->hasRole('super_admin') && ! $user->hasRole('hr_admin') && ! $user->hasRole('hr_manager') && ! $user->hasRole('payroll'))) {
             abort(403, 'Akses ke laporan cuti & izin ditolak.');
         }
 
@@ -56,7 +56,7 @@ class LeaveReportIndex extends Component
 
     public function exportCsv()
     {
-        $query = LeaveRequest::with(['employee.unit', 'leaveType'])
+        $query = LeaveRequest::with(['employee.unit', 'doctor', 'leaveType'])
             ->whereDate('start_date', '>=', $this->startDate)
             ->whereDate('end_date', '<=', $this->endDate);
 
@@ -77,13 +77,16 @@ class LeaveReportIndex extends Component
 
         $callback = function () use ($records) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['No Pengajuan', 'Pegawai', 'Unit Kerja', 'Jenis Cuti', 'Tgl Mulai', 'Tgl Selesai', 'Hari', 'Alasan', 'Status']);
+            fputcsv($file, ['No Pengajuan', 'Pegawai / Dokter', 'Unit Kerja', 'Jenis Cuti', 'Tgl Mulai', 'Tgl Selesai', 'Hari', 'Alasan', 'Status']);
 
             foreach ($records as $req) {
+                $staffName = $req->employee?->full_name ?? ($req->doctor?->name ?? '-');
+                $unitName = $req->employee?->unit?->name ?? ($req->doctor ? 'Pelayanan Medis' : '-');
+
                 fputcsv($file, [
-                    $req->request_number ?? '-',
-                    $req->employee->name ?? '-',
-                    $req->employee->unit?->name ?? '-',
+                    '#LR-' . substr($req->uuid, 0, 8),
+                    $staffName,
+                    $unitName,
                     $req->leaveType->name ?? '-',
                     $req->start_date->format('d/m/Y'),
                     $req->end_date->format('d/m/Y'),
@@ -100,7 +103,7 @@ class LeaveReportIndex extends Component
 
     public function render()
     {
-        $query = LeaveRequest::with(['employee.unit', 'leaveType'])
+        $query = LeaveRequest::with(['employee.unit', 'doctor', 'leaveType'])
             ->whereDate('start_date', '>=', $this->startDate)
             ->whereDate('end_date', '<=', $this->endDate);
 

@@ -21,7 +21,7 @@ class PayrollReportIndex extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        if (! $user || (! $user->can('payroll.view_all') && ! $user->hasRole('super_admin') && ! $user->hasRole('hr_admin') && ! $user->hasRole('hr_manager'))) {
+        if (! $user || (! $user->can('payroll.view_all') && ! $user->hasRole('super_admin') && ! $user->hasRole('hr_manager') && ! $user->hasRole('payroll') && ! $user->hasRole('finance'))) {
             abort(403, 'Akses ke laporan payroll dibatasi.');
         }
     }
@@ -38,7 +38,7 @@ class PayrollReportIndex extends Component
 
     public function exportCsv()
     {
-        $query = PayrollRun::with(['period', 'processor']);
+        $query = PayrollRun::with(['period', 'processedBy']);
 
         if ($this->periodFilter) {
             $query->where('payroll_period_id', $this->periodFilter);
@@ -57,7 +57,7 @@ class PayrollReportIndex extends Component
 
         $callback = function () use ($runs) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['No Batch', 'Periode', 'Tanggal Run', 'Status', 'Total Gross (Bruto)', 'Total Potongan', 'Total Net (Take Home Pay)']);
+            fputcsv($file, ['No Batch', 'Periode', 'Tanggal Run', 'Status', 'Total Gross (Bruto)', 'Total Potongan', 'Total Net (Take Home Pay)', 'Diproses Oleh']);
 
             foreach ($runs as $r) {
                 fputcsv($file, [
@@ -68,6 +68,7 @@ class PayrollReportIndex extends Component
                     $r->total_gross_pay,
                     $r->total_deductions,
                     $r->total_net_pay,
+                    $r->processedBy?->name ?? 'Admin',
                 ]);
             }
             fclose($file);
@@ -78,7 +79,7 @@ class PayrollReportIndex extends Component
 
     public function render()
     {
-        $query = PayrollRun::with(['period', 'processor', 'items']);
+        $query = PayrollRun::with(['period', 'processedBy', 'items']);
 
         if ($this->periodFilter) {
             $query->where('payroll_period_id', $this->periodFilter);

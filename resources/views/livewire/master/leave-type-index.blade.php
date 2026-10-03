@@ -24,83 +24,9 @@
         </div>
     @endif
 
-    {{-- Filter Toolbar --}}
-    <flux:card class="p-4">
-        <div class="max-w-md">
-            <flux:input 
-                wire:model.live.debounce.300ms="search" 
-                placeholder="Cari kode atau nama jenis cuti..." 
-                icon="magnifying-glass"
-                clearable
-            />
-        </div>
-    </flux:card>
-
-    {{-- Data Table --}}
-    <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
-        <flux:table>
-            <flux:table.columns>
-                <flux:table.column>Kode Cuti</flux:table.column>
-                <flux:table.column>Nama Jenis Cuti</flux:table.column>
-                <flux:table.column>Alokasi Dasar (Hari/Tahun)</flux:table.column>
-                <flux:table.column>Potong Saldo Tahunan?</flux:table.column>
-                <flux:table.column>Wajib Lampiran Berkas?</flux:table.column>
-                <flux:table.column>Status</flux:table.column>
-                <flux:table.column align="end">Aksi</flux:table.column>
-            </flux:table.columns>
-
-            <flux:table.rows>
-                @forelse($leaveTypes as $lt)
-                    <flux:table.row :key="$lt->id">
-                        <flux:table.cell class="font-mono font-semibold text-xs text-zinc-800 dark:text-zinc-200">
-                            {{ $lt->code }}
-                        </flux:table.cell>
-                        <flux:table.cell class="font-medium text-zinc-900 dark:text-zinc-100">
-                            {{ $lt->name }}
-                        </flux:table.cell>
-                        <flux:table.cell class="font-mono text-xs text-zinc-700 dark:text-zinc-300">
-                            {{ $lt->default_days_per_year }} Hari
-                        </flux:table.cell>
-                        <flux:table.cell>
-                            @if($lt->deducts_balance)
-                                <flux:badge size="xs" color="amber">Memotong Kuota</flux:badge>
-                            @else
-                                <flux:badge size="xs" color="blue">Non-Kuota</flux:badge>
-                            @endif
-                        </flux:table.cell>
-                        <flux:table.cell>
-                            @if($lt->requires_attachment)
-                                <flux:badge size="xs" color="rose">Wajib Surat Dokter/Lampiran</flux:badge>
-                            @else
-                                <span class="text-xs text-zinc-400">Tidak Wajib</span>
-                            @endif
-                        </flux:table.cell>
-                        <flux:table.cell>
-                            <flux:badge size="xs" :color="$lt->is_active ? 'emerald' : 'zinc'">
-                                {{ $lt->is_active ? 'Aktif' : 'Nonaktif' }}
-                            </flux:badge>
-                        </flux:table.cell>
-                        <flux:table.cell align="end">
-                            <flux:button size="xs" variant="subtle" icon="pencil-square" wire:click="editLeaveType({{ $lt->id }})">
-                                Edit
-                            </flux:button>
-                        </flux:table.cell>
-                    </flux:table.row>
-                @empty
-                    <flux:table.row>
-                        <flux:table.cell colspan="7" class="text-center py-8 text-zinc-400 italic">
-                            Belum ada jenis cuti yang terdaftar.
-                        </flux:table.cell>
-                    </flux:table.row>
-                @endforelse
-            </flux:table.rows>
-        </flux:table>
-
-        @if($leaveTypes->hasPages())
-            <div class="p-4 border-t border-zinc-100 dark:border-zinc-800">
-                {{ $leaveTypes->links() }}
-            </div>
-        @endif
+    {{-- PowerGrid Datatable --}}
+    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+        <livewire:tables.leave-type-table />
     </flux:card>
 
     {{-- MODAL LEAVE TYPE --}}

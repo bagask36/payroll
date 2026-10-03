@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Unit;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -51,6 +52,7 @@ class UnitIndex extends Component
         $this->showUnitModal = true;
     }
 
+    #[On('editUnit')]
     public function editUnit(int $id): void
     {
         $unit = Unit::findOrFail($id);
@@ -92,6 +94,7 @@ class UnitIndex extends Component
         $auditService->log(action: $action, auditable: $unit, newValues: ['name' => $unit->name]);
         $this->showUnitModal = false;
         $this->feedbackMessage = "Unit kerja {$unit->name} berhasil disimpan!";
+        $this->dispatch('pg:eventRefresh-units_table');
     }
 
     public function render()

@@ -1,4 +1,118 @@
-<div class="space-y-6">
+<div 
+    x-data="{
+        expanded: {},
+        search: '',
+        draggedItem: null,
+        activeDropTarget: null,
+
+        init() {
+            // Expand all by default initially
+            document.querySelectorAll('[data-node-id]').forEach(el => {
+                const id = el.getAttribute('data-node-id');
+                if (id) this.expanded[id] = true;
+            });
+        },
+
+        toggle(key) {
+            this.expanded[key] = !this.expanded[key];
+        },
+
+        expandAll() {
+            document.querySelectorAll('[data-node-id]').forEach(el => {
+                const id = el.getAttribute('data-node-id');
+                if (id) this.expanded[id] = true;
+            });
+        },
+
+        collapseAll() {
+            this.expanded = {};
+        },
+
+        isExpanded(key) {
+            if (this.search.trim().length > 0) return true;
+            return !!this.expanded[key];
+        },
+
+        matchesSearch(text) {
+            if (!this.search.trim()) return true;
+            return text.toLowerCase().includes(this.search.toLowerCase());
+        },
+
+        handleDragStart(type, id, name, event) {
+            this.draggedItem = { type, id, name };
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', JSON.stringify({ type, id, name }));
+        },
+
+        handleDragEnd() {
+            this.draggedItem = null;
+            this.activeDropTarget = null;
+        },
+
+        handleDragOver(targetType, targetId, event) {
+            if (!this.draggedItem) return;
+
+            // Only allow valid drop combinations:
+            // 1. position -> unit
+            // 2. unit -> department
+            // 3. department -> department (or root)
+            if (this.draggedItem.type === 'position' && targetType === 'unit') {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+                this.activeDropTarget = `${targetType}-${targetId}`;
+            } else if (this.draggedItem.type === 'unit' && targetType === 'department') {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+                this.activeDropTarget = `${targetType}-${targetId}`;
+            } else if (this.draggedItem.type === 'department' && targetType === 'department' && this.draggedItem.id !== targetId) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+                this.activeDropTarget = `${targetType}-${targetId}`;
+            } else if (this.draggedItem.type === 'department' && targetType === 'root') {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+                this.activeDropTarget = 'root';
+            }
+        },
+
+        handleDragLeave(targetType, targetId, event) {
+            if (this.activeDropTarget === `${targetType}-${targetId}`) {
+                this.activeDropTarget = null;
+            }
+        },
+
+        handleDrop(targetType, targetId, event) {
+            event.preventDefault();
+            const targetKey = `${targetType}-${targetId}`;
+            this.activeDropTarget = null;
+
+            if (!this.draggedItem) {
+                try {
+                    const data = JSON.parse(event.dataTransfer.getData('text/plain'));
+                    this.draggedItem = data;
+                } catch(e) {
+                    return;
+                }
+            }
+
+            const item = this.draggedItem;
+            this.draggedItem = null;
+
+            if (!item) return;
+
+            if (item.type === 'position' && targetType === 'unit') {
+                $wire.movePosition(item.id, targetId);
+            } else if (item.type === 'unit' && targetType === 'department') {
+                $wire.moveUnit(item.id, targetId);
+            } else if (item.type === 'department' && targetType === 'department') {
+                $wire.moveDepartment(item.id, targetId);
+            } else if (item.type === 'department' && targetType === 'root') {
+                $wire.moveDepartment(item.id, null);
+            }
+        }
+    }"
+    class="space-y-6"
+>
     {{-- Header --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
         <div>
@@ -12,127 +126,161 @@
                 Struktur & Bagan Organisasi RS Juwita
             </h1>
             <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                Hierarki manajerial faskes dari Direksi, Departemen Medis/Umum, Unit Operasional, hingga Formasi Jabatan.
+                Bagan hierarki faskes interaktif: Departemen, Unit Operasional, dan Posisi Jabatan. Dilengkapi kontrol lipat (expand/collapse) dan pengaturan tata letak via drag & drop.
             </p>
         </div>
 
-        <div class="flex items-center gap-3">
-            <flux:badge size="md" color="emerald" class="px-3 py-1 font-mono">
-                {{ $departments->count() }} Departemen &bull; {{ $totalUnits }} Unit &bull; {{ $totalPositions }} Jabatan
+        <div class="flex flex-wrap items-center gap-2.5">
+            <flux:badge size="md" color="emerald" class="px-3 py-1 font-mono shadow-2xs">
+                {{ $totalDepartments }} Departemen &bull; {{ $totalUnits }} Unit &bull; {{ $totalPositions }} Jabatan
             </flux:badge>
         </div>
     </div>
 
-    {{-- Visual Hospital Structure Tree --}}
-    <div class="bg-gradient-to-br from-emerald-900 to-teal-950 text-white rounded-2xl p-6 shadow-md relative overflow-hidden">
-        <div class="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
-            <flux:icon name="building-office-2" class="size-64" />
-        </div>
-        <div class="relative z-10 flex flex-col items-center text-center space-y-3 max-w-2xl mx-auto">
-            <div class="px-3 py-1 rounded-full bg-white/10 text-emerald-200 text-xs font-semibold uppercase tracking-wider">
-                Tingkat Tertinggi Faskes
+    {{-- Feedback & Error Alerts --}}
+    @if ($feedbackMessage)
+        <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 flex items-center justify-between shadow-xs transition-all">
+            <div class="flex items-center gap-3">
+                <flux:icon name="check-circle" class="size-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span class="text-sm font-medium">{{ $feedbackMessage }}</span>
             </div>
-            <h2 class="text-xl font-bold">Direktur Utama & Dewan Direksi RS Juwita</h2>
-            <p class="text-xs text-emerald-100 leading-relaxed">
-                Penanggung jawab utama tata kelola klinis, operasional rumah sakit, keselamatan pasien, dan pembinaan sumber daya manusia.
-            </p>
+            <flux:button size="sm" variant="subtle" wire:click="$set('feedbackMessage', null)">Tutup</flux:button>
         </div>
+    @endif
+
+    @if ($errorMessage)
+        <div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-300 flex items-center justify-between shadow-xs transition-all">
+            <div class="flex items-center gap-3">
+                <flux:icon name="exclamation-triangle" class="size-5 text-rose-600 dark:text-rose-400 shrink-0" />
+                <span class="text-sm font-medium">{{ $errorMessage }}</span>
+            </div>
+            <flux:button size="sm" variant="subtle" wire:click="$set('errorMessage', null)">Tutup</flux:button>
+        </div>
+    @endif
+
+    {{-- Controls Toolbar & Instructions Banner --}}
+    <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4 shadow-xs space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {{-- Search Bar --}}
+            <div class="relative flex-1 max-w-md">
+                <flux:icon name="magnifying-glass" class="size-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+                <input 
+                    type="text" 
+                    x-model="search" 
+                    placeholder="Cari departemen, unit, atau jabatan..."
+                    class="w-full pl-10 pr-4 py-2 bg-zinc-50 dark:bg-zinc-800/70 border border-zinc-200 dark:border-zinc-700/80 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all"
+                />
+                <button 
+                    x-show="search.length > 0" 
+                    @click="search = ''"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200"
+                    title="Bersihkan pencarian"
+                >
+                    <flux:icon name="x-mark" class="size-4" />
+                </button>
+            </div>
+
+            {{-- Expand / Collapse & Reorganize Controls --}}
+            <div class="flex items-center gap-2">
+                <flux:button size="sm" variant="filled" @click="expandAll()" icon="arrows-pointing-out">
+                    Buka Semua
+                </flux:button>
+                <flux:button size="sm" variant="outline" @click="collapseAll()" icon="arrows-pointing-in">
+                    Tutup Semua
+                </flux:button>
+            </div>
+        </div>
+
+        {{-- Guide Banner --}}
+        @if ($canManage)
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40 text-xs text-emerald-800 dark:text-emerald-300">
+                <flux:icon name="arrows-up-down" class="size-4.5 text-emerald-600 shrink-0" />
+                <div class="leading-relaxed">
+                    <strong class="font-semibold">Fitur Drag & Drop Aktif:</strong>
+                    Tarik ikon grip <span class="inline-block px-1 py-0.5 rounded bg-emerald-200/50 dark:bg-emerald-900/60 font-mono font-bold text-2xs">⋮⋮</span> pada suatu Posisi untuk memindahkannya ke Unit lain, atau tarik Unit ke Departemen lain untuk mengatur ulang struktur organisasi faskes.
+                </div>
+            </div>
+        @else
+            <div class="flex items-center gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200/70 dark:border-zinc-700/50 text-xs text-zinc-600 dark:text-zinc-400">
+                <flux:icon name="information-circle" class="size-4.5 text-zinc-400 shrink-0" />
+                <div class="leading-relaxed">
+                    Mode penampil (Read-Only). Anda dapat melipat dan memperluas hierarki atau menggunakan filter pencarian. Pengubahan struktur hanya dapat dilakukan oleh pengguna dengan hak akses manajerial.
+                </div>
+            </div>
+        @endif
     </div>
 
-    {{-- Departments Selector & Details Layout --}}
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {{-- Left: Department List --}}
-        <div class="space-y-3">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 px-1">
-                Daftar Departemen / Divisi
-            </h3>
-            <div class="space-y-2">
-                @foreach ($departments as $dept)
-                    <button 
-                        wire:click="selectDepartment({{ $dept->id }})"
-                        class="w-full text-left p-4 rounded-xl border transition-all flex items-center justify-between {{ $selectedDepartmentId === $dept->id ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-500 shadow-xs' : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700' }}"
-                    >
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-mono font-semibold {{ $selectedDepartmentId === $dept->id ? 'text-emerald-700 dark:text-emerald-400' : 'text-zinc-500' }}">
-                                    {{ $dept->code }}
-                                </span>
-                                @if($dept->is_active)
-                                    <span class="size-2 rounded-full bg-emerald-500 inline-block"></span>
-                                @endif
-                            </div>
-                            <div class="text-sm font-bold text-zinc-900 dark:text-zinc-100 mt-1">
-                                {{ $dept->name }}
-                            </div>
-                            <div class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                                {{ $dept->units_count }} Unit Kerja di bawah departemen
-                            </div>
-                        </div>
-                        <flux:icon name="chevron-right" class="size-5 {{ $selectedDepartmentId === $dept->id ? 'text-emerald-600' : 'text-zinc-400' }}" />
-                    </button>
+    {{-- Nestable List Container --}}
+    <div class="space-y-4">
+        {{-- Root Drop Zone (to promote a department to root level) --}}
+        @if ($canManage)
+            <div 
+                x-show="draggedItem && draggedItem.type === 'department'"
+                @dragover="handleDragOver('root', 0, $event)"
+                @dragleave="handleDragLeave('root', 0, $event)"
+                @drop="handleDrop('root', 0, $event)"
+                class="p-4 rounded-2xl border-2 border-dashed transition-all flex items-center justify-center gap-2 text-sm font-semibold"
+                :class="activeDropTarget === 'root' ? 'border-emerald-500 bg-emerald-50/80 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 scale-[1.01]' : 'border-zinc-300 dark:border-zinc-700 text-zinc-400 hover:border-emerald-400'"
+            >
+                <flux:icon name="arrow-up-circle" class="size-5" />
+                <span>Lepaskan di sini untuk memindahkan Departemen ke Tingkat Utama (Root)</span>
+            </div>
+        @endif
+
+        {{-- Loop Root Departments --}}
+        @forelse ($rootDepartments as $rootDept)
+            @include('livewire.organization.partials.department-node', [
+                'dept' => $rootDept,
+                'level' => 1,
+                'canManage' => $canManage,
+            ])
+        @empty
+            <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-12 text-center text-zinc-400">
+                <flux:icon name="building-office-2" class="size-12 mx-auto mb-3 text-zinc-300" />
+                <h3 class="text-base font-bold text-zinc-700 dark:text-zinc-300">Belum Ada Struktur Organisasi</h3>
+                <p class="text-sm mt-1">Data master departemen belum diatur dalam basis data faskes.</p>
+            </div>
+        @endforelse
+
+        {{-- Standalone Departments (if any) --}}
+        @if ($standaloneDepartments->isNotEmpty())
+            <div class="mt-8 pt-4 border-t border-zinc-200 dark:border-zinc-800 space-y-4">
+                <div class="flex items-center gap-2 px-1">
+                    <flux:icon name="exclamation-circle" class="size-4 text-amber-500" />
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                        Departemen Tanpa Induk Terdaftar
+                    </h3>
+                </div>
+                @foreach ($standaloneDepartments as $standaloneDept)
+                    @include('livewire.organization.partials.department-node', [
+                        'dept' => $standaloneDept,
+                        'level' => 1,
+                        'canManage' => $canManage,
+                    ])
                 @endforeach
             </div>
+        @endif
+    </div>
+
+    {{-- Visual Legend --}}
+    <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-4 flex flex-wrap items-center justify-between gap-4 text-xs text-zinc-500 dark:text-zinc-400">
+        <div class="flex flex-wrap items-center gap-6">
+            <span class="font-bold text-zinc-700 dark:text-zinc-300">Keterangan Node:</span>
+            <div class="flex items-center gap-2">
+                <span class="size-3 rounded-full bg-emerald-500 inline-block"></span>
+                <span>Departemen / Divisi</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="size-3 rounded-full bg-sky-500 inline-block"></span>
+                <span>Unit Kerja / Instalasi</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="size-3 rounded-full bg-indigo-500 inline-block"></span>
+                <span>Posisi / Formasi Jabatan</span>
+            </div>
         </div>
-
-        {{-- Right: Units & Positions under Selected Department --}}
-        <div class="lg:col-span-2 space-y-4">
-            @if ($selectedDept)
-                <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-5 shadow-xs">
-                    <div class="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
-                        <div>
-                            <span class="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-bold uppercase">{{ $selectedDept->code }}</span>
-                            <h2 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">{{ $selectedDept->name }}</h2>
-                        </div>
-                        <flux:badge size="sm" color="emerald">{{ $selectedDept->units->count() }} Unit Terpasang</flux:badge>
-                    </div>
-
-                    <div class="mt-4 space-y-4">
-                        @forelse ($selectedDept->units as $unit)
-                            <div class="p-4 rounded-xl border border-zinc-200/80 dark:border-zinc-800/80 bg-zinc-50/50 dark:bg-zinc-800/20">
-                                <div class="flex items-center justify-between mb-2">
-                                    <div class="flex items-center gap-2">
-                                        <div class="size-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold text-xs">
-                                            {{ substr($unit->code, 0, 3) }}
-                                        </div>
-                                        <div>
-                                            <h4 class="text-sm font-bold text-zinc-900 dark:text-zinc-100">{{ $unit->name }}</h4>
-                                            <span class="text-xs font-mono text-zinc-500">Kode: {{ $unit->code }}</span>
-                                        </div>
-                                    </div>
-                                    <flux:badge size="sm" color="{{ $unit->is_active ? 'emerald' : 'zinc' }}">
-                                        {{ $unit->is_active ? 'Aktif' : 'Nonaktif' }}
-                                    </flux:badge>
-                                </div>
-
-                                {{-- Positions under Unit --}}
-                                <div class="mt-3 pl-9">
-                                    <span class="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block mb-1.5">
-                                        Standar Jabatan / Posisi:
-                                    </span>
-                                    @if ($unit->positions->isNotEmpty())
-                                        <div class="flex flex-wrap gap-1.5">
-                                            @foreach ($unit->positions as $pos)
-                                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-xs font-medium text-zinc-800 dark:text-zinc-200 shadow-2xs">
-                                                    <flux:icon name="briefcase" class="size-3.5 text-zinc-400" />
-                                                    <span>{{ $pos->title }}</span>
-                                                    <span class="text-2xs text-zinc-400 font-mono">({{ $pos->grade_level }})</span>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @else
-                                        <p class="text-xs italic text-zinc-400">Belum ada formasi jabatan terdaftar pada unit ini.</p>
-                                    @endif
-                                </div>
-                            </div>
-                        @empty
-                            <div class="text-center py-8 text-zinc-400">
-                                <flux:icon name="building-office-2" class="size-8 mx-auto mb-2 text-zinc-300" />
-                                <p class="text-sm">Belum ada unit kerja yang terdaftar di departemen ini.</p>
-                            </div>
-                        @endforelse
-                    </div>
-                </div>
-            @endif
+        <div class="text-2xs text-zinc-400 font-mono">
+            RS Juwita Organization Engine &bull; Standard Compliant
         </div>
     </div>
 </div>

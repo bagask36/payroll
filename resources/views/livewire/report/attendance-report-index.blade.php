@@ -84,27 +84,27 @@
                 @forelse ($attendances as $att)
                     <tr class="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30 transition-colors">
                         <td class="px-5 py-3.5 whitespace-nowrap text-xs font-medium text-zinc-800 dark:text-zinc-200">
-                            {{ $att->work_date->format('d M Y') }}
+                            {{ $att->date->format('d M Y') }}
                         </td>
                         <td class="px-5 py-3.5">
-                            <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $att->employee->name ?? '-' }}</div>
-                            <div class="text-xs text-zinc-500 font-mono">{{ $att->employee->nip ?? '-' }} &bull; {{ $att->employee->unit?->name ?? '-' }}</div>
+                            <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $att->employee?->full_name ?? ($att->doctor?->name ?? '-') }}</div>
+                            <div class="text-xs text-zinc-500 font-mono">{{ $att->employee?->nip ?? ($att->doctor ? 'Dokter' : '-') }} &bull; {{ $att->employee?->unit?->name ?? ($att->doctor ? 'Pelayanan Medis' : '-') }}</div>
                         </td>
                         <td class="px-5 py-3.5 text-center whitespace-nowrap text-xs font-mono text-zinc-800 dark:text-zinc-200">
-                            {{ $att->clock_in_time ? \Carbon\Carbon::parse($att->clock_in_time)->format('H:i') : '--:--' }}
+                            {{ $att->clock_in ? \Carbon\Carbon::parse($att->clock_in)->format('H:i') : '--:--' }}
                             -
-                            {{ $att->clock_out_time ? \Carbon\Carbon::parse($att->clock_out_time)->format('H:i') : '--:--' }}
+                            {{ $att->clock_out ? \Carbon\Carbon::parse($att->clock_out)->format('H:i') : '--:--' }}
                         </td>
                         <td class="px-5 py-3.5 text-center whitespace-nowrap">
                             <flux:badge size="sm" color="{{ $att->status === 'present' ? 'emerald' : ($att->status === 'late' ? 'amber' : 'rose') }}">
                                 {{ $att->status }}
                             </flux:badge>
-                            @if($att->late_minutes > 0)
-                                <span class="text-2xs text-rose-600 font-bold block mt-0.5">+{{ $att->late_minutes }} mnt</span>
+                            @if(($att->late_duration_minutes ?? 0) > 0)
+                                <span class="text-2xs text-rose-600 font-bold block mt-0.5">+{{ $att->late_duration_minutes }} mnt</span>
                             @endif
                         </td>
                         <td class="px-5 py-3.5 text-right whitespace-nowrap text-xs font-mono text-zinc-800 dark:text-zinc-200 font-semibold">
-                            {{ $att->work_hours ? number_format($att->work_hours, 1) . ' jam' : '-' }}
+                            {{ $att->work_duration_minutes ? number_format($att->work_duration_minutes / 60, 1) . ' jam' : '-' }}
                         </td>
                     </tr>
                 @empty

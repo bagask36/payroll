@@ -94,7 +94,7 @@
                             <flux:badge size="sm" color="{{ $r->status === 'finalized' ? 'emerald' : ($r->status === 'paid' ? 'blue' : 'amber') }}">
                                 {{ $r->status }}
                             </flux:badge>
-                            <div class="text-2xs text-zinc-500 mt-1">{{ $r->processor->name ?? 'Admin' }}</div>
+                            <div class="text-2xs text-zinc-500 mt-1">{{ $r->processedBy?->name ?? 'Admin' }}</div>
                         </td>
                         <td class="px-5 py-3.5 text-right whitespace-nowrap text-xs font-mono font-medium text-zinc-900 dark:text-zinc-100">
                             Rp {{ number_format((float) $r->total_gross_pay, 0, ',', '.') }}
