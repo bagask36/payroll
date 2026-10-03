@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Contracts\FaceAiService;
+use App\DTOs\FaceAi\FaceVerificationResult;
+use App\DTOs\FaceAi\LivenessResult;
 use App\Livewire\Attendance\AttendanceIndex;
 use App\Livewire\Attendance\ClockInOut;
 use App\Models\Attendance;
@@ -14,6 +17,7 @@ use App\Models\User;
 use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -217,5 +221,223 @@ class AttendanceUiTest extends TestCase
         $this->assertEquals('08:00:00', $attendance->clock_in->toTimeString());
         $this->assertEquals('16:00:00', $attendance->clock_out->toTimeString());
         $this->assertEquals(480, $attendance->work_duration_minutes);
+    }
+
+    public function test_active_liveness_challenge_can_be_generated(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('employee');
+
+        Employee::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'ACTIVE',
+        ]);
+
+        $this->actingAs($user);
+
+        $test = Livewire::test(ClockInOut::class)
+            ->assertSet('isWithinGeofence', false);
+
+        $this->assertNotNull($test->get('challengeType'));
+        $this->assertNotNull($test->get('challengeToken'));
+
+        $test->call('generateChallenge');
+        $this->assertNotNull($test->get('challengeToken'));
+    }
+
+    public function test_clock_in_with_face_liveness_succeeds_and_records_scores(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('employee');
+
+        $employee = Employee::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'ACTIVE',
+            'face_biometric_vector' => array_fill(0, 128, 0.05),
+        ]);
+
+        $shift = Shift::factory()->create([
+            'start_time' => Carbon::now()->addMinutes(15)->format('H:i:s'),
+            'name' => 'Shift Pagi',
+        ]);
+        ScheduleAssignment::factory()->create([
+            'employee_id' => $employee->id,
+            'shift_id' => $shift->id,
+            'schedule_date' => Carbon::today()->toDateString(),
+        ]);
+
+        $this->actingAs($user);
+
+        $fakeFaceBase64 = 'data:image/jpeg;base64,'.base64_encode('fake-live-face-frame');
+
+        Livewire::test(ClockInOut::class)
+            ->call('updateCoordinates', -6.195000, 106.820000)
+            ->set('faceImageBase64', $fakeFaceBase64)
+            ->set('livenessPassed', true)
+            ->call('clockIn')
+            ->assertSee('Clock In berhasil dicatat');
+
+        $this->assertDatabaseHas('attendance_events', [
+            'event_type' => 'clock_in',
+            'face_matched' => true,
+        ]);
+    }
+
+    public function test_clock_in_rejected_when_face_liveness_fails_spoof_detection(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('employee');
+
+        $employee = Employee::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'ACTIVE',
+        ]);
+
+        $shift = Shift::factory()->create([
+            'start_time' => Carbon::now()->addMinutes(15)->format('H:i:s'),
+            'name' => 'Shift Pagi',
+        ]);
+        ScheduleAssignment::factory()->create([
+            'employee_id' => $employee->id,
+            'shift_id' => $shift->id,
+            'schedule_date' => Carbon::today()->toDateString(),
+        ]);
+
+        // Mock FaceAiService to simulate paper spoof attack
+        $mockFaceAi = \Mockery::mock(FaceAiService::class);
+        $mockFaceAi->shouldReceive('checkLiveness')
+            ->once()
+            ->andReturn(LivenessResult::spoof(0.20, 'Deteksi foto kertas/layar statis terdeteksi.'));
+
+        $this->app->instance(FaceAiService::class, $mockFaceAi);
+
+        $this->actingAs($user);
+
+        $fakeFaceBase64 = 'data:image/jpeg;base64,'.base64_encode('fake-static-paper-photo');
+
+        Livewire::test(ClockInOut::class)
+            ->call('updateCoordinates', -6.195000, 106.820000)
+            ->set('faceImageBase64', $fakeFaceBase64)
+            ->call('clockIn')
+            ->assertSee('Verifikasi keaslian wajah gagal: Deteksi foto kertas/layar statis terdeteksi.');
+
+        $this->assertDatabaseMissing('attendances', [
+            'employee_id' => $employee->id,
+            'date' => Carbon::today()->toDateString(),
+        ]);
+    }
+
+    public function test_clock_in_rejected_when_face_biometric_mismatches(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('employee');
+
+        $employee = Employee::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'ACTIVE',
+            'face_biometric_vector' => array_fill(0, 128, 0.05),
+        ]);
+
+        $shift = Shift::factory()->create([
+            'start_time' => Carbon::now()->addMinutes(15)->format('H:i:s'),
+            'name' => 'Shift Pagi',
+        ]);
+        ScheduleAssignment::factory()->create([
+            'employee_id' => $employee->id,
+            'shift_id' => $shift->id,
+            'schedule_date' => Carbon::today()->toDateString(),
+        ]);
+
+        // Mock FaceAiService to pass liveness but fail similarity
+        $mockFaceAi = \Mockery::mock(FaceAiService::class);
+        $mockFaceAi->shouldReceive('checkLiveness')
+            ->once()
+            ->andReturn(LivenessResult::live(0.98));
+        $mockFaceAi->shouldReceive('verify')
+            ->once()
+            ->andReturn(FaceVerificationResult::mismatched(0.42, 0.85));
+
+        $this->app->instance(FaceAiService::class, $mockFaceAi);
+
+        $this->actingAs($user);
+
+        $fakeFaceBase64 = 'data:image/jpeg;base64,'.base64_encode('someone-elses-face');
+
+        Livewire::test(ClockInOut::class)
+            ->call('updateCoordinates', -6.195000, 106.820000)
+            ->set('faceImageBase64', $fakeFaceBase64)
+            ->call('clockIn')
+            ->assertSee('Wajah tidak cocok dengan data biometrik terdaftar');
+
+        $this->assertDatabaseMissing('attendances', [
+            'employee_id' => $employee->id,
+            'date' => Carbon::today()->toDateString(),
+        ]);
+    }
+
+    public function test_clock_in_and_clock_out_stores_compressed_photo_and_path(): void
+    {
+        Storage::fake('public');
+
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('employee');
+
+        $employee = Employee::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'ACTIVE',
+        ]);
+
+        $shift = Shift::factory()->create([
+            'start_time' => Carbon::now()->addMinutes(15)->format('H:i:s'),
+            'name' => 'Shift Pagi',
+        ]);
+        ScheduleAssignment::factory()->create([
+            'employee_id' => $employee->id,
+            'shift_id' => $shift->id,
+            'schedule_date' => Carbon::today()->toDateString(),
+        ]);
+
+        $this->actingAs($user);
+
+        // Generate sample valid JPEG base64
+        $img = imagecreatetruecolor(120, 120);
+        $color = imagecolorallocate($img, 60, 160, 240);
+        imagefill($img, 0, 0, $color);
+        ob_start();
+        imagejpeg($img, null, 80);
+        $jpegData = ob_get_clean();
+        imagedestroy($img);
+        $sampleFaceBase64 = 'data:image/jpeg;base64,'.base64_encode($jpegData);
+
+        // 1. Clock In with Face Photo
+        Livewire::test(ClockInOut::class)
+            ->call('updateCoordinates', -6.195000, 106.820000)
+            ->set('faceImageBase64', $sampleFaceBase64)
+            ->set('livenessPassed', true)
+            ->call('clockIn')
+            ->assertSee('Clock In berhasil dicatat');
+
+        $attendance = Attendance::with('events')->where('employee_id', $employee->id)->firstOrFail();
+        $clockInEvent = $attendance->events->firstWhere('event_type', 'clock_in');
+
+        $this->assertNotNull($clockInEvent);
+        $this->assertNotNull($clockInEvent->photo_path);
+        $this->assertStringContainsString('clock_in', $clockInEvent->photo_path);
+        Storage::disk('public')->assertExists($clockInEvent->photo_path);
+
+        // 2. Clock Out with Face Photo
+        Livewire::test(ClockInOut::class)
+            ->call('updateCoordinates', -6.195000, 106.820000)
+            ->set('faceImageBase64', $sampleFaceBase64)
+            ->set('livenessPassed', true)
+            ->call('clockOut')
+            ->assertSee('Clock Out berhasil dicatat');
+
+        $attendance->refresh();
+        $clockOutEvent = $attendance->events()->where('event_type', 'clock_out')->firstOrFail();
+
+        $this->assertNotNull($clockOutEvent->photo_path);
+        $this->assertStringContainsString('clock_out', $clockOutEvent->photo_path);
+        Storage::disk('public')->assertExists($clockOutEvent->photo_path);
     }
 }

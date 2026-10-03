@@ -9,6 +9,8 @@ use App\Models\ScheduleAssignment;
 use App\Services\Audit\AuditService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -33,10 +35,36 @@ class ClockInOut extends Component
 
     public ?string $errorMessage = null;
 
+    public ?string $challengeType = 'blink'; // blink, turn_left, turn_right
+
+    public ?string $challengeLabel = 'Kedipkan mata Anda 2 kali';
+
+    public ?string $challengeToken = null;
+
+    public bool $livenessPassed = false;
+
     public function mount(): void
     {
         $this->authorize('checkInOut', Attendance::class);
         $this->loadTodayContext();
+        $this->generateChallenge();
+    }
+
+    public function generateChallenge(): void
+    {
+        $challenges = [
+            'blink' => 'Kedipkan mata Anda 2 kali perlahan',
+            'turn_left' => 'Tengokkan kepala sedikit ke kiri',
+            'turn_right' => 'Tengokkan kepala sedikit ke kanan',
+            'nod' => 'Anggukkan kepala perlahan',
+        ];
+
+        $keys = array_keys($challenges);
+        $this->challengeType = $keys[array_rand($keys)];
+        $this->challengeLabel = $challenges[$this->challengeType];
+        $this->challengeToken = bin2hex(random_bytes(16));
+        $this->livenessPassed = false;
+        $this->faceImageBase64 = null;
     }
 
     public function loadTodayContext(): void
@@ -128,16 +156,24 @@ class ClockInOut extends Component
         if ($this->faceImageBase64) {
             $livenessResult = $faceAiService->checkLiveness($this->faceImageBase64);
             if (! $livenessResult->isLive) {
-                $this->errorMessage = 'Verifikasi keaslian wajah gagal: '.$livenessResult->message;
+                $this->errorMessage = 'Verifikasi keaslian wajah gagal: '.$livenessResult->errorMessage;
 
                 return;
             }
 
             $referenceVector = $user?->employee?->face_biometric_vector ?? [];
-            $verification = $faceAiService->verify($this->faceImageBase64, $referenceVector);
-            $faceMatched = $verification->isMatch;
-            $similarity = $verification->similarity;
-            $liveness = $livenessResult->score;
+            if (! empty($referenceVector)) {
+                $verification = $faceAiService->verify($this->faceImageBase64, $referenceVector);
+                if (! $verification->isMatched) {
+                    $this->errorMessage = 'Wajah tidak cocok dengan data biometrik terdaftar (kemiripan: '.round($verification->similarityScore * 100).'%).';
+
+                    return;
+                }
+                $faceMatched = $verification->isMatched;
+                $similarity = $verification->similarityScore;
+            }
+
+            $liveness = $livenessResult->confidenceScore;
         }
 
         $employeeId = $user?->employee?->id;
@@ -155,12 +191,18 @@ class ClockInOut extends Component
             ]
         );
 
+        $photoPath = null;
+        if ($this->faceImageBase64) {
+            $photoPath = $this->storeCompressedPhoto($this->faceImageBase64, 'clock_in', $attendance->id);
+        }
+
         $attendance->recordClockIn($now, [
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'distance_meters' => $distance,
             'is_within_geofence' => true,
             'device_info' => request()->userAgent(),
+            'photo_path' => $photoPath,
             'face_matched' => $faceMatched,
             'face_similarity' => $similarity,
             'liveness_score' => $liveness,
@@ -174,10 +216,14 @@ class ClockInOut extends Component
                 'time' => $now->toDateTimeString(),
                 'distance_meters' => $distance,
                 'status' => $attendance->status,
+                'face_matched' => $faceMatched,
+                'liveness_score' => $liveness,
+                'has_photo' => $photoPath !== null,
             ]
         );
 
         $this->statusMessage = 'Clock In berhasil dicatat pada '.$now->format('H:i:s').' (Status: '.strtoupper($attendance->status).').';
+        $this->generateChallenge();
         $this->loadTodayContext();
     }
 
@@ -204,15 +250,49 @@ class ClockInOut extends Component
         $isWithin = $activeGeofence ? $activeGeofence->isWithinGeofence($this->latitude ?? 0.0, $this->longitude ?? 0.0) : true;
         $distance = $activeGeofence ? $activeGeofence->calculateDistanceMeters($this->latitude ?? 0.0, $this->longitude ?? 0.0) : 0;
 
+        $faceMatched = true;
+        $similarity = 0.95;
+        $liveness = 0.98;
+
+        if ($this->faceImageBase64) {
+            $livenessResult = $faceAiService->checkLiveness($this->faceImageBase64);
+            if (! $livenessResult->isLive) {
+                $this->errorMessage = 'Verifikasi keaslian wajah gagal: '.$livenessResult->errorMessage;
+
+                return;
+            }
+
+            $user = Auth::user();
+            $referenceVector = $user?->employee?->face_biometric_vector ?? [];
+            if (! empty($referenceVector)) {
+                $verification = $faceAiService->verify($this->faceImageBase64, $referenceVector);
+                if (! $verification->isMatched) {
+                    $this->errorMessage = 'Wajah tidak cocok dengan data biometrik terdaftar (kemiripan: '.round($verification->similarityScore * 100).'%).';
+
+                    return;
+                }
+                $faceMatched = $verification->isMatched;
+                $similarity = $verification->similarityScore;
+            }
+
+            $liveness = $livenessResult->confidenceScore;
+        }
+
+        $photoPath = null;
+        if ($this->faceImageBase64) {
+            $photoPath = $this->storeCompressedPhoto($this->faceImageBase64, 'clock_out', $this->todayAttendance->id);
+        }
+
         $this->todayAttendance->recordClockOut($now, [
             'latitude' => $this->latitude ?? 0.0,
             'longitude' => $this->longitude ?? 0.0,
             'distance_meters' => $distance,
             'is_within_geofence' => $isWithin,
             'device_info' => request()->userAgent(),
-            'face_matched' => true,
-            'face_similarity' => 0.95,
-            'liveness_score' => 0.98,
+            'photo_path' => $photoPath,
+            'face_matched' => $faceMatched,
+            'face_similarity' => $similarity,
+            'liveness_score' => $liveness,
         ]);
 
         $auditService->log(
@@ -227,6 +307,74 @@ class ClockInOut extends Component
 
         $this->statusMessage = 'Clock Out berhasil dicatat pada '.$now->format('H:i:s').'. Total durasi kerja: '.$this->todayAttendance->work_duration_minutes.' menit.';
         $this->loadTodayContext();
+    }
+
+    /**
+     * Decode base64 image, resize to max 640px, and compress with JPEG 75% quality.
+     */
+    protected function storeCompressedPhoto(string $base64Data, string $prefix, int $attendanceId): ?string
+    {
+        try {
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64Data)) {
+                $base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+            }
+
+            $decoded = base64_decode($base64Data, true);
+            if ($decoded === false) {
+                return null;
+            }
+
+            $fileName = sprintf('%s_%d_%s_%s.jpg', $prefix, $attendanceId, now()->format('YmdHis'), bin2hex(random_bytes(4)));
+            $relativePath = 'attendance-photos/'.now()->format('Y/m').'/'.$fileName;
+
+            $sourceImage = @imagecreatefromstring($decoded);
+            if (! $sourceImage) {
+                Storage::disk('public')->put($relativePath, $decoded);
+
+                return $relativePath;
+            }
+
+            $origWidth = imagesx($sourceImage);
+            $origHeight = imagesy($sourceImage);
+
+            // Maximum dimension 640px for mobile bandwidth efficiency
+            $maxDimension = 640;
+            if ($origWidth > $maxDimension || $origHeight > $maxDimension) {
+                if ($origWidth > $origHeight) {
+                    $newWidth = $maxDimension;
+                    $newHeight = (int) round(($origHeight / $origWidth) * $maxDimension);
+                } else {
+                    $newHeight = $maxDimension;
+                    $newWidth = (int) round(($origWidth / $origHeight) * $maxDimension);
+                }
+
+                $resizedImage = imagecreatetruecolor($newWidth, $newHeight);
+                imagecopyresampled($resizedImage, $sourceImage, 0, 0, 0, 0, $newWidth, $newHeight, $origWidth, $origHeight);
+                imagedestroy($sourceImage);
+                $finalImage = $resizedImage;
+            } else {
+                $finalImage = $sourceImage;
+            }
+
+            ob_start();
+            imagejpeg($finalImage, null, 75);
+            $compressedData = ob_get_clean();
+            imagedestroy($finalImage);
+
+            if ($compressedData !== false) {
+                Storage::disk('public')->put($relativePath, $compressedData);
+
+                return $relativePath;
+            }
+
+            Storage::disk('public')->put($relativePath, $decoded);
+
+            return $relativePath;
+        } catch (\Throwable $e) {
+            Log::warning('Failed to compress and save attendance photo: '.$e->getMessage());
+
+            return null;
+        }
     }
 
     protected function resetMessages(): void

@@ -26,8 +26,23 @@ class Dashboard extends Component
 
     public array $doctorAlerts = [];
 
+    public int $pendingLeavesCount = 0;
+
     // Role View Indicator
     public string $userRole = 'management';
+
+    public function getGreetingProperty(): string
+    {
+        $hour = (int) Carbon::now()->format('H');
+        if ($hour < 11) {
+            return 'Selamat Pagi';
+        } elseif ($hour < 15) {
+            return 'Selamat Siang';
+        } elseif ($hour < 18) {
+            return 'Selamat Sore';
+        }
+        return 'Selamat Malam';
+    }
 
     // Employee / Doctor Self-Service Metrics
     public ?array $myShiftToday = null;
@@ -70,6 +85,7 @@ class Dashboard extends Component
             $this->attendance = $dashboardService->getAttendanceMetricsForDate();
             $this->payroll = $dashboardService->getPayrollSummary();
             $this->doctorAlerts = $dashboardService->getDoctorCredentialsAlerts(expiringDays: 60);
+            $this->pendingLeavesCount = LeaveRequest::whereIn('status', ['pending_tier1', 'pending_tier2'])->count();
         } elseif ($user->hasRole('supervisor')) {
             $this->userRole = 'supervisor';
             $this->loadSupervisorData($user);
@@ -93,6 +109,7 @@ class Dashboard extends Component
             $this->attendance = $dashboardService->getAttendanceMetricsForDate();
             $this->payroll = $dashboardService->getPayrollSummary();
             $this->doctorAlerts = $dashboardService->getDoctorCredentialsAlerts(expiringDays: 60);
+            $this->pendingLeavesCount = LeaveRequest::whereIn('status', ['pending_tier1', 'pending_tier2'])->count();
         }
     }
 

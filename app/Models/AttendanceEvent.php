@@ -24,6 +24,7 @@ class AttendanceEvent extends Model
         'distance_meters',
         'is_within_geofence',
         'device_info',
+        'photo_path',
         'face_matched',
         'face_similarity',
         'liveness_score',
@@ -54,5 +55,13 @@ class AttendanceEvent extends Model
     public function attendance(): BelongsTo
     {
         return $this->belongsTo(Attendance::class);
+    }
+
+    /**
+     * Get accessible URL for stored attendance photo.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photo_path ? asset('storage/'.$this->photo_path) : null;
     }
 }
