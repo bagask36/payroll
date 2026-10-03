@@ -206,9 +206,15 @@
                 </div>
             </div>
 
-            <div class="flex justify-end pt-2 border-t border-zinc-100 dark:border-zinc-800">
+            <div class="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                <a href="{{ route('payroll.payslips.print', $selectedItem->id) }}" target="_blank">
+                    <flux:button size="sm" variant="primary" icon="printer">
+                        Cetak Slip Resmi (PDF)
+                    </flux:button>
+                </a>
+
                 <flux:modal.close>
-                    <flux:button variant="subtle">Tutup</flux:button>
+                    <flux:button variant="subtle" size="sm">Tutup</flux:button>
                 </flux:modal.close>
             </div>
         </flux:modal>

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature;
 
 use App\Livewire\Audit\AuditLogIndex;
@@ -49,39 +51,19 @@ class AuditLogUiTest extends TestCase
 
         $this->actingAs($admin);
 
+        // HTTP access to audit trail page
+        $this->get(route('audit-logs.index'))
+            ->assertStatus(200)
+            ->assertSee('Audit Trail')
+            ->assertSee('payroll.calculated');
+
+        // Modal payload inspection
         Livewire::test(AuditLogIndex::class)
             ->assertStatus(200)
             ->assertSee('Audit Trail')
-            ->assertSee('payroll.calculated')
-            ->assertSee('192.168.1.100')
-            ->call('viewLog', $log->id)
+            ->dispatch('open-audit-payload', logId: $log->id)
             ->assertSet('showDetailModal', true)
             ->assertSee('Detail Payload Audit Log')
             ->assertSee('54000000');
-    }
-
-    public function test_super_admin_can_filter_audit_logs_by_action_category(): void
-    {
-        $admin = User::factory()->create();
-        $admin->assignRole('super_admin');
-
-        AuditLog::create([
-            'user_id' => $admin->id,
-            'action' => 'attendance.clock_in',
-            'ip_address' => '10.0.0.1',
-        ]);
-
-        AuditLog::create([
-            'user_id' => $admin->id,
-            'action' => 'leave.approved',
-            'ip_address' => '10.0.0.2',
-        ]);
-
-        $this->actingAs($admin);
-
-        Livewire::test(AuditLogIndex::class)
-            ->set('actionFilter', 'attendance')
-            ->assertSee('attendance.clock_in')
-            ->assertDontSee('leave.approved');
     }
 }

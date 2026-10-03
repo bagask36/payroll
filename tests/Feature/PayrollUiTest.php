@@ -173,4 +173,74 @@ class PayrollUiTest extends TestCase
         Livewire::test(MyPayslips::class)
             ->assertStatus(403);
     }
+
+    public function test_finance_manager_can_export_bank_disbursement_csv(): void
+    {
+        $financeUser = User::factory()->create();
+        $financeUser->assignRole('finance');
+
+        $run = PayrollRun::firstOrFail();
+
+        $this->actingAs($financeUser);
+
+        $response = Livewire::test(PayrollIndex::class, ['selectedRunId' => $run->id])
+            ->call('exportBankDisbursement');
+
+        $response->assertFileDownloaded();
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'payroll.exported',
+            'auditable_id' => $run->id,
+        ]);
+    }
+
+    public function test_payroll_officer_without_export_permission_cannot_export_bank_disbursement(): void
+    {
+        $payrollUser = User::factory()->create();
+        $payrollUser->assignRole('payroll');
+
+        $run = PayrollRun::firstOrFail();
+
+        $this->actingAs($payrollUser);
+
+        Livewire::test(PayrollIndex::class, ['selectedRunId' => $run->id])
+            ->call('exportBankDisbursement')
+            ->assertStatus(403);
+    }
+
+    public function test_employee_can_view_official_printable_payslip(): void
+    {
+        $nurse = Employee::where('nip', 'PEG-2025042')->firstOrFail();
+        $item = PayrollItem::where('employee_id', $nurse->id)->firstOrFail();
+
+        $this->actingAs($nurse->user);
+
+        $response = $this->get(route('payroll.payslips.print', $item->id));
+        $response->assertStatus(200);
+        $response->assertSee('RUMAH SAKIT JUWITA');
+        $response->assertSee('Slip Penghasilan Pegawai');
+        $response->assertSee($nurse->full_name);
+        $response->assertSee('PEG-2025042');
+        $response->assertSee('Dokumen Rahasia');
+
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'payroll.payslip_printed',
+            'auditable_id' => $item->id,
+        ]);
+    }
+
+    public function test_unauthorized_employee_cannot_view_another_employee_printable_payslip(): void
+    {
+        $nurse = Employee::where('nip', 'PEG-2025042')->firstOrFail();
+        $item = PayrollItem::where('employee_id', $nurse->id)->firstOrFail();
+
+        // Create a different employee user
+        $otherUser = User::factory()->create();
+        $otherUser->assignRole('employee');
+
+        $this->actingAs($otherUser);
+
+        $response = $this->get(route('payroll.payslips.print', $item->id));
+        $response->assertStatus(403);
+    }
 }

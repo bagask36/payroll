@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PayrollPrintController;
 use App\Livewire\Attendance\AttendanceIndex;
 use App\Livewire\Attendance\ClockInOut;
 use App\Livewire\Audit\AuditLogIndex;
@@ -44,6 +45,7 @@ Route::middleware('auth')->group(function () {
     // Payroll & Payslips
     Route::get('/payroll', PayrollIndex::class)->name('payroll.index');
     Route::get('/payroll/my-payslips', MyPayslips::class)->name('payroll.my-payslips');
+    Route::get('/payroll/payslips/{id}/print', PayrollPrintController::class.'@print')->name('payroll.payslips.print');
 
     // Document Compliance Archive
     Route::get('/documents', DocumentIndex::class)->name('documents.index');

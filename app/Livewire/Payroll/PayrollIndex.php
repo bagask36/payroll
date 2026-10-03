@@ -57,14 +57,17 @@ class PayrollIndex extends Component
 
     public ?string $errorMessage = null;
 
-    public function mount(): void
+    public function mount(?int $selectedRunId = null): void
     {
         $this->authorize('viewAny', PayrollRun::class);
 
-        // Select the latest run by default if exists
-        $latest = PayrollRun::orderByDesc('run_date')->first();
-        if ($latest) {
-            $this->selectedRunId = $latest->id;
+        if ($selectedRunId) {
+            $this->selectedRunId = $selectedRunId;
+        } else {
+            $latest = PayrollRun::orderByDesc('run_date')->first();
+            if ($latest) {
+                $this->selectedRunId = $latest->id;
+            }
         }
 
         $openPeriod = PayrollPeriod::where('is_closed', false)->latest('start_date')->first();
@@ -153,6 +156,49 @@ class PayrollIndex extends Component
         } catch (DomainException $e) {
             $this->errorMessage = $e->getMessage();
         }
+    }
+
+    public function exportBankDisbursement(AuditService $auditService)
+    {
+        $run = PayrollRun::with(['period', 'items.employee'])->findOrFail($this->selectedRunId);
+        $this->authorize('export', PayrollRun::class);
+
+        $periodName = str_replace(' ', '_', $run->period?->name ?? 'Payroll');
+        $filename = "Disbursement_{$periodName}_".date('Ymd_His').'.csv';
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ];
+
+        $callback = function () use ($run) {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, ['No_Urut', 'Nomor_Rekening', 'Nama_Penerima', 'Nominal_Transfer', 'Bank_Tujuan', 'Keterangan']);
+
+            $counter = 1;
+            foreach ($run->items as $item) {
+                fputcsv($file, [
+                    $counter++,
+                    $item->bank_account_number,
+                    $item->employee?->full_name,
+                    number_format((float) $item->net_salary, 2, '.', ''),
+                    $item->bank_name ?? 'BANK LAIN',
+                    "Gaji {$run->period?->name}",
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        $auditService->log(
+            action: 'payroll.exported',
+            auditable: $run,
+            newValues: ['items_count' => $run->items->count(), 'total_amount' => $run->total_net_pay]
+        );
+
+        return response()->streamDownload($callback, $filename, [
+            'Content-Type' => 'text/csv',
+        ]);
     }
 
     public function viewItemDetail(int $itemId): void

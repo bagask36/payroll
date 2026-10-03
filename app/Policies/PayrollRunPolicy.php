@@ -44,6 +44,6 @@ class PayrollRunPolicy
      */
     public function export(User $user): bool
     {
-        return $user->hasPermission('payroll.export');
+        return $user->hasPermission('payroll.export_bank') || $user->hasPermission('payroll.export');
     }
 }

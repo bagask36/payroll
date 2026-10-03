@@ -5,6 +5,7 @@ namespace App\Livewire\Audit;
 use App\Livewire\Concerns\WithDataTable;
 use App\Models\AuditLog;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -49,6 +50,12 @@ class AuditLogIndex extends Component
     {
         $this->selectedLogId = $logId;
         $this->showDetailModal = true;
+    }
+
+    #[On('open-audit-payload')]
+    public function handleOpenPayload(int $logId): void
+    {
+        $this->viewLog($logId);
     }
 
     public function render()
