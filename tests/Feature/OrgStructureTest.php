@@ -381,5 +381,76 @@ class OrgStructureTest extends TestCase
 
         $this->assertDatabaseHas('departments', ['id' => $dept->id]);
     }
+
+    public function test_can_create_position_by_selecting_master_title(): void
+    {
+        $dept = Department::where('code', 'YANMED')->firstOrFail();
+
+        Livewire::actingAs($this->adminUser)
+            ->test(\App\Livewire\Organization\OrgStructureIndex::class)
+            ->call('openCreatePosition', null, $dept->id)
+            ->set('positionSource', 'master')
+            ->set('selectedMasterTitle', 'Dokter Jaga IGD')
+            ->assertSet('positionTitle', 'Dokter Jaga IGD')
+            ->assertSet('positionGradeLevel', 'specialist')
+            ->call('savePosition')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('positions', [
+            'title' => 'Dokter Jaga IGD',
+            'department_id' => $dept->id,
+            'grade_level' => 'specialist',
+        ]);
+    }
+
+    public function test_can_assign_existing_master_unit_to_department(): void
+    {
+        $sourceDept = Department::where('code', 'YANMED')->firstOrFail();
+        $targetDept = Department::where('code', 'KEU')->firstOrFail();
+
+        $unit = Unit::factory()->create([
+            'code' => 'KASIR-TEST',
+            'name' => 'Loket Pembayaran Kasir Test',
+            'department_id' => $sourceDept->id,
+        ]);
+
+        Livewire::actingAs($this->adminUser)
+            ->test(\App\Livewire\Organization\OrgStructureIndex::class)
+            ->call('openCreateUnit', $targetDept->id)
+            ->set('unitSource', 'master')
+            ->set('selectedMasterUnitId', $unit->id)
+            ->set('unitDepartmentId', $targetDept->id)
+            ->call('saveUnit')
+            ->assertHasNoErrors();
+
+        $this->assertEquals($targetDept->id, $unit->fresh()->department_id);
+    }
+
+    public function test_validates_when_master_unit_not_selected(): void
+    {
+        $dept = Department::where('code', 'KEU')->firstOrFail();
+
+        Livewire::actingAs($this->adminUser)
+            ->test(\App\Livewire\Organization\OrgStructureIndex::class)
+            ->call('openCreateUnit', $dept->id)
+            ->set('unitSource', 'master')
+            ->set('selectedMasterUnitId', null)
+            ->call('saveUnit')
+            ->assertHasErrors(['selectedMasterUnitId']);
+    }
+
+    public function test_validates_when_master_title_not_selected(): void
+    {
+        $dept = Department::where('code', 'KEU')->firstOrFail();
+
+        Livewire::actingAs($this->adminUser)
+            ->test(\App\Livewire\Organization\OrgStructureIndex::class)
+            ->call('openCreatePosition', null, $dept->id)
+            ->set('positionSource', 'master')
+            ->set('selectedMasterTitle', '')
+            ->set('positionTitle', '')
+            ->call('savePosition')
+            ->assertHasErrors(['selectedMasterTitle']);
+    }
 }
 

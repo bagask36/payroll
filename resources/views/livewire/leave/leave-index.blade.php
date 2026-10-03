@@ -114,79 +114,8 @@
                 <span>Permohonan cuti staf berikut membutuhkan verifikasi dan persetujuan tingkat pertama (Kepala Unit / Supervisor).</span>
             </div>
 
-            <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
-                <flux:table>
-                    <flux:table.columns>
-                        <flux:table.column>Pemohon</flux:table.column>
-                        <flux:table.column>Jenis Cuti</flux:table.column>
-                        <flux:table.column>Periode Cuti</flux:table.column>
-                        <flux:table.column>Durasi</flux:table.column>
-                        <flux:table.column>Alasan Cuti</flux:table.column>
-                        <flux:table.column align="end">Aksi Verifikasi</flux:table.column>
-                    </flux:table.columns>
-
-                    <flux:table.rows>
-                        @forelse($tier1Queue as $item)
-                            <flux:table.row :key="$item->id" class="hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40 transition-colors">
-                                <flux:table.cell>
-                                    <div class="font-medium text-zinc-900 dark:text-zinc-100">
-                                        {{ $item->employee?->full_name ?? $item->doctor?->name ?? 'Staf' }}
-                                    </div>
-                                    <div class="text-xs text-zinc-400 font-mono">
-                                        {{ $item->employee?->nip ?? $item->doctor?->specialization ?? '' }}
-                                    </div>
-                                </flux:table.cell>
-
-                                <flux:table.cell>
-                                    <flux:badge size="sm" color="zinc" inset="top bottom">{{ $item->leaveType?->name }}</flux:badge>
-                                </flux:table.cell>
-
-                                <flux:table.cell class="text-xs font-mono text-zinc-700 dark:text-zinc-300">
-                                    {{ $item->start_date->format('d/m/Y') }} - {{ $item->end_date->format('d/m/Y') }}
-                                </flux:table.cell>
-
-                                <flux:table.cell class="font-bold text-zinc-900 dark:text-zinc-100">
-                                    {{ $item->total_days }} Hari
-                                </flux:table.cell>
-
-                                <flux:table.cell class="text-xs text-zinc-600 dark:text-zinc-400 max-w-xs">
-                                    {{ $item->reason }}
-                                </flux:table.cell>
-
-                                <flux:table.cell align="end">
-                                    <div class="flex items-center justify-end gap-1">
-                                        <flux:button 
-                                            size="xs" 
-                                            variant="primary" 
-                                            icon="check"
-                                            wire:click="approveTier1({{ $item->id }})"
-                                            wire:loading.attr="disabled"
-                                        >
-                                            Setujui (T1)
-                                        </flux:button>
-                                        <flux:button 
-                                            size="xs" 
-                                            variant="subtle" 
-                                            class="text-red-600 dark:text-red-400"
-                                            wire:click="openRejectModal({{ $item->id }}, 1)"
-                                        >
-                                            Tolak
-                                        </flux:button>
-                                    </div>
-                                </flux:table.cell>
-                            </flux:table.row>
-                        @empty
-                            <flux:table.row>
-                                <flux:table.cell colspan="6" class="p-0">
-                                    <x-datatable.empty 
-                                        title="Antrean Tier 1 Bersih" 
-                                        description="Tidak ada permohonan cuti staf yang menunggu persetujuan Tier 1 saat ini." 
-                                    />
-                                </flux:table.cell>
-                            </flux:table.row>
-                        @endforelse
-                    </flux:table.rows>
-                </flux:table>
+            <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+                <livewire:tables.leave-tier1-approval-table />
             </flux:card>
         </div>
     @endif
@@ -199,85 +128,8 @@
                 <span>Persetujuan final Manajemen SDM (Tier 2). Penyetujuan akan langsung mengesahkan cuti dan memotong saldo kuota.</span>
             </div>
 
-            <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
-                <flux:table>
-                    <flux:table.columns>
-                        <flux:table.column>Pemohon</flux:table.column>
-                        <flux:table.column>Jenis Cuti</flux:table.column>
-                        <flux:table.column>Periode Cuti</flux:table.column>
-                        <flux:table.column>Durasi</flux:table.column>
-                        <flux:table.column>Verifikasi Supervisor</flux:table.column>
-                        <flux:table.column align="end">Aksi Final</flux:table.column>
-                    </flux:table.columns>
-
-                    <flux:table.rows>
-                        @forelse($tier2Queue as $item)
-                            <flux:table.row :key="$item->id" class="hover:bg-zinc-50/60 dark:hover:bg-zinc-900/40 transition-colors">
-                                <flux:table.cell>
-                                    <div class="font-medium text-zinc-900 dark:text-zinc-100">
-                                        {{ $item->employee?->full_name ?? $item->doctor?->name ?? 'Staf' }}
-                                    </div>
-                                    <div class="text-xs text-zinc-400 font-mono">
-                                        {{ $item->employee?->nip ?? $item->doctor?->specialization ?? '' }}
-                                    </div>
-                                </flux:table.cell>
-
-                                <flux:table.cell>
-                                    <flux:badge size="sm" color="zinc" inset="top bottom">{{ $item->leaveType?->name }}</flux:badge>
-                                </flux:table.cell>
-
-                                <flux:table.cell class="text-xs font-mono text-zinc-700 dark:text-zinc-300">
-                                    {{ $item->start_date->format('d/m/Y') }} - {{ $item->end_date->format('d/m/Y') }}
-                                </flux:table.cell>
-
-                                <flux:table.cell class="font-bold text-zinc-900 dark:text-zinc-100">
-                                    {{ $item->total_days }} Hari
-                                </flux:table.cell>
-
-                                <flux:table.cell class="text-xs text-zinc-600 dark:text-zinc-400">
-                                    @php $t1 = $item->approvals->where('tier', 1)->first(); @endphp
-                                    @if($t1)
-                                        <span class="text-emerald-600 font-medium">✓ Disetujui oleh {{ $t1->approver?->name }}</span>
-                                        <span class="text-zinc-400 block text-xs">({{ $t1->action_at?->format('d/m/Y H:i') }})</span>
-                                    @else
-                                        <span class="text-zinc-400">-</span>
-                                    @endif
-                                </flux:table.cell>
-
-                                <flux:table.cell align="end">
-                                    <div class="flex items-center justify-end gap-1">
-                                        <flux:button 
-                                            size="xs" 
-                                            variant="primary" 
-                                            icon="check-badge"
-                                            wire:click="approveTier2({{ $item->id }})"
-                                            wire:loading.attr="disabled"
-                                        >
-                                            Setujui Final (T2)
-                                        </flux:button>
-                                        <flux:button 
-                                            size="xs" 
-                                            variant="subtle" 
-                                            class="text-red-600 dark:text-red-400"
-                                            wire:click="openRejectModal({{ $item->id }}, 2)"
-                                        >
-                                            Tolak
-                                        </flux:button>
-                                    </div>
-                                </flux:table.cell>
-                            </flux:table.row>
-                        @empty
-                            <flux:table.row>
-                                <flux:table.cell colspan="6" class="p-0">
-                                    <x-datatable.empty 
-                                        title="Antrean Tier 2 Bersih" 
-                                        description="Tidak ada permohonan cuti yang menunggu persetujuan akhir SDM saat ini." 
-                                    />
-                                </flux:table.cell>
-                            </flux:table.row>
-                        @endforelse
-                    </flux:table.rows>
-                </flux:table>
+            <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+                <livewire:tables.leave-tier2-approval-table />
             </flux:card>
         </div>
     @endif

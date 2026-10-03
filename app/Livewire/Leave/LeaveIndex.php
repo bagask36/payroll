@@ -96,10 +96,14 @@ class LeaveIndex extends Component
 
         $this->feedbackMessage = 'Pengajuan cuti berhasil dibatalkan.';
         $this->dispatch('pg:eventRefresh-leave_requests_table');
+        $this->dispatch('pg:eventRefresh-leave_tier1_approval_table');
+        $this->dispatch('pg:eventRefresh-leave_tier2_approval_table');
     }
 
-    public function approveTier1(int $requestId, AuditService $auditService): void
+    #[On('approve-tier1')]
+    public function approveTier1(int $requestId, ?AuditService $auditService = null): void
     {
+        $auditService ??= app(AuditService::class);
         $user = Auth::user();
         $request = LeaveRequest::findOrFail($requestId);
 
@@ -116,13 +120,18 @@ class LeaveIndex extends Component
             );
 
             $this->feedbackMessage = 'Persetujuan Tier 1 berhasil diberikan. Permohonan diteruskan ke Manajemen SDM (Tier 2).';
+            $this->dispatch('pg:eventRefresh-leave_tier1_approval_table');
+            $this->dispatch('pg:eventRefresh-leave_tier2_approval_table');
+            $this->dispatch('pg:eventRefresh-leave_requests_table');
         } catch (DomainException $e) {
             $this->errorMessage = $e->getMessage();
         }
     }
 
-    public function approveTier2(int $requestId, AuditService $auditService): void
+    #[On('approve-tier2')]
+    public function approveTier2(int $requestId, ?AuditService $auditService = null): void
     {
+        $auditService ??= app(AuditService::class);
         $user = Auth::user();
         $request = LeaveRequest::findOrFail($requestId);
 
@@ -139,11 +148,15 @@ class LeaveIndex extends Component
             );
 
             $this->feedbackMessage = 'Persetujuan Final Tier 2 berhasil diberikan. Saldo kuota cuti telah dipotong.';
+            $this->dispatch('pg:eventRefresh-leave_tier1_approval_table');
+            $this->dispatch('pg:eventRefresh-leave_tier2_approval_table');
+            $this->dispatch('pg:eventRefresh-leave_requests_table');
         } catch (DomainException $e) {
             $this->errorMessage = $e->getMessage();
         }
     }
 
+    #[On('open-reject-modal')]
     public function openRejectModal(int $requestId, int $tier): void
     {
         $this->targetRequestId = $requestId;
@@ -153,8 +166,9 @@ class LeaveIndex extends Component
         $this->showRejectModal = true;
     }
 
-    public function submitRejection(AuditService $auditService): void
+    public function submitRejection(?AuditService $auditService = null): void
     {
+        $auditService ??= app(AuditService::class);
         $user = Auth::user();
         $request = LeaveRequest::findOrFail($this->targetRequestId);
 
@@ -178,6 +192,9 @@ class LeaveIndex extends Component
 
             $this->showRejectModal = false;
             $this->feedbackMessage = 'Permohonan cuti telah ditolak.';
+            $this->dispatch('pg:eventRefresh-leave_tier1_approval_table');
+            $this->dispatch('pg:eventRefresh-leave_tier2_approval_table');
+            $this->dispatch('pg:eventRefresh-leave_requests_table');
         } catch (DomainException $e) {
             $this->errorMessage = $e->getMessage();
         }

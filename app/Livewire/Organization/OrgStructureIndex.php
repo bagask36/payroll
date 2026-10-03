@@ -163,7 +163,7 @@ class OrgStructureIndex extends Component
 
         $this->reset(['editingUnitId', 'unitCode', 'unitName', 'unitDepartmentId', 'selectedMasterUnitId']);
         $this->unitDepartmentId = $departmentId;
-        $this->unitSource = 'custom';
+        $this->unitSource = 'master';
         $this->unitIsActive = true;
         $this->showUnitModal = true;
     }
@@ -212,24 +212,35 @@ class OrgStructureIndex extends Component
         }
 
         // If assigning an existing master unit to this department
-        if ($this->unitSource === 'master' && $this->selectedMasterUnitId && ! $this->editingUnitId) {
-            $this->validate([
-                'selectedMasterUnitId' => 'required|exists:units,id',
-                'unitDepartmentId' => 'required|exists:departments,id',
-            ]);
+        if ($this->unitSource === 'master' && ! $this->editingUnitId) {
+            if ($this->selectedMasterUnitId) {
+                $this->validate([
+                    'selectedMasterUnitId' => 'required|exists:units,id',
+                    'unitDepartmentId' => 'required|exists:departments,id',
+                ], [
+                    'selectedMasterUnitId.required' => 'Silakan pilih unit kerja dari Data Master.',
+                    'unitDepartmentId.required' => 'Silakan pilih departemen penempatan.',
+                ]);
 
-            $unit = Unit::findOrFail($this->selectedMasterUnitId);
-            $oldValues = $unit->only(['code', 'name', 'department_id', 'is_active']);
+                $unit = Unit::findOrFail($this->selectedMasterUnitId);
+                $oldValues = $unit->only(['code', 'name', 'department_id', 'is_active']);
 
-            $unit->update([
-                'department_id' => $this->unitDepartmentId,
-            ]);
+                $unit->update([
+                    'department_id' => $this->unitDepartmentId,
+                ]);
 
-            $auditService->log('unit.updated', $unit, $oldValues, $unit->only(['code', 'name', 'department_id', 'is_active']));
-            $this->showUnitModal = false;
-            $this->errorMessage = null;
-            $this->feedbackMessage = "Unit kerja '{$unit->name}' berhasil ditautkan ke Departemen.";
-            return;
+                $auditService->log('unit.updated', $unit, $oldValues, $unit->only(['code', 'name', 'department_id', 'is_active']));
+                $this->showUnitModal = false;
+                $this->errorMessage = null;
+                $this->feedbackMessage = "Unit kerja '{$unit->name}' berhasil ditautkan ke Departemen.";
+                return;
+            } elseif (! $this->unitCode) {
+                $this->validate([
+                    'selectedMasterUnitId' => 'required|exists:units,id',
+                ], [
+                    'selectedMasterUnitId.required' => 'Silakan pilih unit kerja dari Data Master.',
+                ]);
+            }
         }
 
         $this->validate([
@@ -347,8 +358,16 @@ class OrgStructureIndex extends Component
         }
 
         // If choosing from master, ensure positionTitle is taken from selectedMasterTitle if not empty
-        if ($this->positionSource === 'master' && ! $this->editingPositionId && $this->selectedMasterTitle) {
-            $this->positionTitle = $this->selectedMasterTitle;
+        if ($this->positionSource === 'master' && ! $this->editingPositionId) {
+            if ($this->selectedMasterTitle) {
+                $this->positionTitle = $this->selectedMasterTitle;
+            } elseif (! $this->positionTitle) {
+                $this->validate([
+                    'selectedMasterTitle' => 'required|string',
+                ], [
+                    'selectedMasterTitle.required' => 'Silakan pilih standar jabatan dari Data Master.',
+                ]);
+            }
         }
 
         $rules = [

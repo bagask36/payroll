@@ -318,29 +318,59 @@
     {{-- MODAL: CREATE / EDIT UNIT --}}
     <flux:modal wire:model="showUnitModal" class="md:w-md space-y-4">
         <div>
-            <flux:heading size="lg">{{ $editingUnitId ? 'Edit Unit Kerja' : 'Tambah Unit Kerja Baru' }}</flux:heading>
+            <flux:heading size="lg">{{ $editingUnitId ? 'Edit Unit Kerja' : 'Tambah Unit Kerja' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Kelola instalasi faskes atau ruangan rawat.</flux:subheading>
         </div>
 
         <form wire:submit="saveUnit" class="space-y-4">
-            <flux:input wire:model="unitCode" label="Kode Unit" placeholder="Misal: IGD, ICU, FAR" required />
-            <flux:input wire:model="unitName" label="Nama Unit / Instalasi" placeholder="Misal: Instalasi Gawat Darurat" required />
+            @if (!$editingUnitId)
+                {{-- Master vs Custom Unit Selection --}}
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">Sumber Data Unit:</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-all {{ $unitSource === 'master' ? 'border-sky-500 bg-sky-50/60 dark:bg-sky-950/40 text-sky-800 dark:text-sky-200 font-semibold' : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400' }}">
+                            <input type="radio" wire:model.live="unitSource" value="master" class="text-sky-600 focus:ring-sky-500" />
+                            <span class="text-xs">Pilih dari Master</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-all {{ $unitSource === 'custom' ? 'border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 font-semibold' : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400' }}">
+                            <input type="radio" wire:model.live="unitSource" value="custom" class="text-emerald-600 focus:ring-emerald-500" />
+                            <span class="text-xs">Buat Unit Baru</span>
+                        </label>
+                    </div>
+                </div>
+
+                @if ($unitSource === 'master')
+                    <flux:select wire:model.live="selectedMasterUnitId" label="Pilih Unit Kerja (Data Master)" required>
+                        <flux:select.option value="">-- Pilih Unit dari Master --</flux:select.option>
+                        @foreach($allUnits as $u)
+                            <flux:select.option value="{{ $u->id }}">{{ $u->name }} ({{ $u->code }}) {{ $u->department ? '— Saat ini di ' . $u->department->name : '(Belum ada departemen)' }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                @endif
+            @endif
+
+            @if ($unitSource === 'custom' || $editingUnitId)
+                <flux:input wire:model="unitCode" label="Kode Unit" placeholder="Misal: IGD, ICU, FAR" required />
+                <flux:input wire:model="unitName" label="Nama Unit / Instalasi" placeholder="Misal: Instalasi Gawat Darurat" required />
+            @endif
             
-            <flux:select wire:model="unitDepartmentId" label="Departemen Induk" required>
+            <flux:select wire:model="unitDepartmentId" label="Departemen Penempatan" required>
                 <flux:select.option value="">-- Pilih Departemen --</flux:select.option>
                 @foreach($allDepartments as $d)
                     <flux:select.option value="{{ $d->id }}">{{ $d->name }} ({{ $d->code }})</flux:select.option>
                 @endforeach
             </flux:select>
 
-            <div class="flex items-center gap-2 pt-1">
-                <input type="checkbox" wire:model="unitIsActive" id="unitActive" class="rounded text-emerald-600 focus:ring-emerald-500">
-                <label for="unitActive" class="text-sm font-medium text-zinc-800 dark:text-zinc-200">Unit Aktif</label>
-            </div>
+            @if ($unitSource === 'custom' || $editingUnitId)
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="checkbox" wire:model="unitIsActive" id="unitActive" class="rounded text-emerald-600 focus:ring-emerald-500">
+                    <label for="unitActive" class="text-sm font-medium text-zinc-800 dark:text-zinc-200">Unit Aktif</label>
+                </div>
+            @endif
 
             <div class="flex items-center justify-end gap-2 pt-2">
                 <flux:modal.close><flux:button variant="subtle">Batal</flux:button></flux:modal.close>
-                <flux:button type="submit" variant="primary">Simpan Unit</flux:button>
+                <flux:button type="submit" variant="primary">{{ $unitSource === 'master' && !$editingUnitId ? 'Tautkan Unit ke Departemen' : 'Simpan Unit' }}</flux:button>
             </div>
         </form>
     </flux:modal>
@@ -348,12 +378,44 @@
     {{-- MODAL: CREATE / EDIT POSITION --}}
     <flux:modal wire:model="showPositionModal" class="md:w-md space-y-4">
         <div>
-            <flux:heading size="lg">{{ $editingPositionId ? 'Edit Formasi Jabatan' : 'Tambah Formasi Jabatan Baru' }}</flux:heading>
-            <flux:subheading class="text-xs text-zinc-500">Kelola standar jabatan struktural di Departemen atau fungsional di Unit Kerja.</flux:subheading>
+            <flux:heading size="lg">{{ $editingPositionId ? 'Edit Formasi Jabatan' : 'Tambah Formasi Jabatan' }}</flux:heading>
+            <flux:subheading class="text-xs text-zinc-500">Kelola formasi jabatan di Departemen atau Unit Kerja.</flux:subheading>
         </div>
 
         <form wire:submit="savePosition" class="space-y-4">
-            <flux:input wire:model="positionTitle" label="Judul / Nama Jabatan" placeholder="Misal: Direktur Medis, Dokter Jaga IGD, Karu ICU" required />
+            @if (!$editingPositionId)
+                {{-- Master vs Custom Position Selection --}}
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1.5">Sumber Standar Jabatan:</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-all {{ $positionSource === 'master' ? 'border-sky-500 bg-sky-50/60 dark:bg-sky-950/40 text-sky-800 dark:text-sky-200 font-semibold' : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400' }}">
+                            <input type="radio" wire:model.live="positionSource" value="master" class="text-sky-600 focus:ring-sky-500" />
+                            <span class="text-xs">Pilih dari Master</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-all {{ $positionSource === 'custom' ? 'border-emerald-500 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-200 font-semibold' : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400' }}">
+                            <input type="radio" wire:model.live="positionSource" value="custom" class="text-emerald-600 focus:ring-emerald-500" />
+                            <span class="text-xs">Ketik Jabatan Baru</span>
+                        </label>
+                    </div>
+                </div>
+
+                @if ($positionSource === 'master')
+                    @if ($masterPositionTitles->isNotEmpty())
+                        <flux:select wire:model.live="selectedMasterTitle" label="Pilih Standar Jabatan (Data Master)">
+                            <flux:select.option value="">-- Pilih Standar Jabatan --</flux:select.option>
+                            @foreach($masterPositionTitles as $mPos)
+                                <flux:select.option value="{{ $mPos->title }}">{{ $mPos->title }} (Grade: {{ ucfirst($mPos->grade_level) }})</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    @else
+                        <div class="p-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-xs text-zinc-500">
+                            Belum ada standar jabatan di Data Master. Silakan gunakan opsi "Ketik Jabatan Baru".
+                        </div>
+                    @endif
+                @endif
+            @endif
+
+            <flux:input wire:model="positionTitle" label="Nama / Judul Formasi Jabatan" placeholder="Misal: Direktur Medis, Dokter Jaga IGD, Karu ICU" required />
             
             {{-- Placement Level Selector --}}
             <div>
