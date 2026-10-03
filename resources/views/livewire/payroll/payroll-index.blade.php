@@ -193,7 +193,10 @@
         <flux:modal wire:model="showItemDetailModal" class="md:w-[32rem] space-y-4">
             <div class="border-b border-zinc-100 dark:border-zinc-800 pb-3">
                 <div class="flex items-center justify-between">
-                    <flux:heading size="lg">Slip Gaji Pegawai</flux:heading>
+                    <div class="flex items-center gap-2.5">
+                        <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="Logo RS Juwita" class="h-7 w-auto max-w-[90px] object-contain" />
+                        <flux:heading size="lg">Slip Gaji Pegawai</flux:heading>
+                    </div>
                     <flux:badge size="xs" color="emerald">{{ $viewingItem->run?->period?->name }}</flux:badge>
                 </div>
                 <div class="mt-2 text-sm">

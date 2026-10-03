@@ -1,7 +1,9 @@
 <div class="sm:mx-auto sm:w-full sm:max-w-md px-4">
     <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-500/20 mb-4">
-            <flux:icon name="building-office-2" class="w-8 h-8" />
+        <div class="flex justify-center mb-4">
+            <div class="p-3 bg-white dark:bg-zinc-800 rounded-2xl shadow-md border border-zinc-200/80 dark:border-zinc-700/80 inline-flex items-center justify-center">
+                <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="Logo RS Juwita" class="h-14 w-auto max-w-[200px] object-contain" />
+            </div>
         </div>
         <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
             RS Juwita Portal

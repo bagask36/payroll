@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Slip Gaji - {{ $item->employee?->full_name }} ({{ $item->run?->period?->name }})</title>
+    <link rel="icon" type="image/png" href="{{ asset('assets/logo-rs-juwita.png') }}">
     @vite(['resources/css/app.css'])
     <style>
         @media print {
@@ -38,10 +39,8 @@
     <div class="max-w-3xl mx-auto bg-white p-8 sm:p-10 rounded-2xl shadow-sm border border-zinc-200 payslip-container relative">
         {{-- Hospital Header --}}
         <div class="border-b-2 border-zinc-900 pb-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="size-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-xl">
-                    RS
-                </div>
+            <div class="flex items-center gap-3.5">
+                <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="Logo RS Juwita" class="h-12 w-auto max-w-[150px] object-contain" />
                 <div>
                     <h1 class="text-xl font-bold tracking-tight text-zinc-900">RUMAH SAKIT JUWITA</h1>
                     <p class="text-xs text-zinc-500">Jl. Teratai No. 12, Jakarta • Telp: (021) 555-0199 • sdm@juwitahospital.com</p>

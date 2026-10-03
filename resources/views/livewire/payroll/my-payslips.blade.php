@@ -47,9 +47,12 @@
         <flux:modal wire:model="showDetailModal" class="md:w-[34rem] space-y-4">
             <div class="border-b border-zinc-100 dark:border-zinc-800 pb-3">
                 <div class="flex items-center justify-between">
-                    <div>
-                        <flux:heading size="lg">SLIP GAJI ELEKTRONIK</flux:heading>
-                        <div class="text-xs text-zinc-500 font-semibold tracking-wider uppercase mt-0.5">RS Juwita — Hospital HR System</div>
+                    <div class="flex items-center gap-3">
+                        <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="Logo RS Juwita" class="h-9 w-auto max-w-[110px] object-contain" />
+                        <div>
+                            <flux:heading size="lg">SLIP GAJI ELEKTRONIK</flux:heading>
+                            <div class="text-xs text-zinc-500 font-semibold tracking-wider uppercase mt-0.5">RS Juwita — Hospital HR System</div>
+                        </div>
                     </div>
                     <flux:badge size="sm" color="emerald">{{ $selectedItem->run?->period?->name }}</flux:badge>
                 </div>

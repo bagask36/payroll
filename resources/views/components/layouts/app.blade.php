@@ -11,6 +11,8 @@
 
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 
+        <link rel="icon" type="image/png" href="{{ asset('assets/logo-rs-juwita.png') }}">
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @fluxAppearance
     </head>
@@ -18,15 +20,20 @@
         {{-- Collapsible Sidebar according to Flux UI official demos --}}
         <flux:sidebar sticky collapsible class="border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
             <flux:sidebar.header>
-                <div class="flex items-center gap-2.5 px-2 min-w-0">
-                    <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-600 text-white font-bold shrink-0 shadow-xs">
-                        <flux:icon name="building-office-2" class="size-5" />
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 px-1 min-w-0">
+                    <img 
+                        src="{{ asset('assets/logo-rs-juwita.png') }}" 
+                        alt="RS Juwita" 
+                        class="h-8.5 w-auto max-w-[160px] object-contain in-data-flux-sidebar-collapsed-desktop:hidden" 
+                    />
+                    <div class="size-8 rounded-lg overflow-hidden shrink-0 hidden in-data-flux-sidebar-collapsed-desktop:flex items-center justify-center bg-white dark:bg-zinc-800 p-0.5 border border-zinc-200 dark:border-zinc-700 shadow-2xs">
+                        <img 
+                            src="{{ asset('assets/logo-rs-juwita.png') }}" 
+                            alt="RS Juwita" 
+                            class="w-full h-full object-contain" 
+                        />
                     </div>
-                    <div class="flex flex-col min-w-0 in-data-flux-sidebar-collapsed-desktop:hidden">
-                        <span class="font-bold text-sm leading-tight text-zinc-900 dark:text-zinc-100 truncate">RS Juwita</span>
-                        <span class="text-xs text-zinc-500 dark:text-zinc-400 truncate">Portal SDM & Medis</span>
-                    </div>
-                </div>
+                </a>
 
                 <flux:sidebar.collapse class="in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
             </flux:sidebar.header>
@@ -41,7 +48,7 @@
                     <flux:sidebar.group 
                         expandable 
                         :expanded="request()->routeIs('master.*')" 
-                        heading="DATA MASTER" 
+                        heading="Data Master" 
                         icon="circle-stack"
                         class="mt-3"
                     >
@@ -146,7 +153,7 @@
                     <flux:sidebar.group 
                         expandable 
                         :expanded="request()->routeIs('reports.*')" 
-                        heading="LAPORAN" 
+                        heading="Laporan" 
                         icon="chart-bar"
                         class="mt-3"
                     >
@@ -234,7 +241,11 @@
 
         {{-- Top App Header --}}
         <flux:header sticky class="border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/90">
-            <flux:sidebar.toggle class="me-4 lg:hidden" icon="bars-2" inset="left" />
+            <flux:sidebar.toggle class="me-3 lg:hidden" icon="bars-2" inset="left" />
+
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-2 lg:hidden me-3">
+                <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="RS Juwita" class="h-7 w-auto max-w-[110px] object-contain" />
+            </a>
 
             <flux:breadcrumbs class="max-sm:hidden">
                 <flux:breadcrumbs.item href="{{ route('dashboard') }}">RS Juwita</flux:breadcrumbs.item>

@@ -33,11 +33,16 @@
     <form wire:submit.prevent="save" class="space-y-6">
         {{-- Section 1: Profil Rumah Sakit (Single Hospital Scope) --}}
         <div class="bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-xs space-y-4">
-            <div class="flex items-center gap-2.5 border-b border-zinc-100 dark:border-zinc-800 pb-3">
-                <flux:icon name="building-office-2" class="size-5 text-emerald-600" />
-                <div>
-                    <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100">Profil Identitas Rumah Sakit</h3>
-                    <p class="text-xs text-zinc-500">Data faskes resmi yang dicetak pada slip gaji, surat tugas, dan dokumen HR.</p>
+            <div class="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <flux:icon name="building-office-2" class="size-5 text-emerald-600" />
+                    <div>
+                        <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100">Profil Identitas Rumah Sakit</h3>
+                        <p class="text-xs text-zinc-500">Data faskes resmi yang dicetak pada slip gaji, surat tugas, dan dokumen HR.</p>
+                    </div>
+                </div>
+                <div class="shrink-0 p-1.5 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+                    <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="Logo RS Juwita" class="h-7 w-auto max-w-[120px] object-contain" />
                 </div>
             </div>
 
