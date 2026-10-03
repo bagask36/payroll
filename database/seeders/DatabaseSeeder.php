@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             DoctorSeeder::class,
             ScheduleSeeder::class,
             AttendanceSeeder::class,
+            LeaveSeeder::class,
+            PayrollSeeder::class,
         ]);
     }
 }

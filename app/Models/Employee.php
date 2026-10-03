@@ -173,6 +173,26 @@ class Employee extends Model
     }
 
     /**
+     * Leave balance allocations.
+     *
+     * @return HasMany<LeaveBalance, $this>
+     */
+    public function leaveBalances(): HasMany
+    {
+        return $this->hasMany(LeaveBalance::class);
+    }
+
+    /**
+     * Leave requests submitted by this employee.
+     *
+     * @return HasMany<LeaveRequest, $this>
+     */
+    public function leaveRequests(): HasMany
+    {
+        return $this->hasMany(LeaveRequest::class);
+    }
+
+    /**
      * Filter query to active employees only.
      *
      * @param  Builder<$this>  $query
