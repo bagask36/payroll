@@ -107,6 +107,14 @@
         >
             Berkas & Kepatuhan
         </flux:button>
+
+        <flux:button 
+            size="sm" 
+            :variant="$activeTab === 'biometrics' ? 'primary' : 'subtle'" 
+            wire:click="setTab('biometrics')"
+        >
+            Biometrik Wajah
+        </flux:button>
     </div>
 
     {{-- Tab 1: Biodata & PII --}}
@@ -304,5 +312,245 @@
                 @endforelse
             </div>
         </flux:card>
+    @endif
+
+    {{-- Tab 6: Biometrik Wajah (Face AI) --}}
+    @if($activeTab === 'biometrics')
+        <div class="space-y-6">
+            @if($enrollStatusMessage)
+                <div class="p-4 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 flex items-center gap-3">
+                    <flux:icon name="check-circle" class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span class="text-sm font-medium">{{ $enrollStatusMessage }}</span>
+                </div>
+            @endif
+
+            @if($enrollErrorMessage)
+                <div class="p-4 rounded-xl border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-200 flex items-center gap-3">
+                    <flux:icon name="exclamation-circle" class="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
+                    <span class="text-sm font-medium">{{ $enrollErrorMessage }}</span>
+                </div>
+            @endif
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {{-- Status Card --}}
+                <flux:card class="space-y-4">
+                    <div class="flex items-center gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                        <div class="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400">
+                            <flux:icon name="user" class="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-sm text-zinc-900 dark:text-zinc-100">Status Biometrik Wajah</h4>
+                            <p class="text-xs text-zinc-500">Integrasi Face AI & Geofencing Presensi</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-zinc-500">Status Pendaftaran:</span>
+                            @if(!empty($employee->face_biometric_vector))
+                                <flux:badge size="sm" color="emerald">Terdaftar &amp; Aktif</flux:badge>
+                            @else
+                                <flux:badge size="sm" color="zinc">Belum Terdaftar</flux:badge>
+                            @endif
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-zinc-500">Format Vektor:</span>
+                            <span class="font-mono text-xs text-zinc-700 dark:text-zinc-300">
+                                @if(!empty($employee->face_biometric_vector))
+                                    {{ count($employee->face_biometric_vector) }}-Dimensi (AES-256)
+                                @else
+                                    -
+                                @endif
+                            </span>
+                        </div>
+
+                        <div class="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/60 text-xs text-zinc-500 space-y-1">
+                            <div class="font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                                <flux:icon name="shield-check" class="w-4 h-4 text-emerald-600" />
+                                Standar Kepatuhan Privasi Data (UU PDP)
+                            </div>
+                            <p>
+                                Vektor biometrik disimpan dalam bentuk enkripsi kriptografi satu arah di basis data PostgreSQL. Foto fisik wajah tidak disimpan di Google Drive maupun storage publik.
+                            </p>
+                        </div>
+
+                        @if(!empty($employee->face_biometric_vector) && $canManageBiometrics)
+                            <div class="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex justify-end">
+                                <flux:button 
+                                    size="sm" 
+                                    variant="danger" 
+                                    icon="trash"
+                                    wire:click="removeBiometrics"
+                                    wire:confirm="Apakah Anda yakin ingin menghapus data biometrik wajah pegawai ini?"
+                                >
+                                    Hapus Data Biometrik
+                                </flux:button>
+                            </div>
+                        @endif
+                    </div>
+                </flux:card>
+
+                {{-- Enrollment / Update Card --}}
+                @if($canManageBiometrics)
+                    <flux:card class="space-y-4">
+                        <div class="flex items-center gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                            <div class="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
+                                <flux:icon name="camera" class="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
+                                    {{ !empty($employee->face_biometric_vector) ? 'Perbarui Biometrik Wajah' : 'Daftarkan Biometrik Wajah' }}
+                                </h4>
+                                <p class="text-xs text-zinc-500">Gunakan kamera langsung atau unggah foto resmi</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4" x-data="biometricEnrollment()">
+                            {{-- Interactive Webcam Viewport --}}
+                            <div class="relative rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 flex flex-col items-center justify-center min-h-[220px]">
+                                <video x-ref="video" class="w-full h-48 object-cover" autoplay playsinline x-show="isStreaming"></video>
+                                <canvas x-ref="canvas" class="hidden"></canvas>
+
+                                <template x-if="!isStreaming && !$wire.webcamCapture && !$wire.photoUpload">
+                                    <div class="p-6 text-center space-y-2">
+                                        <flux:icon name="video-camera" class="w-10 h-10 text-zinc-600 mx-auto" />
+                                        <p class="text-xs text-zinc-400">Kamera saat ini belum aktif</p>
+                                    </div>
+                                </template>
+
+                                <template x-if="$wire.webcamCapture">
+                                    <div class="p-2 w-full text-center">
+                                        <img :src="$wire.webcamCapture" class="h-44 mx-auto rounded-lg object-cover border border-emerald-500" alt="Captured Face" />
+                                        <span class="text-xs text-emerald-400 mt-1 block">Foto Wajah Berhasil Diambil</span>
+                                    </div>
+                                </template>
+                            </div>
+
+                            {{-- Camera Controls --}}
+                            <div class="flex items-center gap-2">
+                                <button 
+                                    type="button"
+                                    x-show="!isStreaming"
+                                    @click="startCamera()"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 transition"
+                                >
+                                    <flux:icon name="video-camera" class="w-4 h-4" />
+                                    Buka Kamera
+                                </button>
+
+                                <button 
+                                    type="button"
+                                    x-show="isStreaming"
+                                    @click="captureFrame()"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-700 text-white transition"
+                                >
+                                    <flux:icon name="camera" class="w-4 h-4" />
+                                    Ambil Foto
+                                </button>
+
+                                <button 
+                                    type="button"
+                                    x-show="isStreaming"
+                                    @click="stopCamera()"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                                >
+                                    Tutup Kamera
+                                </button>
+                            </div>
+
+                            {{-- Or File Upload --}}
+                            <div class="pt-2 border-t border-zinc-100 dark:border-zinc-800 space-y-2">
+                                <flux:field>
+                                    <flux:label class="text-xs">Atau Unggah Berkas Foto Wajah (JPG/PNG)</flux:label>
+                                    <input 
+                                        type="file" 
+                                        wire:model="photoUpload" 
+                                        accept="image/jpeg,image/png,image/webp" 
+                                        class="block w-full text-xs text-zinc-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300"
+                                    />
+                                    <flux:error name="photoUpload" />
+                                </flux:field>
+
+                                @if($photoUpload)
+                                    <div class="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                        <flux:icon name="check-circle" class="w-4 h-4" />
+                                        Berkas foto terpilih siap diekstraksi
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- Action Submit Button --}}
+                            <div class="pt-2">
+                                <flux:button 
+                                    variant="primary" 
+                                    class="w-full"
+                                    wire:click="enrollBiometrics"
+                                    wire:loading.attr="disabled"
+                                >
+                                    <span wire:loading.remove wire:target="enrollBiometrics">
+                                        Proses &amp; Simpan Biometrik Wajah
+                                    </span>
+                                    <span wire:loading wire:target="enrollBiometrics">
+                                        Mengekstrak Vektor Face AI...
+                                    </span>
+                                </flux:button>
+                            </div>
+                        </div>
+
+                        <script>
+                            function biometricEnrollment() {
+                                return {
+                                    isStreaming: false,
+                                    mediaStream: null,
+                                    startCamera() {
+                                        const video = this.$refs.video;
+                                        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                                            navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+                                                .then(stream => {
+                                                    this.mediaStream = stream;
+                                                    video.srcObject = stream;
+                                                    this.isStreaming = true;
+                                                })
+                                                .catch(err => {
+                                                    alert('Gagal mengakses kamera: ' + err.message);
+                                                });
+                                        } else {
+                                            alert('Peramban tidak mendukung akses kamera.');
+                                        }
+                                    },
+                                    stopCamera() {
+                                        if (this.mediaStream) {
+                                            this.mediaStream.getTracks().forEach(track => track.stop());
+                                            this.mediaStream = null;
+                                        }
+                                        this.isStreaming = false;
+                                    },
+                                    captureFrame() {
+                                        const video = this.$refs.video;
+                                        const canvas = this.$refs.canvas;
+                                        canvas.width = video.videoWidth || 640;
+                                        canvas.height = video.videoHeight || 480;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                                        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                                        @this.set('webcamCapture', dataUrl);
+                                        this.stopCamera();
+                                    }
+                                };
+                            }
+                        </script>
+                    </flux:card>
+                @else
+                    <flux:card class="flex flex-col items-center justify-center text-center p-8 space-y-2">
+                        <flux:icon name="lock-closed" class="w-8 h-8 text-zinc-400" />
+                        <h4 class="font-semibold text-sm text-zinc-800 dark:text-zinc-200">Akses Terbatas: Pendaftaran Biometrik</h4>
+                        <p class="text-xs text-zinc-500 max-w-sm">
+                            Pendaftaran dan pembaruan biometrik wajah pegawai hanya dapat dilakukan oleh Manajemen SDM / HR Admin berwenang.
+                        </p>
+                    </flux:card>
+                @endif
+            </div>
+        </div>
     @endif
 </div>

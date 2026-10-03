@@ -80,6 +80,14 @@ class EmployeePolicy
     }
 
     /**
+     * Determine whether the user can manage (enroll/remove) biometric face data.
+     */
+    public function manageBiometrics(User $user, Employee $employee): bool
+    {
+        return $user->hasPermission('employee.update');
+    }
+
+    /**
      * Determine whether the user can update employment contracts or status.
      */
     public function updateEmployment(User $user, Employee $employee): bool

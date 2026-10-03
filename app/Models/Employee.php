@@ -50,7 +50,7 @@ class Employee extends Model
             'birth_date' => 'date',
             'tax_dependents' => 'integer',
             'ktp_number' => 'encrypted',
-            'face_biometric_vector' => 'encrypted',
+            'face_biometric_vector' => 'encrypted:array',
         ];
     }
 

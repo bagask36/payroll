@@ -138,7 +138,7 @@
 
     {{-- Native Flux Table --}}
     <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
-        <flux:table :paginate="$attendances">
+        <flux:table :paginate="$attendances" class="table-auto min-w-[900px] w-full">
             <flux:table.columns>
                 <flux:table.column 
                     sortable 

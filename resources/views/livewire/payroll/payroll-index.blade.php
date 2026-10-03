@@ -155,7 +155,7 @@
             />
 
             <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
-                <flux:table :paginate="$items">
+                <flux:table :paginate="$items" class="table-auto min-w-[980px] w-full">
                     <flux:table.columns>
                         <flux:table.column 
                             sortable 
@@ -203,7 +203,7 @@
                             Gaji Bersih
                         </flux:table.column>
                         <flux:table.column>Rekening Bank</flux:table.column>
-                        <flux:table.column align="end">Aksi</flux:table.column>
+                        <flux:table.column align="end" class="pe-4!">Aksi</flux:table.column>
                     </flux:table.columns>
 
                     <flux:table.rows>
@@ -213,9 +213,7 @@
                                     <div class="font-semibold text-zinc-900 dark:text-zinc-100">
                                         {{ $item->employee?->full_name }}
                                     </div>
-                                    <div class="text-xs font-mono text-zinc-400">
-                                        {{ $item->employee?->nip }}
-                                    </div>
+                                    <div class="text-xs font-mono text-zinc-400">{{ $item->employee?->nip }}</div>
                                 </flux:table.cell>
 
                                 <flux:table.cell class="text-xs text-zinc-500">
@@ -252,7 +250,7 @@
                                     </div>
                                 </flux:table.cell>
 
-                                <flux:table.cell align="end">
+                                <flux:table.cell align="end" class="pe-4!">
                                     <flux:button 
                                         size="xs" 
                                         variant="subtle" 
