@@ -8,6 +8,7 @@ use App\Models\ScheduleAssignment;
 use App\Models\Shift;
 use App\Services\Audit\AuditService;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;

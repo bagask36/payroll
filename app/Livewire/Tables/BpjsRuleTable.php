@@ -37,10 +37,10 @@ final class BpjsRuleTable extends PowerGridComponent
     {
         return PowerGrid::fields()
             ->add('id')
-            ->add('program_name_badge', fn (BpjsRule $row) => '<span class="font-semibold text-zinc-900 dark:text-zinc-100 uppercase">BPJS '.e($row->program_name).'</span>')
-            ->add('employee_rate_formatted', fn (BpjsRule $row) => '<span class="font-mono text-xs font-semibold text-rose-600 dark:text-rose-400">'.number_format(((float) $row->employee_rate) * 100, 2).'%</span>')
-            ->add('employer_rate_formatted', fn (BpjsRule $row) => '<span class="font-mono text-xs font-semibold text-blue-600 dark:text-blue-400">'.number_format(((float) $row->employer_rate) * 100, 2).'%</span>')
-            ->add('wage_ceiling_formatted', function (BpjsRule $row) {
+            ->add('program_name_display', fn (BpjsRule $row) => '<span class="font-semibold text-zinc-900 dark:text-zinc-100 uppercase">BPJS '.strtoupper(e($row->program_name)).'</span>')
+            ->add('employee_rate_display', fn (BpjsRule $row) => '<span class="font-mono text-xs font-semibold text-rose-600 dark:text-rose-400">'.number_format(((float) $row->employee_rate) * 100, 2).'%</span>')
+            ->add('employer_rate_display', fn (BpjsRule $row) => '<span class="font-mono text-xs font-semibold text-blue-600 dark:text-blue-400">'.number_format(((float) $row->employer_rate) * 100, 2).'%</span>')
+            ->add('wage_ceiling_display', function (BpjsRule $row) {
                 if ($row->wage_ceiling) {
                     return '<span class="font-mono text-xs text-zinc-700 dark:text-zinc-300">Rp '.number_format((float) $row->wage_ceiling, 0, ',', '.').'</span>';
                 }
@@ -59,17 +59,17 @@ final class BpjsRuleTable extends PowerGridComponent
     public function columns(): array
     {
         return [
-            Column::make('Program Jaminan Sosial', 'program_name_badge', 'program_name')
+            Column::make('Program Jaminan Sosial', 'program_name_display', 'program_name')
                 ->searchable()
                 ->sortable(),
 
-            Column::make('Tarif Pegawai', 'employee_rate_formatted', 'employee_rate')
+            Column::make('Tarif Pegawai', 'employee_rate_display', 'employee_rate')
                 ->sortable(),
 
-            Column::make('Tarif RS (Pemberi Kerja)', 'employer_rate_formatted', 'employer_rate')
+            Column::make('Tarif RS (Pemberi Kerja)', 'employer_rate_display', 'employer_rate')
                 ->sortable(),
 
-            Column::make('Plafon Maksimal Upah', 'wage_ceiling_formatted', 'wage_ceiling')
+            Column::make('Plafon Maksimal Upah', 'wage_ceiling_display', 'wage_ceiling')
                 ->sortable(),
 
             Column::make('Status', 'status_badge', 'is_active')

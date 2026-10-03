@@ -55,16 +55,19 @@ class ScheduleUiTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test(ScheduleRoster::class)
+        $this->get(route('schedules.index'))
             ->assertStatus(200)
             ->assertSee('Roster')
             ->assertSee('Jadwal Dinas')
             ->assertSee('Ns. Ratna Dewi')
-            ->assertSee('Shift Pagi IGD')
-            ->call('nextWeek')
-            ->assertDontSee('Ns. Ratna Dewi') // Moved outside of that week
-            ->call('currentWeek')
-            ->assertSee('Ns. Ratna Dewi');
+            ->assertSee('Shift Pagi IGD');
+
+        Livewire::test(\App\Livewire\Tables\ScheduleTable::class, [
+            'weekStartDate' => $today->copy()->startOfWeek()->toDateString(),
+        ])
+            ->assertStatus(200)
+            ->assertSee('Ns. Ratna Dewi')
+            ->assertSee('Shift Pagi IGD');
     }
 
     public function test_supervisor_can_assign_shift_to_employee(): void

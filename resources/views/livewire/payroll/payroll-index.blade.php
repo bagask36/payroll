@@ -217,10 +217,20 @@
                         <span class="text-zinc-600 dark:text-zinc-400">Gaji Pokok</span>
                         <span class="font-mono font-medium">Rp {{ number_format((float) $viewingItem->basic_salary, 0, ',', '.') }}</span>
                     </div>
-                    <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
-                        <span class="text-zinc-600 dark:text-zinc-400">Tunjangan Operasional</span>
-                        <span class="font-mono font-medium">Rp {{ number_format((float) $viewingItem->allowances, 0, ',', '.') }}</span>
-                    </div>
+                    @php $allowanceComps = $viewingItem->components->where('type', 'allowance'); @endphp
+                    @forelse($allowanceComps as $comp)
+                        <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
+                            <span class="text-zinc-600 dark:text-zinc-400">{{ $comp->name }}</span>
+                            <span class="font-mono font-medium text-emerald-700 dark:text-emerald-400">+Rp {{ number_format((float) $comp->amount, 0, ',', '.') }}</span>
+                        </div>
+                    @empty
+                        @if((float) $viewingItem->allowances > 0)
+                            <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
+                                <span class="text-zinc-600 dark:text-zinc-400">Tunjangan Operasional</span>
+                                <span class="font-mono font-medium text-emerald-700 dark:text-emerald-400">+Rp {{ number_format((float) $viewingItem->allowances, 0, ',', '.') }}</span>
+                            </div>
+                        @endif
+                    @endforelse
                 </div>
 
                 {{-- Deductions --}}
@@ -234,10 +244,19 @@
                         <span class="text-zinc-600 dark:text-zinc-400">BPJS TK (JHT & JP Pegawai)</span>
                         <span class="font-mono text-rose-600">-Rp {{ number_format((float) $viewingItem->bpjs_tk_employee, 0, ',', '.') }}</span>
                     </div>
-                    <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
-                        <span class="text-zinc-600 dark:text-zinc-400">PPh 21 (Pajak Penghasilan)</span>
-                        <span class="font-mono text-rose-600">-Rp {{ number_format((float) $viewingItem->pph21_tax, 0, ',', '.') }}</span>
-                    </div>
+                    @if((float) $viewingItem->pph21_tax > 0)
+                        <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
+                            <span class="text-zinc-600 dark:text-zinc-400">PPh 21 (Pajak Penghasilan)</span>
+                            <span class="font-mono text-rose-600">-Rp {{ number_format((float) $viewingItem->pph21_tax, 0, ',', '.') }}</span>
+                        </div>
+                    @endif
+                    @php $deductionComps = $viewingItem->components->where('type', 'deduction'); @endphp
+                    @foreach($deductionComps as $comp)
+                        <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
+                            <span class="text-zinc-600 dark:text-zinc-400">{{ $comp->name }}</span>
+                            <span class="font-mono text-rose-600">-Rp {{ number_format((float) $comp->amount, 0, ',', '.') }}</span>
+                        </div>
+                    @endforeach
                 </div>
 
                 {{-- Net Pay --}}

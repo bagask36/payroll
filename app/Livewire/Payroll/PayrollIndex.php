@@ -205,7 +205,7 @@ class PayrollIndex extends Component
     #[On('view-item-detail')]
     public function viewItemDetail(int $itemId): void
     {
-        $item = PayrollItem::with(['employee.unit', 'employee.position'])->findOrFail($itemId);
+        $item = PayrollItem::with(['employee.unit', 'employee.position', 'components'])->findOrFail($itemId);
         $this->authorize('view', $item);
 
         $this->viewingItemId = $itemId;
@@ -235,7 +235,7 @@ class PayrollIndex extends Component
 
         $items = $itemsQuery->paginate($this->perPageValue());
 
-        $viewingItem = $this->viewingItemId ? PayrollItem::with(['employee.unit', 'employee.position'])->find($this->viewingItemId) : null;
+        $viewingItem = $this->viewingItemId ? PayrollItem::with(['employee.unit', 'employee.position', 'components'])->find($this->viewingItemId) : null;
 
         return view('livewire.payroll.payroll-index', [
             'runs' => $runs,

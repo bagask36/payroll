@@ -4,6 +4,7 @@ namespace App\Livewire\Master;
 
 use App\Models\Pph21Parameter;
 use App\Services\Audit\AuditService;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;

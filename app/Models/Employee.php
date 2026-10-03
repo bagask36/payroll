@@ -134,6 +134,31 @@ class Employee extends Model
     }
 
     /**
+     * All assigned recurring salary components (allowances & deductions).
+     *
+     * @return HasMany<EmployeeSalaryComponent, $this>
+     */
+    public function salaryComponents(): HasMany
+    {
+        return $this->hasMany(EmployeeSalaryComponent::class);
+    }
+
+    /**
+     * Currently active recurring salary components.
+     *
+     * @return HasMany<EmployeeSalaryComponent, $this>
+     */
+    public function activeSalaryComponents(): HasMany
+    {
+        return $this->hasMany(EmployeeSalaryComponent::class)
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('effective_to')
+                    ->orWhere('effective_to', '>=', now()->toDateString());
+            });
+    }
+
+    /**
      * Disbursement bank accounts.
      *
      * @return HasMany<EmployeeBankAccount, $this>

@@ -207,34 +207,292 @@
     {{-- Tab 3: Kompensasi & Gaji (Strictly Protected) --}}
     @if($activeTab === 'salary')
         @if($canViewSalary)
-            <flux:card class="space-y-4">
-                <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Struktur Kompensasi & Gaji Pokok</h3>
-                @php $latestSalary = $employee->currentSalary ?? $employee->salaries->first(); @endphp
-                @if($latestSalary)
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700">
+            <div class="space-y-6">
+                @if($salaryFeedback)
+                    <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-sm flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="check-circle" class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                            <span>{{ $salaryFeedback }}</span>
+                        </div>
+                        <button type="button" wire:click="$set('salaryFeedback', null)" class="text-emerald-600 hover:text-emerald-800">
+                            <flux:icon name="x-mark" class="w-4 h-4" />
+                        </button>
+                    </div>
+                @endif
+
+                @if($salaryError)
+                    <div class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-300 text-sm flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="exclamation-circle" class="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0" />
+                            <span>{{ $salaryError }}</span>
+                        </div>
+                        <button type="button" wire:click="$set('salaryError', null)" class="text-rose-600 hover:text-rose-800">
+                            <flux:icon name="x-mark" class="w-4 h-4" />
+                        </button>
+                    </div>
+                @endif
+
+                {{-- 1. Gaji Pokok Card --}}
+                <flux:card class="space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
                         <div>
-                            <span class="text-xs text-zinc-500">Gaji Pokok (Base Salary)</span>
-                            <p class="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">
-                                Rp {{ number_format((float)$latestSalary->basic_salary, 0, ',', '.') }}
-                            </p>
+                            <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Gaji Pokok (Base Salary)</h3>
+                            <p class="text-xs text-zinc-400 mt-0.5">Penetapan gaji pokok resmi berdasarkan surat keputusan dan kontrak kerja.</p>
+                        </div>
+                        @if($canUpdateSalary)
+                            <flux:button variant="primary" size="sm" icon="pencil-square" wire:click="openSalaryModal">
+                                Revisi Gaji Pokok
+                            </flux:button>
+                        @endif
+                    </div>
+
+                    @php $latestSalary = $employee->currentSalary ?? $employee->salaries->first(); @endphp
+                    @if($latestSalary)
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700">
+                            <div>
+                                <span class="text-xs text-zinc-500">Gaji Pokok Aktif</span>
+                                <p class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1 font-mono">
+                                    Rp {{ number_format((float)$latestSalary->basic_salary, 0, ',', '.') }}
+                                </p>
+                            </div>
+                            <div>
+                                <span class="text-xs text-zinc-500">Berlaku Efektif Sejak</span>
+                                <p class="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mt-1">
+                                    {{ $latestSalary->effective_from?->format('d F Y') ?? '-' }}
+                                </p>
+                            </div>
+                            <div>
+                                <span class="text-xs text-zinc-500">Alasan Penetapan / SK</span>
+                                <p class="text-sm text-zinc-700 dark:text-zinc-300 mt-1">
+                                    {{ $latestSalary->revision_reason ?? 'Penetapan awal kontrak' }}
+                                </p>
+                            </div>
+                        </div>
+
+                        {{-- Riwayat Perubahan Gaji jika ada > 1 --}}
+                        @if($employee->salaries->count() > 1)
+                            <div class="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+                                <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-2">Riwayat Revisi Gaji Pokok</span>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-xs text-left">
+                                        <thead class="text-zinc-400 bg-zinc-100/60 dark:bg-zinc-800/40">
+                                            <tr>
+                                                <th class="py-2 px-3">Gaji Pokok</th>
+                                                <th class="py-2 px-3">Masa Berlaku</th>
+                                                <th class="py-2 px-3">Alasan Penetapan</th>
+                                                <th class="py-2 px-3">Ditetapkan Oleh</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                                            @foreach($employee->salaries()->latest('effective_from')->get() as $sal)
+                                                <tr>
+                                                    <td class="py-2 px-3 font-mono font-medium">Rp {{ number_format((float)$sal->basic_salary, 0, ',', '.') }}</td>
+                                                    <td class="py-2 px-3">
+                                                        {{ $sal->effective_from?->format('d/m/Y') }} s/d {{ $sal->effective_to?->format('d/m/Y') ?? 'Sekarang' }}
+                                                    </td>
+                                                    <td class="py-2 px-3">{{ $sal->revision_reason }}</td>
+                                                    <td class="py-2 px-3 text-zinc-400">{{ $sal->createdBy?->name ?? 'Sistem' }}</td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
+                    @else
+                        <p class="text-sm text-zinc-400 italic">Belum ada struktur gaji aktif yang ditentukan untuk pegawai ini.</p>
+                    @endif
+                </flux:card>
+
+                {{-- 2. Komponen Gaji Karyawan Card --}}
+                <flux:card class="space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                        <div>
+                            <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Komponen Gaji Karyawan (Tunjangan & Potongan Rutin)</h3>
+                            <p class="text-xs text-zinc-400 mt-0.5">Komponen rutin yang otomatis dimasukkan dalam kalkulasi penggajian bulanan.</p>
+                        </div>
+                        @if($canUpdateSalary)
+                            <flux:button variant="primary" size="sm" icon="plus" wire:click="openComponentModal">
+                                Tambah Komponen Gaji
+                            </flux:button>
+                        @endif
+                    </div>
+
+                    @php
+                        $allowances = $assignedComponents->filter(fn($c) => $c->component?->type === 'allowance');
+                        $deductions = $assignedComponents->filter(fn($c) => $c->component?->type === 'deduction');
+                        $totalAllowances = $allowances->where('is_active', true)->sum('amount');
+                        $totalDeductions = $deductions->where('is_active', true)->sum('amount');
+                        $currentBase = (float) ($latestSalary?->basic_salary ?? 0);
+                        $estGross = $currentBase + $totalAllowances;
+                        $estTakeHome = $estGross - $totalDeductions;
+                    @endphp
+
+                    {{-- Summary Box --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 p-4 rounded-xl bg-zinc-50/80 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-700">
+                        <div>
+                            <span class="text-xs text-zinc-500">Gaji Pokok</span>
+                            <p class="text-sm font-bold font-mono text-zinc-800 dark:text-zinc-200 mt-0.5">Rp {{ number_format($currentBase, 0, ',', '.') }}</p>
                         </div>
                         <div>
-                            <span class="text-xs text-zinc-500">Berlaku Efektif Sejak</span>
-                            <p class="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mt-1">
-                                {{ $latestSalary->effective_from?->format('d F Y') ?? '-' }}
-                            </p>
+                            <span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">+ Total Tunjangan Rutin</span>
+                            <p class="text-sm font-bold font-mono text-emerald-700 dark:text-emerald-300 mt-0.5">Rp {{ number_format($totalAllowances, 0, ',', '.') }}</p>
                         </div>
                         <div>
-                            <span class="text-xs text-zinc-500">Alasan Penetapan / Revisi</span>
-                            <p class="text-sm text-zinc-700 dark:text-zinc-300 mt-1">
-                                {{ $latestSalary->revision_reason ?? 'Penetapan awal kontrak' }}
-                            </p>
+                            <span class="text-xs text-rose-600 dark:text-rose-400 font-medium">- Total Potongan Rutin</span>
+                            <p class="text-sm font-bold font-mono text-rose-700 dark:text-rose-300 mt-0.5">Rp {{ number_format($totalDeductions, 0, ',', '.') }}</p>
+                        </div>
+                        <div>
+                            <span class="text-xs text-zinc-500 font-medium">Estimasi Penghasilan Kotor</span>
+                            <p class="text-sm font-bold font-mono text-zinc-900 dark:text-zinc-100 mt-0.5">Rp {{ number_format($estGross, 0, ',', '.') }}</p>
                         </div>
                     </div>
-                @else
-                    <p class="text-sm text-zinc-400 italic">Belum ada struktur gaji aktif yang ditentukan untuk pegawai ini.</p>
-                @endif
-            </flux:card>
+
+                    {{-- Section A: Tunjangan (Allowances) --}}
+                    <div class="space-y-2 mt-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+                                1. Daftar Tunjangan Rutin (Allowances)
+                            </span>
+                            <span class="text-xs text-zinc-400">Total: Rp {{ number_format($totalAllowances, 0, ',', '.') }}</span>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
+                            <table class="w-full text-xs text-left">
+                                <thead class="bg-zinc-50 dark:bg-zinc-800/60 text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-700">
+                                    <tr>
+                                        <th class="py-2.5 px-3">Komponen</th>
+                                        <th class="py-2.5 px-3">Nominal / Bulan</th>
+                                        <th class="py-2.5 px-3">Masa Berlaku</th>
+                                        <th class="py-2.5 px-3">Keterangan</th>
+                                        <th class="py-2.5 px-3">Status</th>
+                                        @if($canUpdateSalary)
+                                            <th class="py-2.5 px-3 text-right">Aksi</th>
+                                        @endif
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                                    @forelse($allowances as $item)
+                                        <tr class="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30">
+                                            <td class="py-2.5 px-3 font-semibold text-zinc-900 dark:text-zinc-100">
+                                                {{ $item->component?->name ?? 'Komponen' }}
+                                                <span class="block text-[11px] font-mono text-zinc-400">{{ $item->component?->code }}</span>
+                                            </td>
+                                            <td class="py-2.5 px-3 font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                                                Rp {{ number_format((float)$item->amount, 0, ',', '.') }}
+                                            </td>
+                                            <td class="py-2.5 px-3 text-zinc-600 dark:text-zinc-300">
+                                                {{ $item->effective_from?->format('d/m/Y') }}
+                                                @if($item->effective_to)
+                                                    s/d {{ $item->effective_to->format('d/m/Y') }}
+                                                @else
+                                                    <span class="text-zinc-400">(Seterusnya)</span>
+                                                @endif
+                                            </td>
+                                            <td class="py-2.5 px-3 text-zinc-500">{{ $item->notes ?: '-' }}</td>
+                                            <td class="py-2.5 px-3">
+                                                @if($item->is_active)
+                                                    <flux:badge size="xs" color="emerald">Aktif</flux:badge>
+                                                @else
+                                                    <flux:badge size="xs" color="zinc">Nonaktif</flux:badge>
+                                                @endif
+                                            </td>
+                                            @if($canUpdateSalary)
+                                                <td class="py-2.5 px-3 text-right space-x-1">
+                                                    <flux:button variant="ghost" size="xs" icon="pencil" wire:click="openComponentModal({{ $item->id }})">
+                                                        Edit
+                                                    </flux:button>
+                                                    <flux:button variant="danger" size="xs" icon="trash" wire:confirm="Hapus komponen ini dari pegawai?" wire:click="deleteComponent({{ $item->id }})">
+                                                        Hapus
+                                                    </flux:button>
+                                                </td>
+                                            @endif
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="{{ $canUpdateSalary ? 6 : 5 }}" class="py-4 text-center text-zinc-400 italic">
+                                                Belum ada tunjangan rutin yang ditetapkan untuk pegawai ini.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {{-- Section B: Potongan (Deductions) --}}
+                    <div class="space-y-2 mt-6">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-rose-700 dark:text-rose-400">
+                                2. Daftar Potongan Rutin (Deductions)
+                            </span>
+                            <span class="text-xs text-zinc-400">Total: Rp {{ number_format($totalDeductions, 0, ',', '.') }}</span>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
+                            <table class="w-full text-xs text-left">
+                                <thead class="bg-zinc-50 dark:bg-zinc-800/60 text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-700">
+                                    <tr>
+                                        <th class="py-2.5 px-3">Komponen Potongan</th>
+                                        <th class="py-2.5 px-3">Nominal / Bulan</th>
+                                        <th class="py-2.5 px-3">Masa Berlaku</th>
+                                        <th class="py-2.5 px-3">Keterangan</th>
+                                        <th class="py-2.5 px-3">Status</th>
+                                        @if($canUpdateSalary)
+                                            <th class="py-2.5 px-3 text-right">Aksi</th>
+                                        @endif
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                                    @forelse($deductions as $item)
+                                        <tr class="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30">
+                                            <td class="py-2.5 px-3 font-semibold text-zinc-900 dark:text-zinc-100">
+                                                {{ $item->component?->name ?? 'Potongan' }}
+                                                <span class="block text-[11px] font-mono text-zinc-400">{{ $item->component?->code }}</span>
+                                            </td>
+                                            <td class="py-2.5 px-3 font-mono font-bold text-rose-700 dark:text-rose-400">
+                                                -Rp {{ number_format((float)$item->amount, 0, ',', '.') }}
+                                            </td>
+                                            <td class="py-2.5 px-3 text-zinc-600 dark:text-zinc-300">
+                                                {{ $item->effective_from?->format('d/m/Y') }}
+                                                @if($item->effective_to)
+                                                    s/d {{ $item->effective_to->format('d/m/Y') }}
+                                                @else
+                                                    <span class="text-zinc-400">(Seterusnya)</span>
+                                                @endif
+                                            </td>
+                                            <td class="py-2.5 px-3 text-zinc-500">{{ $item->notes ?: '-' }}</td>
+                                            <td class="py-2.5 px-3">
+                                                @if($item->is_active)
+                                                    <flux:badge size="xs" color="emerald">Aktif</flux:badge>
+                                                @else
+                                                    <flux:badge size="xs" color="zinc">Nonaktif</flux:badge>
+                                                @endif
+                                            </td>
+                                            @if($canUpdateSalary)
+                                                <td class="py-2.5 px-3 text-right space-x-1">
+                                                    <flux:button variant="ghost" size="xs" icon="pencil" wire:click="openComponentModal({{ $item->id }})">
+                                                        Edit
+                                                    </flux:button>
+                                                    <flux:button variant="danger" size="xs" icon="trash" wire:confirm="Hapus potongan ini dari pegawai?" wire:click="deleteComponent({{ $item->id }})">
+                                                        Hapus
+                                                    </flux:button>
+                                                </td>
+                                            @endif
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="{{ $canUpdateSalary ? 6 : 5 }}" class="py-4 text-center text-zinc-400 italic">
+                                                Belum ada potongan rutin yang ditetapkan untuk pegawai ini.
+                                            </td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </flux:card>
+            </div>
         @else
             <div class="p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-center space-y-2">
                 <flux:icon name="lock-closed" class="w-8 h-8 text-zinc-400 mx-auto" />
@@ -553,4 +811,114 @@
             </div>
         </div>
     @endif
+
+    {{-- Modal 1: Revisi Gaji Pokok --}}
+    <flux:modal wire:model="showSalaryModal" class="md:w-md space-y-4">
+        <div>
+            <flux:heading size="lg">Revisi Gaji Pokok Pegawai</flux:heading>
+            <flux:subheading>Tetapkan perubahan nominal gaji pokok dengan tanggal efektif baru.</flux:subheading>
+        </div>
+
+        <form wire:submit.prevent="saveSalary" class="space-y-4">
+            <flux:input 
+                label="Nominal Gaji Pokok Baru (Rp)" 
+                type="number" 
+                step="0.01" 
+                min="0" 
+                wire:model="basicSalary" 
+                placeholder="misal: 7500000" 
+                required 
+            />
+
+            <flux:input 
+                label="Berlaku Efektif Mulai Tanggal" 
+                type="date" 
+                wire:model="salaryEffectiveFrom" 
+                required 
+            />
+
+            <flux:textarea 
+                label="Alasan Penetapan / Nomor SK" 
+                wire:model="revisionReason" 
+                placeholder="misal: Kenaikan berkala tahunan / SK Direksi No. 045/SK/2026" 
+                rows="2" 
+                required 
+            />
+
+            <div class="flex justify-end gap-2 pt-2">
+                <flux:button variant="ghost" wire:click="$set('showSalaryModal', false)">Batal</flux:button>
+                <flux:button type="submit" variant="primary">Simpan Revisi</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    {{-- Modal 2: Kelola Komponen Gaji (Tunjangan / Potongan) --}}
+    <flux:modal wire:model="showComponentModal" class="md:w-lg space-y-4">
+        <div>
+            <flux:heading size="lg">
+                {{ $editingComponentAssignmentId ? 'Edit Komponen Gaji Pegawai' : 'Tetapkan Komponen Gaji Pegawai' }}
+            </flux:heading>
+            <flux:subheading>
+                Pilih komponen dari master data (tunjangan atau potongan) untuk diterapkan ke pegawai ini.
+            </flux:subheading>
+        </div>
+
+        <form wire:submit.prevent="saveComponent" class="space-y-4">
+            <flux:select label="Pilih Komponen Gaji" wire:model.live="selectedComponentId" placeholder="-- Pilih Komponen --" required>
+                <option value="">-- Pilih Komponen --</option>
+                <optgroup label="Tunjangan (Allowances)">
+                    @foreach($availableComponents->where('type', 'allowance') as $ac)
+                        <option value="{{ $ac->id }}">[{{ $ac->code }}] {{ $ac->name }} (Default: Rp {{ number_format((float)$ac->default_amount, 0, ',', '.') }})</option>
+                    @endforeach
+                </optgroup>
+                <optgroup label="Potongan (Deductions)">
+                    @foreach($availableComponents->where('type', 'deduction') as $ac)
+                        <option value="{{ $ac->id }}">[{{ $ac->code }}] {{ $ac->name }} (Default: Rp {{ number_format((float)$ac->default_amount, 0, ',', '.') }})</option>
+                    @endforeach
+                </optgroup>
+            </flux:select>
+
+            <flux:input 
+                label="Nominal Komponen Bulanan (Rp)" 
+                type="number" 
+                step="0.01" 
+                min="0" 
+                wire:model="componentAmount" 
+                placeholder="misal: 500000" 
+                required 
+            />
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <flux:input 
+                    label="Berlaku Mulai Tanggal" 
+                    type="date" 
+                    wire:model="componentEffectiveFrom" 
+                    required 
+                />
+                <flux:input 
+                    label="Berlaku Sampai Tanggal (Opsional)" 
+                    type="date" 
+                    wire:model="componentEffectiveTo" 
+                    placeholder="Kosongkan jika seterusnya" 
+                />
+            </div>
+
+            <flux:input 
+                label="Keterangan / Catatan Tambahan" 
+                wire:model="componentNotes" 
+                placeholder="misal: Sesuai penugasan unit IGD" 
+            />
+
+            <flux:checkbox 
+                label="Status Komponen Aktif" 
+                wire:model="componentIsActive" 
+                description="Hanya komponen berstatus aktif yang akan dihitung pada saat payroll run." 
+            />
+
+            <div class="flex justify-end gap-2 pt-2">
+                <flux:button variant="ghost" wire:click="$set('showComponentModal', false)">Batal</flux:button>
+                <flux:button type="submit" variant="primary">Simpan Komponen</flux:button>
+            </div>
+        </form>
+    </flux:modal>
 </div>

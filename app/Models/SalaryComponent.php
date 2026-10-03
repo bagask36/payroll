@@ -35,4 +35,14 @@ class SalaryComponent extends Model
             'is_active' => 'boolean',
         ];
     }
+
+    /**
+     * Assigned employee instances.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<EmployeeSalaryComponent, $this>
+     */
+    public function employeeAssignments(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(EmployeeSalaryComponent::class, 'salary_component_id');
+    }
 }

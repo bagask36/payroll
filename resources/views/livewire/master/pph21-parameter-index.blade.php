@@ -59,48 +59,9 @@
                 <span class="font-semibold">Informasi PTKP:</span> Nilai PTKP (Penghasilan Tidak Kena Pajak) digunakan sebagai pengurang penghasilan neto tahunan pegawai untuk mendapatkan Penghasilan Kena Pajak (PKP).
             </div>
 
-            <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
-                <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
-                    <thead class="bg-zinc-50 dark:bg-zinc-800/50">
-                        <tr>
-                            <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Kode Status</th>
-                            <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Deskripsi Status Pernikahan</th>
-                            <th scope="col" class="px-5 py-3.5 text-right text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Nilai PTKP Tahunan</th>
-                            <th scope="col" class="px-5 py-3.5 text-right text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">PTKP Bulanan (Acuan)</th>
-                            <th scope="col" class="px-5 py-3.5 text-center text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Status</th>
-                            <th scope="col" class="px-5 py-3.5 text-right text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
-                        @foreach ($ptkpList as $item)
-                            <tr class="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30 transition-colors">
-                                <td class="px-5 py-4 whitespace-nowrap text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                                    {{ $item->code }}
-                                </td>
-                                <td class="px-5 py-4 text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                    {{ $item->name }}
-                                </td>
-                                <td class="px-5 py-4 whitespace-nowrap text-right text-sm font-mono font-semibold text-zinc-900 dark:text-zinc-100">
-                                    Rp {{ number_format((float) $item->amount, 0, ',', '.') }}
-                                </td>
-                                <td class="px-5 py-4 whitespace-nowrap text-right text-xs font-mono text-zinc-500">
-                                    Rp {{ number_format((float) $item->amount / 12, 0, ',', '.') }}
-                                </td>
-                                <td class="px-5 py-4 whitespace-nowrap text-center">
-                                    <flux:badge size="sm" color="{{ $item->is_active ? 'emerald' : 'zinc' }}">
-                                        {{ $item->is_active ? 'Aktif' : 'Nonaktif' }}
-                                    </flux:badge>
-                                </td>
-                                <td class="px-5 py-4 whitespace-nowrap text-right text-xs">
-                                    <flux:button wire:click="edit({{ $item->id }})" size="xs" variant="subtle" icon="pencil-square">
-                                        Edit
-                                    </flux:button>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+            <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+                <livewire:tables.pph21-ptkp-table />
+            </flux:card>
         </div>
     @endif
 
@@ -111,51 +72,9 @@
                 <span class="font-semibold">Tarif Pajak Progresif:</span> Berdasarkan UU No. 7 Tahun 2021 tentang Harmonisasi Peraturan Perpajakan (HPP). Tarif dikenakan secara berlapis terhadap Penghasilan Kena Pajak (PKP) tahunan.
             </div>
 
-            <div class="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-xs">
-                <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800">
-                    <thead class="bg-zinc-50 dark:bg-zinc-800/50">
-                        <tr>
-                            <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Lapisan</th>
-                            <th scope="col" class="px-5 py-3.5 text-left text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Rentang Penghasilan Kena Pajak (PKP)</th>
-                            <th scope="col" class="px-5 py-3.5 text-center text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Tarif Pajak</th>
-                            <th scope="col" class="px-5 py-3.5 text-center text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Status</th>
-                            <th scope="col" class="px-5 py-3.5 text-right text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
-                        @foreach ($tarifPasal17List as $lap)
-                            <tr class="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/30 transition-colors">
-                                <td class="px-5 py-4 whitespace-nowrap text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400">
-                                    {{ $lap->code }}
-                                </td>
-                                <td class="px-5 py-4 text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                    {{ $lap->name }}
-                                    <div class="text-xs font-mono text-zinc-500 mt-0.5">
-                                        Rp {{ number_format((float) $lap->threshold_min, 0, ',', '.') }} 
-                                        s/d 
-                                        {{ $lap->threshold_max ? 'Rp ' . number_format((float) $lap->threshold_max, 0, ',', '.') : 'Tak Terhingga' }}
-                                    </div>
-                                </td>
-                                <td class="px-5 py-4 whitespace-nowrap text-center">
-                                    <flux:badge size="md" color="emerald" class="font-bold font-mono">
-                                        {{ number_format((float) $lap->rate * 100, 1) }}%
-                                    </flux:badge>
-                                </td>
-                                <td class="px-5 py-4 whitespace-nowrap text-center">
-                                    <flux:badge size="sm" color="{{ $lap->is_active ? 'emerald' : 'zinc' }}">
-                                        {{ $lap->is_active ? 'Aktif' : 'Nonaktif' }}
-                                    </flux:badge>
-                                </td>
-                                <td class="px-5 py-4 whitespace-nowrap text-right text-xs">
-                                    <flux:button wire:click="edit({{ $lap->id }})" size="xs" variant="subtle" icon="pencil-square">
-                                        Edit
-                                    </flux:button>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+            <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+                <livewire:tables.pph21-tarif-table />
+            </flux:card>
         </div>
     @endif
 

@@ -54,8 +54,35 @@ class PayrollCalculationService
             // Allowances & Deductions
             $allowances = 0.0;
             $deductions = 0.0;
+            $componentBreakdowns = [];
 
-            // Simple gross pay
+            // Fetch employee's active assigned components
+            $activeComponents = $employee->activeSalaryComponents()->with('component')->get();
+            foreach ($activeComponents as $assignedComp) {
+                $compModel = $assignedComp->component;
+                if (! $compModel || ! $compModel->is_active) {
+                    continue;
+                }
+
+                $amt = (float) $assignedComp->amount;
+                if ($compModel->type === 'allowance' || $compModel->type === 'earning') {
+                    $allowances += $amt;
+                    $componentBreakdowns[] = [
+                        'name' => $compModel->name,
+                        'type' => 'allowance',
+                        'amount' => $amt,
+                    ];
+                } elseif ($compModel->type === 'deduction') {
+                    $deductions += $amt;
+                    $componentBreakdowns[] = [
+                        'name' => $compModel->name,
+                        'type' => 'deduction',
+                        'amount' => $amt,
+                    ];
+                }
+            }
+
+            // Gross pay
             $gross = $basicSalary + $allowances;
             $totalEmpDeductions = $deductions + $kesEmployee + $tkEmployee;
             $netSalary = max(0.0, $gross - $totalEmpDeductions);
@@ -76,6 +103,10 @@ class PayrollCalculationService
                 'bank_name' => $bank?->bank_name,
                 'bank_account_number' => $bank?->account_number,
             ]);
+
+            foreach ($componentBreakdowns as $breakdown) {
+                $item->components()->create($breakdown);
+            }
 
             $totalGross += $gross;
             $totalDeductions += $totalEmpDeductions;
