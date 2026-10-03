@@ -85,8 +85,8 @@ class EmployeeShow extends Component
 
         // 2. Extract feature vector
         $embeddingResult = $faceAiService->extractEmbedding($imageContent);
-        if (! $embeddingResult->isSuccessful) {
-            $this->enrollErrorMessage = 'Ekstraksi fitur biometrik gagal: '.$embeddingResult->errorMessage;
+        if (! $embeddingResult->success) {
+            $this->enrollErrorMessage = 'Ekstraksi fitur biometrik gagal: '.$embeddingResult->message;
 
             return;
         }

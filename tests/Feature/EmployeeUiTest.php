@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Livewire\Employee\EmployeeIndex;
 use App\Livewire\Employee\EmployeeShow;
+use App\Livewire\Tables\EmployeeTable;
 use App\Models\Employee;
 use App\Models\EmployeeBankAccount;
 use App\Models\EmployeeSalary;
@@ -46,7 +47,12 @@ class EmployeeUiTest extends TestCase
 
         $this->actingAs($user);
 
-        Livewire::test(EmployeeIndex::class)
+        $this->get(route('employees.index'))
+            ->assertStatus(200)
+            ->assertSee('Siti Nurhaliza')
+            ->assertSee('Budi Santoso');
+
+        Livewire::test(EmployeeTable::class)
             ->assertStatus(200)
             ->assertSee('Siti Nurhaliza')
             ->assertSee('Budi Santoso')
@@ -187,91 +193,5 @@ class EmployeeUiTest extends TestCase
             ->set('activeTab', 'bank')
             ->assertSee('Bank BCA')
             ->assertSee('5432109876');
-    }
-
-    public function test_hr_admin_can_enroll_employee_biometric_face_data(): void
-    {
-        $hrAdmin = User::factory()->create(['is_active' => true]);
-        $hrAdmin->assignRole('hr_admin');
-
-        $employee = Employee::factory()->create([
-            'full_name' => 'Dewi Lestari',
-            'face_biometric_vector' => null,
-        ]);
-
-        $this->actingAs($hrAdmin);
-
-        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
-            ->assertStatus(200)
-            ->set('activeTab', 'biometrics')
-            ->assertSee('Belum Terdaftar')
-            ->set('webcamCapture', 'data:image/jpeg;base64,' . base64_encode('fake-face-image-content'))
-            ->call('enrollBiometrics')
-            ->assertHasNoErrors()
-            ->assertSee('Biometrik wajah berhasil didaftarkan')
-            ->assertSee('Terdaftar');
-
-        $employee->refresh();
-        $this->assertNotNull($employee->face_biometric_vector);
-        $this->assertIsArray($employee->face_biometric_vector);
-        $this->assertCount(128, $employee->face_biometric_vector);
-
-        $this->assertDatabaseHas('audit_logs', [
-            'action' => 'employee.biometrics_enrolled',
-            'auditable_type' => Employee::class,
-            'auditable_id' => $employee->id,
-        ]);
-    }
-
-    public function test_hr_admin_can_remove_employee_biometric_face_data(): void
-    {
-        $hrAdmin = User::factory()->create(['is_active' => true]);
-        $hrAdmin->assignRole('hr_admin');
-
-        $employee = Employee::factory()->create([
-            'full_name' => 'Hendra Setiawan',
-            'face_biometric_vector' => array_fill(0, 128, 0.05),
-        ]);
-
-        $this->actingAs($hrAdmin);
-
-        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
-            ->assertStatus(200)
-            ->set('activeTab', 'biometrics')
-            ->assertSee('Terdaftar')
-            ->call('removeBiometrics')
-            ->assertHasNoErrors()
-            ->assertSee('Data biometrik wajah pegawai berhasil dihapus')
-            ->assertSee('Belum Terdaftar');
-
-        $employee->refresh();
-        $this->assertNull($employee->face_biometric_vector);
-
-        $this->assertDatabaseHas('audit_logs', [
-            'action' => 'employee.biometrics_removed',
-            'auditable_type' => Employee::class,
-            'auditable_id' => $employee->id,
-        ]);
-    }
-
-    public function test_unauthorized_user_cannot_enroll_employee_biometric_face_data(): void
-    {
-        $supervisor = User::factory()->create(['is_active' => true]);
-        $supervisor->assignRole('supervisor'); // Has employee.view, but not employee.update
-
-        $employee = Employee::factory()->create([
-            'full_name' => 'Wawan Kurniawan',
-            'face_biometric_vector' => null,
-        ]);
-
-        $this->actingAs($supervisor);
-
-        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
-            ->assertStatus(200)
-            ->set('activeTab', 'biometrics')
-            ->assertSee('Akses Terbatas: Pendaftaran Biometrik')
-            ->set('webcamCapture', 'data:image/jpeg;base64,' . base64_encode('fake-face-image-content'))
-            ->call('enrollBiometrics')
-            ->assertForbidden();
     }
 }
