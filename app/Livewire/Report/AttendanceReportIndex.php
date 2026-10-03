@@ -56,7 +56,7 @@ class AttendanceReportIndex extends Component
 
     public function exportCsv()
     {
-        $query = Attendance::with(['employee.employment.unit'])
+        $query = Attendance::with(['employee.unit'])
             ->whereDate('work_date', '>=', $this->startDate)
             ->whereDate('work_date', '<=', $this->endDate);
 
@@ -65,7 +65,7 @@ class AttendanceReportIndex extends Component
         }
 
         if ($this->unitFilter) {
-            $query->whereHas('employee.employment', function ($q) {
+            $query->whereHas('employee', function ($q) {
                 $q->where('unit_id', $this->unitFilter);
             });
         }
@@ -86,7 +86,7 @@ class AttendanceReportIndex extends Component
                     $att->work_date->format('d/m/Y'),
                     $att->employee->nip ?? '-',
                     $att->employee->name ?? '-',
-                    $att->employee->employment?->unit?->name ?? '-',
+                    $att->employee->unit?->name ?? '-',
                     $att->clock_in_time ? Carbon::parse($att->clock_in_time)->format('H:i') : '-',
                     $att->clock_out_time ? Carbon::parse($att->clock_out_time)->format('H:i') : '-',
                     $att->status,
@@ -102,7 +102,7 @@ class AttendanceReportIndex extends Component
 
     public function render()
     {
-        $query = Attendance::with(['employee.employment.unit'])
+        $query = Attendance::with(['employee.unit'])
             ->whereDate('work_date', '>=', $this->startDate)
             ->whereDate('work_date', '<=', $this->endDate);
 
@@ -111,7 +111,7 @@ class AttendanceReportIndex extends Component
         }
 
         if ($this->unitFilter) {
-            $query->whereHas('employee.employment', function ($q) {
+            $query->whereHas('employee', function ($q) {
                 $q->where('unit_id', $this->unitFilter);
             });
         }

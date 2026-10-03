@@ -88,7 +88,7 @@
                         </td>
                         <td class="px-5 py-3.5">
                             <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $att->employee->name ?? '-' }}</div>
-                            <div class="text-xs text-zinc-500 font-mono">{{ $att->employee->nip ?? '-' }} &bull; {{ $att->employee->employment?->unit?->name ?? '-' }}</div>
+                            <div class="text-xs text-zinc-500 font-mono">{{ $att->employee->nip ?? '-' }} &bull; {{ $att->employee->unit?->name ?? '-' }}</div>
                         </td>
                         <td class="px-5 py-3.5 text-center whitespace-nowrap text-xs font-mono text-zinc-800 dark:text-zinc-200">
                             {{ $att->clock_in_time ? \Carbon\Carbon::parse($att->clock_in_time)->format('H:i') : '--:--' }}

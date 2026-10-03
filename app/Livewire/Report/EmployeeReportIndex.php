@@ -53,7 +53,7 @@ class EmployeeReportIndex extends Component
 
     public function exportCsv()
     {
-        $query = Employee::with(['employment.unit', 'employment.position']);
+        $query = Employee::with(['unit', 'position', 'currentEmployment']);
 
         if ($this->statusFilter === 'active') {
             $query->where('status', 'active');
@@ -62,15 +62,13 @@ class EmployeeReportIndex extends Component
         }
 
         if ($this->contractTypeFilter !== 'all') {
-            $query->whereHas('employment', function ($q) {
+            $query->whereHas('currentEmployment', function ($q) {
                 $q->where('contract_type', $this->contractTypeFilter);
             });
         }
 
         if ($this->unitFilter) {
-            $query->whereHas('employment', function ($q) {
-                $q->where('unit_id', $this->unitFilter);
-            });
+            $query->where('unit_id', $this->unitFilter);
         }
 
         $employees = $query->orderBy('name')->get();
@@ -88,11 +86,11 @@ class EmployeeReportIndex extends Component
                 fputcsv($file, [
                     $emp->nip,
                     $emp->name,
-                    $emp->employment?->unit?->name ?? '-',
-                    $emp->employment?->position?->title ?? '-',
+                    $emp->unit?->name ?? '-',
+                    $emp->position?->title ?? '-',
                     $emp->status,
-                    $emp->employment?->contract_type ?? '-',
-                    $emp->employment?->join_date?->format('d/m/Y') ?? '-',
+                    $emp->currentEmployment?->contract_type ?? '-',
+                    $emp->currentEmployment?->join_date?->format('d/m/Y') ?? '-',
                 ]);
             }
             fclose($file);
@@ -103,7 +101,7 @@ class EmployeeReportIndex extends Component
 
     public function render()
     {
-        $query = Employee::with(['employment.unit', 'employment.position']);
+        $query = Employee::with(['unit', 'position', 'currentEmployment']);
 
         if (! empty($this->search)) {
             $query->where(function ($q) {
@@ -119,23 +117,21 @@ class EmployeeReportIndex extends Component
         }
 
         if ($this->contractTypeFilter !== 'all') {
-            $query->whereHas('employment', function ($q) {
+            $query->whereHas('currentEmployment', function ($q) {
                 $q->where('contract_type', $this->contractTypeFilter);
             });
         }
 
         if ($this->unitFilter) {
-            $query->whereHas('employment', function ($q) {
-                $q->where('unit_id', $this->unitFilter);
-            });
+            $query->where('unit_id', $this->unitFilter);
         }
 
         $employees = $query->orderBy('name')->paginate(15);
         $units = Unit::orderBy('name')->get();
 
         $totalActive = Employee::where('status', 'active')->count();
-        $totalPermanent = Employee::whereHas('employment', fn ($q) => $q->where('contract_type', 'permanent'))->count();
-        $totalContract = Employee::whereHas('employment', fn ($q) => $q->where('contract_type', 'contract'))->count();
+        $totalPermanent = Employee::whereHas('currentEmployment', fn ($q) => $q->where('contract_type', 'permanent'))->count();
+        $totalContract = Employee::whereHas('currentEmployment', fn ($q) => $q->where('contract_type', 'contract'))->count();
 
         return view('livewire.report.employee-report-index', [
             'employees' => $employees,

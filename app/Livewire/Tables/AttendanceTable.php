@@ -143,7 +143,7 @@ final class AttendanceTable extends PowerGridComponent
         if (Auth::user()?->can('attendance.adjust_request')) {
             $actions[] = Button::add('requestAdjustment')
                 ->slot('Koreksi')
-                ->class('px-2.5 py-1 text-xs font-medium rounded-md bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-200 transition-colors cursor-pointer')
+                ->class('inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 shadow-2xs transition-colors cursor-pointer')
                 ->dispatch('open-adjustment-modal', ['attendanceId' => $row->id]);
         }
 

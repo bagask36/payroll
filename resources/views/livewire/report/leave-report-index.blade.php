@@ -89,7 +89,7 @@
                         </td>
                         <td class="px-5 py-3.5">
                             <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{{ $req->employee->name ?? '-' }}</div>
-                            <div class="text-xs text-zinc-500">{{ $req->employee->employment?->unit?->name ?? '-' }}</div>
+                            <div class="text-xs text-zinc-500">{{ $req->employee->unit?->name ?? '-' }}</div>
                         </td>
                         <td class="px-5 py-3.5 text-xs text-zinc-800 dark:text-zinc-200">
                             {{ $req->leaveType->name ?? '-' }}

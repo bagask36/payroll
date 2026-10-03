@@ -61,7 +61,23 @@ Route::middleware('auth')->group(function () {
     Route::get('/master/leave-types', \App\Livewire\Master\LeaveTypeIndex::class)->name('master.leave-types');
     Route::get('/master/geofences', \App\Livewire\Master\GeofenceIndex::class)->name('master.geofences');
     Route::get('/master/payroll-periods', \App\Livewire\Master\PayrollPeriodIndex::class)->name('master.payroll-periods');
+    Route::get('/master/earnings', \App\Livewire\Master\EarningComponentIndex::class)->name('master.earnings');
+    Route::get('/master/deductions', \App\Livewire\Master\DeductionComponentIndex::class)->name('master.deductions');
     Route::get('/master/bpjs', \App\Livewire\Master\BpjsIndex::class)->name('master.bpjs');
+    Route::get('/master/pph21', \App\Livewire\Master\Pph21ParameterIndex::class)->name('master.pph21');
+
+    // Organization Structure
+    Route::get('/org/structure', \App\Livewire\Organization\OrgStructureIndex::class)->name('org.structure');
+
+    // Executive & Operational Reports
+    Route::get('/reports/employees', \App\Livewire\Report\EmployeeReportIndex::class)->name('reports.employees');
+    Route::get('/reports/attendance', \App\Livewire\Report\AttendanceReportIndex::class)->name('reports.attendance');
+    Route::get('/reports/leaves', \App\Livewire\Report\LeaveReportIndex::class)->name('reports.leaves');
+    Route::get('/reports/payroll', \App\Livewire\Report\PayrollReportIndex::class)->name('reports.payroll');
+    Route::get('/reports/doctors', \App\Livewire\Report\DoctorReportIndex::class)->name('reports.doctors');
+
+    // System Settings & Hospital Config
+    Route::get('/system/settings', \App\Livewire\System\SystemSettingIndex::class)->name('system.settings');
 
     // Attendance & Geofencing Routes
     Route::get('/attendance', AttendanceIndex::class)->name('attendance.index');

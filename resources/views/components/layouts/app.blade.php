@@ -36,7 +36,50 @@
                     Dashboard
                 </flux:sidebar.item>
 
-                <flux:sidebar.group heading="Kepegawaian & Medis" class="mt-4">
+                {{-- 1. DATA MASTER --}}
+                @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasPermission('system.config_view'))
+                    <flux:sidebar.group 
+                        expandable 
+                        :expanded="request()->routeIs('master.*')" 
+                        heading="DATA MASTER" 
+                        icon="circle-stack"
+                        class="mt-3"
+                    >
+                        <flux:sidebar.item icon="building-office-2" href="{{ route('master.units') }}" :current="request()->routeIs('master.units')">
+                            Unit Kerja
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="briefcase" href="{{ route('master.positions') }}" :current="request()->routeIs('master.positions')">
+                            Standar Jabatan
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="clock" href="{{ route('master.shifts') }}" :current="request()->routeIs('master.shifts')">
+                            Shift Kerja
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="calendar-days" href="{{ route('master.leave-types') }}" :current="request()->routeIs('master.leave-types')">
+                            Jenis Cuti
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="map-pin" href="{{ route('master.geofences') }}" :current="request()->routeIs('master.geofences')">
+                            Titik Geofence
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="calendar" href="{{ route('master.payroll-periods') }}" :current="request()->routeIs('master.payroll-periods')">
+                            Periode Payroll
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="currency-dollar" href="{{ route('master.earnings') }}" :current="request()->routeIs('master.earnings')">
+                            Komponen Penghasilan
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="receipt-refund" href="{{ route('master.deductions') }}" :current="request()->routeIs('master.deductions')">
+                            Komponen Potongan
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="scale" href="{{ route('master.bpjs') }}" :current="request()->routeIs('master.bpjs')">
+                            Regulasi BPJS
+                        </flux:sidebar.item>
+                        <flux:sidebar.item icon="calculator" href="{{ route('master.pph21') }}" :current="request()->routeIs('master.pph21')">
+                            Parameter PPh 21
+                        </flux:sidebar.item>
+                    </flux:sidebar.group>
+                @endif
+
+                {{-- 2. KEPEGAWAIAN & MEDIS --}}
+                <flux:sidebar.group heading="KEPEGAWAIAN & MEDIS" class="mt-3">
                     @if(auth()->user()?->can('employee.view'))
                         <flux:sidebar.item icon="users" href="{{ route('employees.index') }}" :current="request()->routeIs('employees.*')">
                             Pegawai & Staf
@@ -50,13 +93,14 @@
                     @endif
 
                     @can('org.view')
-                        <flux:sidebar.item icon="building-office" href="{{ route('dashboard') }}">
+                        <flux:sidebar.item icon="building-office" href="{{ route('org.structure') }}" :current="request()->routeIs('org.*')">
                             Struktur Organisasi
                         </flux:sidebar.item>
                     @endcan
                 </flux:sidebar.group>
 
-                <flux:sidebar.group heading="Waktu & Operasional" class="mt-4">
+                {{-- 3. WAKTU & OPERASIONAL --}}
+                <flux:sidebar.group heading="WAKTU & OPERASIONAL" class="mt-3">
                     @can('schedule.view')
                         <flux:sidebar.item icon="calendar" href="{{ route('schedules.index') }}" :current="request()->routeIs('schedules.*')">
                             Jadwal & Shift Roster
@@ -76,7 +120,8 @@
                     @endif
                 </flux:sidebar.group>
 
-                <flux:sidebar.group heading="Keuangan & Dokumen" class="mt-4">
+                {{-- 4. KEUANGAN & DOKUMEN --}}
+                <flux:sidebar.group heading="KEUANGAN & DOKUMEN" class="mt-3">
                     @can('payroll.view_all')
                         <flux:sidebar.item icon="banknotes" href="{{ route('payroll.index') }}" :current="request()->routeIs('payroll.index')">
                             Penggajian (Payroll)
@@ -91,45 +136,64 @@
 
                     @if(auth()->user()?->can('document.view_own') || auth()->user()?->can('document.view_all'))
                         <flux:sidebar.item icon="folder" href="{{ route('documents.index') }}" :current="request()->routeIs('documents.*')">
-                            Arsip Dokumen Kepatuhan
+                            Arsip Dokumen
                         </flux:sidebar.item>
                     @endif
+                </flux:sidebar.group>
 
+                {{-- 5. LAPORAN --}}
+                @if(auth()->user()?->can('employee.view') || auth()->user()?->can('payroll.view_all'))
+                    <flux:sidebar.group 
+                        expandable 
+                        :expanded="request()->routeIs('reports.*')" 
+                        heading="Laporan" 
+                        icon="chart-bar"
+                        class="mt-3"
+                    >
+                        @can('employee.view')
+                            <flux:sidebar.item icon="users" href="{{ route('reports.employees') }}" :current="request()->routeIs('reports.employees')">
+                                Laporan Kepegawaian
+                            </flux:sidebar.item>
+                        @endcan
+
+                        @if(auth()->user()?->can('attendance.view_all') || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin'))
+                            <flux:sidebar.item icon="clock" href="{{ route('reports.attendance') }}" :current="request()->routeIs('reports.attendance')">
+                                Laporan Kehadiran
+                            </flux:sidebar.item>
+                        @endif
+
+                        @if(auth()->user()?->can('leave.view_all') || auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin'))
+                            <flux:sidebar.item icon="calendar-days" href="{{ route('reports.leaves') }}" :current="request()->routeIs('reports.leaves')">
+                                Laporan Cuti & Izin
+                            </flux:sidebar.item>
+                        @endif
+
+                        @can('payroll.view_all')
+                            <flux:sidebar.item icon="banknotes" href="{{ route('reports.payroll') }}" :current="request()->routeIs('reports.payroll')">
+                                Laporan Payroll
+                            </flux:sidebar.item>
+                        @endcan
+
+                        @can('doctor.view')
+                            <flux:sidebar.item icon="user-group" href="{{ route('reports.doctors') }}" :current="request()->routeIs('reports.doctors')">
+                                Laporan Dokter
+                            </flux:sidebar.item>
+                        @endcan
+                    </flux:sidebar.group>
+                @endif
+
+                {{-- 6. ADMINISTRASI & SISTEM --}}
+                <flux:sidebar.group heading="ADMINISTRASI & SISTEM" class="mt-3">
                     @can('system.audit_view')
                         <flux:sidebar.item icon="shield-check" href="{{ route('audit-logs.index') }}" :current="request()->routeIs('audit-logs.*')">
-                            Audit Trail Sistem
+                            Audit Trail
                         </flux:sidebar.item>
                     @endcan
 
                     @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasPermission('system.config_view'))
-                        <flux:sidebar.group 
-                            expandable 
-                            :expanded="request()->routeIs('master.*')" 
-                            heading="Data Master" 
-                            icon="circle-stack"
-                        >
-                            <flux:sidebar.item icon="building-office-2" href="{{ route('master.units') }}" :current="request()->routeIs('master.units')">
-                                Unit Kerja
-                            </flux:sidebar.item>
-                            <flux:sidebar.item icon="briefcase" href="{{ route('master.positions') }}" :current="request()->routeIs('master.positions')">
-                                Standar Jabatan
-                            </flux:sidebar.item>
-                            <flux:sidebar.item icon="clock" href="{{ route('master.shifts') }}" :current="request()->routeIs('master.shifts')">
-                                Shift Kerja
-                            </flux:sidebar.item>
-                            <flux:sidebar.item icon="calendar-days" href="{{ route('master.leave-types') }}" :current="request()->routeIs('master.leave-types')">
-                                Jenis Cuti
-                            </flux:sidebar.item>
-                            <flux:sidebar.item icon="map-pin" href="{{ route('master.geofences') }}" :current="request()->routeIs('master.geofences')">
-                                Titik Geofence
-                            </flux:sidebar.item>
-                            <flux:sidebar.item icon="calendar" href="{{ route('master.payroll-periods') }}" :current="request()->routeIs('master.payroll-periods')">
-                                Periode Payroll
-                            </flux:sidebar.item>
-                            <flux:sidebar.item icon="scale" href="{{ route('master.bpjs') }}" :current="request()->routeIs('master.bpjs')">
-                                Regulasi BPJS
-                            </flux:sidebar.item>
-                        </flux:sidebar.group>
+                        <flux:sidebar.item icon="cog-6-tooth" href="{{ route('system.settings') }}" :current="request()->routeIs('system.settings')">
+                            Pengaturan Sistem
+                        </flux:sidebar.item>
                     @endif
                 </flux:sidebar.group>
             </flux:sidebar.nav>

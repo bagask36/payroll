@@ -86,8 +86,8 @@
                             <div class="text-xs font-mono text-zinc-500">NIP: {{ $emp->nip }}</div>
                         </td>
                         <td class="px-5 py-3.5">
-                            <div class="text-sm text-zinc-800 dark:text-zinc-200">{{ $emp->employment?->position?->title ?? '-' }}</div>
-                            <div class="text-xs text-zinc-500">{{ $emp->employment?->unit?->name ?? '-' }}</div>
+                            <div class="text-sm text-zinc-800 dark:text-zinc-200">{{ $emp->position?->title ?? '-' }}</div>
+                            <div class="text-xs text-zinc-500">{{ $emp->unit?->name ?? '-' }}</div>
                         </td>
                         <td class="px-5 py-3.5 text-center">
                             <div class="flex items-center justify-center gap-1.5">
@@ -95,12 +95,12 @@
                                     {{ $emp->status }}
                                 </flux:badge>
                                 <flux:badge size="sm" color="blue">
-                                    {{ $emp->employment?->contract_type ?? '-' }}
+                                    {{ $emp->currentEmployment?->contract_type ?? '-' }}
                                 </flux:badge>
                             </div>
                         </td>
                         <td class="px-5 py-3.5 text-xs text-zinc-600 dark:text-zinc-400">
-                            {{ $emp->employment?->join_date ? $emp->employment->join_date->format('d M Y') : '-' }}
+                            {{ $emp->currentEmployment?->join_date ? $emp->currentEmployment->join_date->format('d M Y') : '-' }}
                         </td>
                     </tr>
                 @empty

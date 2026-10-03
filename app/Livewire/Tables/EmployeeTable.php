@@ -140,15 +140,11 @@ final class EmployeeTable extends PowerGridComponent
 
     public function actions(Employee $row): array
     {
-        $url = route('employees.show', $row->id);
-
         return [
             Button::add('viewProfile')
                 ->slot('Lihat Profil')
-                ->class('px-2.5 py-1 text-xs font-medium rounded-md bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-200 transition-colors cursor-pointer inline-block')
-                ->attributes([
-                    'onclick' => "window.location.href='{$url}'",
-                ]),
+                ->route('employees.show', ['id' => $row->id])
+                ->class('inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 shadow-2xs transition-colors cursor-pointer'),
         ];
     }
 }

@@ -56,7 +56,7 @@ class LeaveReportIndex extends Component
 
     public function exportCsv()
     {
-        $query = LeaveRequest::with(['employee.employment.unit', 'leaveType'])
+        $query = LeaveRequest::with(['employee.unit', 'leaveType'])
             ->whereDate('start_date', '>=', $this->startDate)
             ->whereDate('end_date', '<=', $this->endDate);
 
@@ -83,7 +83,7 @@ class LeaveReportIndex extends Component
                 fputcsv($file, [
                     $req->request_number ?? '-',
                     $req->employee->name ?? '-',
-                    $req->employee->employment?->unit?->name ?? '-',
+                    $req->employee->unit?->name ?? '-',
                     $req->leaveType->name ?? '-',
                     $req->start_date->format('d/m/Y'),
                     $req->end_date->format('d/m/Y'),
@@ -100,7 +100,7 @@ class LeaveReportIndex extends Component
 
     public function render()
     {
-        $query = LeaveRequest::with(['employee.employment.unit', 'leaveType'])
+        $query = LeaveRequest::with(['employee.unit', 'leaveType'])
             ->whereDate('start_date', '>=', $this->startDate)
             ->whereDate('end_date', '<=', $this->endDate);
 

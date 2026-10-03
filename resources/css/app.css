@@ -1,12 +1,15 @@
 @import 'tailwindcss';
 @import '../../vendor/livewire/flux/dist/flux.css';
 
+@source '../../app/**/*.php';
 @source '../../resources/views/**/*.blade.php';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../vendor/livewire/flux/stubs/**/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../../vendor/power-components/livewire-powergrid/resources/views/**/*.blade.php';
 @source '../../vendor/power-components/livewire-powergrid/src/Themes/Tailwind.php';
+
+@import '../../vendor/power-components/livewire-powergrid/dist/tailwind.css';
 
 @custom-variant dark (&:where(.dark, .dark *));
 
