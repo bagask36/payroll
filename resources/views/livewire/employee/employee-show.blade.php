@@ -119,46 +119,91 @@
 
     {{-- Tab 1: Biodata & PII --}}
     @if($activeTab === 'bio')
-        <flux:card class="space-y-4">
-            <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Informasi Pribadi & Kontak</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-sm">
-                <div>
-                    <span class="text-xs text-zinc-500">Nama Lengkap</span>
-                    <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">{{ $employee->name }}</p>
+        @php
+            $maritalLabels = ['single' => 'Belum Menikah', 'married' => 'Menikah', 'divorced' => 'Cerai Hidup', 'widowed' => 'Cerai Mati'];
+        @endphp
+        <div class="space-y-4">
+            @if($bioFeedback)
+                <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-sm flex items-center gap-2">
+                    <flux:icon name="check-circle" class="w-5 h-5 shrink-0" />
+                    <span>{{ $bioFeedback }}</span>
                 </div>
-                <div>
-                    <span class="text-xs text-zinc-500">Email Rumah Sakit</span>
-                    <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">{{ $employee->email }}</p>
+            @endif
+
+            <flux:card class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                    <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Informasi Pribadi & Kontak</h3>
+                    @if($canUpdateBio)
+                        <flux:button variant="primary" size="sm" icon="pencil-square" wire:click="openBioModal">
+                            Edit Biodata
+                        </flux:button>
+                    @endif
                 </div>
-                <div>
-                    <span class="text-xs text-zinc-500">Nomor Telepon</span>
-                    <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">{{ $employee->phone }}</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-sm">
+                    <div>
+                        <span class="text-xs text-zinc-500">Nama Lengkap</span>
+                        <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">{{ $employee->name }}</p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-zinc-500">Email Rumah Sakit</span>
+                        <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">{{ $employee->email }}</p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-zinc-500">Nomor Telepon</span>
+                        <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">{{ $employee->phone ?: '-' }}</p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-zinc-500">Jenis Kelamin</span>
+                        <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">
+                            {{ $employee->gender === 'male' ? 'Laki-laki' : 'Perempuan' }}
+                        </p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-zinc-500">Tempat, Tanggal Lahir</span>
+                        <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">
+                            {{ $employee->birth_place ?: '-' }}, {{ $employee->birth_date ? $employee->birth_date->format('d F Y') : '-' }}
+                        </p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-zinc-500">Status Pernikahan / Tanggungan PTKP</span>
+                        <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">
+                            {{ $maritalLabels[$employee->marital_status] ?? '-' }} · {{ (int) $employee->tax_dependents }} tanggungan
+                        </p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-zinc-500">Nomor Induk Kependudukan (NIK KTP)</span>
+                        <p class="font-mono font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">
+                            @if($canViewSensitive)
+                                {{ $employee->ktp_number }}
+                            @else
+                                {{ substr((string)$employee->ktp_number, 0, 4) . '************' }}
+                                <span class="text-xs text-zinc-400 font-sans block">(Tersamarkan - Akses PII Dibatasi)</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div>
+                        <span class="text-xs text-zinc-500">NPWP</span>
+                        <p class="font-mono font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">
+                            @if($canViewSensitive)
+                                {{ $employee->npwp_number ?: '-' }}
+                            @else
+                                <span class="text-xs text-zinc-400 font-sans">(Akses PII Dibatasi)</span>
+                            @endif
+                        </p>
+                    </div>
+                    <div class="sm:col-span-2 md:col-span-1">
+                        <span class="text-xs text-zinc-500">Alamat Domisili</span>
+                        <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">
+                            @if($canViewSensitive)
+                                {{ $employee->address ?: '-' }}
+                            @else
+                                <span class="text-xs text-zinc-400">(Akses PII Dibatasi)</span>
+                            @endif
+                        </p>
+                    </div>
                 </div>
-                <div>
-                    <span class="text-xs text-zinc-500">Jenis Kelamin</span>
-                    <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">
-                        {{ $employee->gender === 'male' ? 'Laki-laki' : 'Perempuan' }}
-                    </p>
-                </div>
-                <div>
-                    <span class="text-xs text-zinc-500">Tanggal Lahir</span>
-                    <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">
-                        {{ $employee->birth_date ? $employee->birth_date->format('d F Y') : '-' }}
-                    </p>
-                </div>
-                <div>
-                    <span class="text-xs text-zinc-500">Nomor Induk Kependudukan (NIK KTP)</span>
-                    <p class="font-mono font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">
-                        @if($canViewSensitive)
-                            {{ $employee->ktp_number }}
-                        @else
-                            {{ substr((string)$employee->ktp_number, 0, 4) . '************' }}
-                            <span class="text-xs text-zinc-400 font-sans block">(Tersamarkan - Akses PII Dibatasi)</span>
-                        @endif
-                    </p>
-                </div>
-            </div>
-        </flux:card>
+            </flux:card>
+        </div>
     @endif
 
     {{-- Tab 2: Riwayat Penugasan & Kontrak --}}
@@ -507,29 +552,58 @@
     {{-- Tab 4: Rekening Payroll --}}
     @if($activeTab === 'bank')
         @if($canViewBank)
-            <flux:card class="space-y-4">
-                <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Rekening Bank Pencairan Gaji</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    @forelse($employee->bankAccounts as $bank)
-                        <div class="p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/60 dark:bg-zinc-800/40 space-y-2">
-                            <div class="flex items-center justify-between">
-                                <span class="font-bold text-sm text-zinc-900 dark:text-zinc-100">{{ $bank->bank_name }}</span>
-                                @if($bank->is_primary)
-                                    <flux:badge size="sm" color="emerald">Utama</flux:badge>
+            <div class="space-y-4">
+                @if($bankFeedback)
+                    <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-sm flex items-center gap-2">
+                        <flux:icon name="check-circle" class="w-5 h-5 shrink-0" />
+                        <span>{{ $bankFeedback }}</span>
+                    </div>
+                @endif
+
+                <flux:card class="space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                        <div>
+                            <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Rekening Bank Pencairan Gaji</h3>
+                            <p class="text-xs text-zinc-400 mt-0.5">Nomor rekening disimpan terenkripsi (AES-256). Rekening utama dipakai saat payroll run.</p>
+                        </div>
+                        @if($canManageBank)
+                            <flux:button variant="primary" size="sm" icon="plus" wire:click="openBankModal">
+                                Tambah Rekening
+                            </flux:button>
+                        @endif
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        @forelse($employee->bankAccounts as $bank)
+                            <div wire:key="bank-{{ $bank->id }}" class="p-4 rounded-xl border border-zinc-200 dark:border-zinc-700 bg-zinc-50/60 dark:bg-zinc-800/40 space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="font-bold text-sm text-zinc-900 dark:text-zinc-100">{{ $bank->bank_name }}</span>
+                                    @if($bank->is_primary)
+                                        <flux:badge size="sm" color="emerald">Utama</flux:badge>
+                                    @endif
+                                </div>
+                                <div class="text-xs text-zinc-500">
+                                    <div>Atas Nama: <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $bank->account_holder }}</span></div>
+                                    <div class="mt-1 font-mono text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                                        @if($canManageBank)
+                                            {{ $bank->account_number }}
+                                        @else
+                                            •••• {{ substr((string) $bank->account_number, -4) }}
+                                        @endif
+                                    </div>
+                                </div>
+                                @if($canManageBank)
+                                    <div class="flex justify-end gap-1 pt-1 border-t border-zinc-200/70 dark:border-zinc-700/70">
+                                        <flux:button variant="ghost" size="xs" icon="pencil" wire:click="openBankModal({{ $bank->id }})">Edit</flux:button>
+                                        <flux:button variant="danger" size="xs" icon="trash" wire:confirm="Hapus rekening {{ $bank->bank_name }} ini?" wire:click="deleteBank({{ $bank->id }})">Hapus</flux:button>
+                                    </div>
                                 @endif
                             </div>
-                            <div class="text-xs text-zinc-500">
-                                <div>Atas Nama: <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $bank->account_holder }}</span></div>
-                                <div class="mt-1 font-mono text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                                    {{ $bank->account_number }}
-                                </div>
-                            </div>
-                        </div>
-                    @empty
-                        <p class="text-sm text-zinc-400 italic col-span-3">Belum ada nomor rekening bank terdaftar.</p>
-                    @endforelse
-                </div>
-            </flux:card>
+                        @empty
+                            <p class="text-sm text-zinc-400 italic col-span-3">Belum ada nomor rekening bank terdaftar.</p>
+                        @endforelse
+                    </div>
+                </flux:card>
+            </div>
         @else
             <div class="p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50 text-center space-y-2">
                 <flux:icon name="lock-closed" class="w-8 h-8 text-zinc-400 mx-auto" />
@@ -543,33 +617,58 @@
 
     {{-- Tab 5: Berkas & Dokumen Kepatuhan --}}
     @if($activeTab === 'documents')
-        <flux:card class="space-y-4">
-            <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Arsip Berkas Digital Pegawai</h3>
-            <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
-                @forelse($employee->documents as $doc)
-                    <div class="py-3 flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-3">
-                            <flux:icon name="document-text" class="w-6 h-6 text-zinc-400" />
-                            <div>
-                                <span class="font-semibold text-sm text-zinc-900 dark:text-zinc-100">{{ $doc->document_type }}</span>
-                                <p class="text-xs text-zinc-400">{{ $doc->file_name }} ({{ number_format($doc->file_size_bytes / 1024, 1) }} KB)</p>
+        @php
+            $docTypeLabels = ['ktp' => 'KTP', 'kk' => 'Kartu Keluarga', 'ijazah' => 'Ijazah', 'contract' => 'Kontrak Kerja', 'str' => 'STR', 'sip' => 'SIP', 'certificate' => 'Sertifikat', 'other' => 'Lainnya'];
+        @endphp
+        <div class="space-y-4">
+            @if($docFeedback)
+                <div class="p-3.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-sm flex items-center gap-2">
+                    <flux:icon name="check-circle" class="w-5 h-5 shrink-0" />
+                    <span>{{ $docFeedback }}</span>
+                </div>
+            @endif
+
+            <flux:card class="space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                    <div>
+                        <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Arsip Berkas Digital Pegawai</h3>
+                        <p class="text-xs text-zinc-400 mt-0.5">PDF/JPG/PNG maks. 10 MB. Unduhan menggunakan tautan sementara (15 menit).</p>
+                    </div>
+                    @if($canUploadDoc)
+                        <flux:button variant="primary" size="sm" icon="arrow-up-tray" wire:click="openDocModal">
+                            Unggah Berkas
+                        </flux:button>
+                    @endif
+                </div>
+                <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                    @forelse($employee->documents as $doc)
+                        <div wire:key="doc-{{ $doc->id }}" class="py-3 flex items-center justify-between gap-4">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <flux:icon name="document-text" class="w-6 h-6 text-zinc-400 shrink-0" />
+                                <div class="min-w-0">
+                                    <span class="font-semibold text-sm text-zinc-900 dark:text-zinc-100">{{ $docTypeLabels[$doc->document_type] ?? strtoupper($doc->document_type) }}</span>
+                                    <p class="text-xs text-zinc-400 truncate">
+                                        {{ $doc->original_name }} ({{ number_format(((int) $doc->file_size) / 1024, 1) }} KB) · {{ $doc->created_at?->format('d/m/Y') }}
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                @can('download', $doc)
+                                    <a href="{{ $doc->getTemporaryDownloadUrl() }}" target="_blank" rel="noopener">
+                                        <flux:button size="xs" variant="subtle" icon="arrow-down-tray">Unduh</flux:button>
+                                    </a>
+                                @endcan
+                                @can('delete', $doc)
+                                    <flux:button size="xs" variant="danger" icon="trash" wire:confirm="Hapus berkas {{ $doc->original_name }} dari arsip?" wire:click="deleteDoc({{ $doc->id }})">Hapus</flux:button>
+                                @endcan
                             </div>
                         </div>
-                        <div>
-                            @can('download', $doc)
-                                <a href="{{ $doc->getTemporaryDownloadUrl() }}" target="_blank">
-                                    <flux:button size="xs" variant="subtle" icon="arrow-down-tray">
-                                        Unduh
-                                    </flux:button>
-                                </a>
-                            @endcan
-                        </div>
-                    </div>
-                @empty
-                    <p class="py-6 text-center text-sm text-zinc-400 italic">Belum ada dokumen kepatuhan yang diunggah.</p>
-                @endforelse
-            </div>
-        </flux:card>
+                    @empty
+                        <p class="py-6 text-center text-sm text-zinc-400 italic">Belum ada dokumen kepatuhan yang diunggah.</p>
+                    @endforelse
+                </div>
+            </flux:card>
+        </div>
     @endif
 
     {{-- Tab 6: Biometrik Wajah (Face AI) --}}

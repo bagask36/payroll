@@ -88,6 +88,30 @@ class EmployeePolicy
     }
 
     /**
+     * Determine whether the user can add/edit/remove payroll bank accounts.
+     *
+     * Self-service is intentionally NOT allowed: docs/05-roles-permissions.md
+     * lists employee self-service bank changes as an open question pending
+     * HR/Finance verification workflow approval.
+     */
+    public function manageBank(User $user, Employee $employee): bool
+    {
+        return $user->hasPermission('employee.update');
+    }
+
+    /**
+     * Determine whether the user can upload documents for this employee.
+     */
+    public function uploadDocument(User $user, Employee $employee): bool
+    {
+        if ($user->hasPermission('document.upload_all')) {
+            return true;
+        }
+
+        return $employee->user_id === $user->id && $user->hasPermission('document.upload_own');
+    }
+
+    /**
      * Determine whether the user can update employment contracts or status.
      */
     public function updateEmployment(User $user, Employee $employee): bool

@@ -3,11 +3,14 @@
 namespace App\Livewire\Employee;
 
 use App\Contracts\FaceAiService;
+use App\Models\Document;
 use App\Models\Employee;
+use App\Models\EmployeeBankAccount;
 use App\Models\EmployeeSalary;
 use App\Models\EmployeeSalaryComponent;
 use App\Models\SalaryComponent;
 use App\Services\Audit\AuditService;
+use App\Services\Document\DocumentService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
@@ -30,6 +33,38 @@ class EmployeeShow extends Component
     public ?string $enrollStatusMessage = null;
 
     public ?string $enrollErrorMessage = null;
+
+    // --- BIODATA MODAL STATE ---
+    public bool $showBioModal = false;
+    public string $bioFullName = '';
+    public string $bioPhone = '';
+    public string $bioAddress = '';
+    public string $bioGender = 'male';
+    public string $bioBirthPlace = '';
+    public string $bioBirthDate = '';
+    public string $bioMaritalStatus = 'single';
+    public int $bioTaxDependents = 0;
+    public ?string $bioNpwp = null;
+    public ?string $bioKtp = null;
+    public ?string $bioFeedback = null;
+    public ?string $bioError = null;
+
+    // --- BANK ACCOUNT MODAL STATE ---
+    public bool $showBankModal = false;
+    public ?int $editingBankId = null;
+    public string $bankName = '';
+    public string $accountNumber = '';
+    public string $accountHolder = '';
+    public bool $isPrimaryBank = true;
+    public ?string $bankFeedback = null;
+    public ?string $bankError = null;
+
+    // --- DOCUMENT UPLOAD MODAL STATE ---
+    public bool $showDocModal = false;
+    public string $docUploadType = 'ktp';
+    public $docUploadedFile = null;
+    public ?string $docFeedback = null;
+    public ?string $docError = null;
 
     // --- SALARY REVISION STATE ---
     public bool $showSalaryModal = false;
@@ -78,6 +113,309 @@ class EmployeeShow extends Component
         $this->enrollErrorMessage = null;
         $this->salaryFeedback = null;
         $this->salaryError = null;
+        $this->bioFeedback = null;
+        $this->bioError = null;
+        $this->bankFeedback = null;
+        $this->bankError = null;
+        $this->docFeedback = null;
+        $this->docError = null;
+    }
+
+    // =========================================================
+    // BIODATA
+    // =========================================================
+
+    public function openBioModal(): void
+    {
+        $this->authorize('update', $this->employee);
+        $this->resetMessages();
+        $this->resetValidation();
+
+        $e = $this->employee;
+        $this->bioFullName = (string) $e->full_name;
+        $this->bioPhone = (string) $e->phone_number;
+        $this->bioAddress = (string) $e->residential_address;
+        $this->bioGender = (string) ($e->gender ?: 'male');
+        $this->bioBirthPlace = (string) $e->birth_place;
+        $this->bioBirthDate = $e->birth_date?->toDateString() ?? '';
+        $this->bioMaritalStatus = (string) ($e->marital_status ?: 'single');
+        $this->bioTaxDependents = (int) $e->tax_dependents;
+        $this->bioNpwp = $e->npwp_number;
+        // KTP only pre-filled for users allowed to see sensitive PII
+        $this->bioKtp = Auth::user()?->can('viewSensitive', $e) ? $e->ktp_number : null;
+
+        $this->showBioModal = true;
+    }
+
+    public function saveBio(AuditService $auditService): void
+    {
+        $this->authorize('update', $this->employee);
+        $this->resetMessages();
+
+        $canEditSensitive = (bool) Auth::user()?->can('viewSensitive', $this->employee);
+
+        $rules = [
+            'bioFullName' => ['required', 'string', 'max:150'],
+            'bioPhone' => ['required', 'string', 'max:30'],
+            'bioAddress' => ['required', 'string', 'max:500'],
+            'bioGender' => ['required', 'in:male,female'],
+            'bioBirthPlace' => ['required', 'string', 'max:100'],
+            'bioBirthDate' => ['required', 'date', 'before:today'],
+            'bioMaritalStatus' => ['required', 'in:single,married,divorced,widowed'],
+            'bioTaxDependents' => ['required', 'integer', 'min:0', 'max:3'],
+            'bioNpwp' => ['nullable', 'string', 'max:50'],
+        ];
+        if ($canEditSensitive) {
+            $rules['bioKtp'] = ['required', 'digits:16'];
+        }
+
+        $this->validate($rules, [
+            'bioFullName.required' => 'Nama lengkap wajib diisi.',
+            'bioPhone.required' => 'Nomor telepon wajib diisi.',
+            'bioAddress.required' => 'Alamat wajib diisi.',
+            'bioBirthDate.before' => 'Tanggal lahir harus sebelum hari ini.',
+            'bioTaxDependents.max' => 'Tanggungan PTKP maksimal 3 orang.',
+            'bioKtp.digits' => 'NIK KTP harus 16 digit angka.',
+        ]);
+
+        $tracked = ['full_name', 'phone_number', 'residential_address', 'gender', 'birth_place', 'birth_date', 'marital_status', 'tax_dependents', 'npwp_number'];
+        $old = collect($this->employee->only($tracked))
+            ->map(fn ($v) => $v instanceof \DateTimeInterface ? $v->format('Y-m-d') : $v)
+            ->all();
+
+        $data = [
+            'full_name' => $this->bioFullName,
+            'phone_number' => $this->bioPhone,
+            'residential_address' => $this->bioAddress,
+            'gender' => $this->bioGender,
+            'birth_place' => $this->bioBirthPlace,
+            'birth_date' => $this->bioBirthDate,
+            'marital_status' => $this->bioMaritalStatus,
+            'tax_dependents' => $this->bioTaxDependents,
+            'npwp_number' => $this->bioNpwp ?: null,
+        ];
+
+        $ktpChanged = false;
+        if ($canEditSensitive && $this->bioKtp !== $this->employee->ktp_number) {
+            $data['ktp_number'] = $this->bioKtp;
+            $ktpChanged = true;
+        }
+
+        $this->employee->update($data);
+
+        $new = collect($data)->except('ktp_number')->all();
+        $auditService->log(
+            action: 'employee.biodata_updated',
+            auditable: $this->employee,
+            oldValues: array_diff_assoc(array_map('strval', $old), array_map('strval', $new)),
+            // Never log raw KTP; only flag that it changed
+            newValues: array_merge(
+                array_diff_assoc(array_map('strval', $new), array_map('strval', $old)),
+                $ktpChanged ? ['ktp_number' => '[changed]'] : []
+            )
+        );
+
+        $this->showBioModal = false;
+        $this->employee->refresh();
+        $this->bioFeedback = 'Biodata pegawai berhasil diperbarui.';
+    }
+
+    // =========================================================
+    // BANK ACCOUNTS
+    // =========================================================
+
+    public function openBankModal(?int $id = null): void
+    {
+        $this->authorize('manageBank', $this->employee);
+        $this->resetMessages();
+        $this->resetValidation();
+
+        if ($id) {
+            $bank = EmployeeBankAccount::where('employee_id', $this->employee->id)->findOrFail($id);
+            $this->editingBankId = $bank->id;
+            $this->bankName = $bank->bank_name;
+            $this->accountNumber = (string) $bank->account_number;
+            $this->accountHolder = $bank->account_holder;
+            $this->isPrimaryBank = (bool) $bank->is_primary;
+        } else {
+            $this->editingBankId = null;
+            $this->bankName = '';
+            $this->accountNumber = '';
+            $this->accountHolder = (string) $this->employee->full_name;
+            $this->isPrimaryBank = ! $this->employee->bankAccounts()->exists();
+        }
+
+        $this->showBankModal = true;
+    }
+
+    public function saveBank(AuditService $auditService): void
+    {
+        $this->authorize('manageBank', $this->employee);
+        $this->resetMessages();
+
+        $this->validate([
+            'bankName' => ['required', 'string', 'max:50'],
+            'accountNumber' => ['required', 'regex:/^[0-9]{5,30}$/'],
+            'accountHolder' => ['required', 'string', 'max:150'],
+            'isPrimaryBank' => ['boolean'],
+        ], [
+            'bankName.required' => 'Nama bank wajib diisi.',
+            'accountNumber.required' => 'Nomor rekening wajib diisi.',
+            'accountNumber.regex' => 'Nomor rekening hanya boleh berisi 5–30 digit angka.',
+            'accountHolder.required' => 'Nama pemilik rekening wajib diisi.',
+        ]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($auditService) {
+            if ($this->isPrimaryBank) {
+                EmployeeBankAccount::where('employee_id', $this->employee->id)
+                    ->when($this->editingBankId, fn ($q) => $q->where('id', '!=', $this->editingBankId))
+                    ->update(['is_primary' => false]);
+            }
+
+            $payload = [
+                'bank_name' => $this->bankName,
+                'account_number' => $this->accountNumber,
+                'account_holder' => $this->accountHolder,
+                'is_primary' => $this->isPrimaryBank,
+            ];
+
+            if ($this->editingBankId) {
+                $bank = EmployeeBankAccount::where('employee_id', $this->employee->id)->findOrFail($this->editingBankId);
+                $bank->update($payload);
+                $action = 'employee.bank_account_updated';
+            } else {
+                $bank = EmployeeBankAccount::create($payload + ['employee_id' => $this->employee->id]);
+                $action = 'employee.bank_account_added';
+            }
+
+            // Only masked account number goes to audit log
+            $auditService->log(
+                action: $action,
+                auditable: $this->employee,
+                oldValues: [],
+                newValues: [
+                    'bank_name' => $this->bankName,
+                    'account_number' => '****'.substr($this->accountNumber, -4),
+                    'is_primary' => $this->isPrimaryBank,
+                ]
+            );
+        });
+
+        $this->showBankModal = false;
+        $this->employee->load('bankAccounts');
+        $this->bankFeedback = 'Rekening payroll berhasil disimpan.';
+    }
+
+    public function deleteBank(int $id, AuditService $auditService): void
+    {
+        $this->authorize('manageBank', $this->employee);
+        $this->resetMessages();
+
+        $bank = EmployeeBankAccount::where('employee_id', $this->employee->id)->findOrFail($id);
+
+        $auditService->log(
+            action: 'employee.bank_account_deleted',
+            auditable: $this->employee,
+            oldValues: [
+                'bank_name' => $bank->bank_name,
+                'account_number' => '****'.substr((string) $bank->account_number, -4),
+            ],
+            newValues: []
+        );
+
+        $bank->delete();
+
+        $this->employee->load('bankAccounts');
+        $this->bankFeedback = 'Rekening payroll berhasil dihapus.';
+    }
+
+    // =========================================================
+    // DOCUMENTS
+    // =========================================================
+
+    public function openDocModal(): void
+    {
+        $this->authorize('uploadDocument', $this->employee);
+        $this->resetMessages();
+        $this->resetValidation();
+        $this->docUploadType = 'ktp';
+        $this->docUploadedFile = null;
+        $this->showDocModal = true;
+    }
+
+    public function uploadDoc(DocumentService $documentService, AuditService $auditService): void
+    {
+        $this->authorize('uploadDocument', $this->employee);
+        $this->resetMessages();
+
+        $this->validate([
+            'docUploadType' => ['required', 'in:ktp,kk,ijazah,contract,str,sip,certificate,other'],
+            'docUploadedFile' => ['required', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png'],
+        ], [
+            'docUploadedFile.required' => 'Pilih berkas yang akan diunggah.',
+            'docUploadedFile.max' => 'Ukuran berkas maksimal 10 MB.',
+            'docUploadedFile.mimes' => 'Format berkas harus PDF, JPG, atau PNG.',
+        ]);
+
+        $originalName = $this->docUploadedFile->getClientOriginalName();
+
+        $stored = $documentService->upload(
+            category: 'compliance/'.$this->docUploadType,
+            file: $this->docUploadedFile,
+            customFileName: $originalName,
+        );
+
+        $document = Document::create([
+            'documentable_type' => Employee::class,
+            'documentable_id' => $this->employee->id,
+            'document_type' => $this->docUploadType,
+            'original_name' => $originalName,
+            'storage_path' => $stored->fileIdentifier,
+            'mime_type' => $stored->mimeType,
+            'file_size' => $stored->sizeBytes,
+            'storage_provider' => $stored->provider,
+            'uploaded_by' => Auth::id(),
+        ]);
+
+        $auditService->log(
+            action: 'document.uploaded',
+            auditable: $document,
+            newValues: [
+                'employee_id' => $this->employee->id,
+                'document_type' => $this->docUploadType,
+                'original_name' => $originalName,
+                'file_size' => $document->file_size,
+            ]
+        );
+
+        $this->showDocModal = false;
+        $this->docUploadedFile = null;
+        $this->employee->load('documents');
+        $this->docFeedback = 'Berkas berhasil diunggah dan diarsipkan.';
+    }
+
+    public function deleteDoc(int $id, AuditService $auditService): void
+    {
+        $doc = $this->employee->documents()->findOrFail($id);
+        $this->authorize('delete', $doc);
+        $this->resetMessages();
+
+        $auditService->log(
+            action: 'document.deleted',
+            auditable: $doc,
+            oldValues: [
+                'employee_id' => $this->employee->id,
+                'document_type' => $doc->document_type,
+                'original_name' => $doc->original_name,
+            ],
+            newValues: []
+        );
+
+        // Soft-delete metadata only; physical file retained for audit/retention
+        $doc->delete();
+
+        $this->employee->load('documents');
+        $this->docFeedback = 'Berkas berhasil dihapus dari arsip.';
     }
 
     public function openSalaryModal(): void
@@ -373,6 +711,9 @@ class EmployeeShow extends Component
             'canUpdateSalary' => $user?->can('updateSalary', $this->employee),
             'canViewBank' => $user?->can('viewBank', $this->employee),
             'canManageBiometrics' => $user?->can('manageBiometrics', $this->employee),
+            'canUpdateBio' => $user?->can('update', $this->employee),
+            'canManageBank' => $user?->can('manageBank', $this->employee),
+            'canUploadDoc' => $user?->can('uploadDocument', $this->employee),
             'availableComponents' => SalaryComponent::where('is_active', true)->orderBy('type')->orderBy('name')->get(),
             'assignedComponents' => $this->employee->salaryComponents()->with('component')->latest('effective_from')->get(),
         ]);

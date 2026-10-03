@@ -237,6 +237,30 @@ class Employee extends Model
     }
 
     /**
+     * Get employee phone accessor.
+     */
+    public function getPhoneAttribute(): string
+    {
+        return $this->phone_number ?? '';
+    }
+
+    /**
+     * Get employee email accessor.
+     */
+    public function getEmailAttribute(): string
+    {
+        return $this->user?->email ?? '-';
+    }
+
+    /**
+     * Get employee address accessor.
+     */
+    public function getAddressAttribute(): string
+    {
+        return $this->residential_address ?? '';
+    }
+
+    /**
      * Filter query to active employees only.
      *
      * @param  Builder<$this>  $query

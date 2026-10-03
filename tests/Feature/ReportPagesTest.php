@@ -2,6 +2,17 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\Report\AttendanceReportIndex;
+use App\Livewire\Report\DoctorReportIndex;
+use App\Livewire\Report\EmployeeReportIndex;
+use App\Livewire\Report\LeaveReportIndex;
+use App\Livewire\Report\PayrollReportIndex;
+use App\Livewire\Tables\AttendanceReportTable;
+use App\Livewire\Tables\DoctorReportTable;
+use App\Livewire\Tables\EmployeeReportTable;
+use App\Livewire\Tables\LeaveReportTable;
+use App\Livewire\Tables\PayrollReportTable;
+use App\Models\Doctor;
 use App\Models\User;
 use Database\Seeders\MasterPayrollAndSystemSeeder;
 use Database\Seeders\RoleAndPermissionSeeder;
@@ -91,28 +102,67 @@ class ReportPagesTest extends TestCase
     public function test_reports_can_export_csv(): void
     {
         Livewire::actingAs($this->adminUser)
-            ->test(\App\Livewire\Report\EmployeeReportIndex::class)
+            ->test(EmployeeReportIndex::class)
             ->call('exportCsv')
             ->assertFileDownloaded('laporan-kepegawaian-rs-juwita.csv');
 
         Livewire::actingAs($this->adminUser)
-            ->test(\App\Livewire\Report\AttendanceReportIndex::class)
+            ->test(AttendanceReportIndex::class)
             ->call('exportCsv')
             ->assertFileDownloaded('laporan-kehadiran-rs-juwita.csv');
 
         Livewire::actingAs($this->adminUser)
-            ->test(\App\Livewire\Report\LeaveReportIndex::class)
+            ->test(LeaveReportIndex::class)
             ->call('exportCsv')
             ->assertFileDownloaded('laporan-cuti-izin-rs-juwita.csv');
 
         Livewire::actingAs($this->adminUser)
-            ->test(\App\Livewire\Report\PayrollReportIndex::class)
+            ->test(PayrollReportIndex::class)
             ->call('exportCsv')
             ->assertFileDownloaded('laporan-payroll-rs-juwita.csv');
 
         Livewire::actingAs($this->adminUser)
-            ->test(\App\Livewire\Report\DoctorReportIndex::class)
+            ->test(DoctorReportIndex::class)
             ->call('exportCsv')
             ->assertFileDownloaded('laporan-dokter-rs-juwita.csv');
+    }
+
+    public function test_doctor_report_powergrid_table_renders_rows_without_argument_count_error(): void
+    {
+        Doctor::create([
+            'name' => 'dr. Budi Santoso, Sp.A',
+            'specialization' => 'Spesialis Anak',
+            'str_number' => 'STR-12345678',
+            'str_valid_until' => now()->addYears(2),
+            'sip_number' => 'SIP-87654321',
+            'sip_valid_until' => now()->addYears(2),
+            'status' => 'active',
+        ]);
+
+        Livewire::actingAs($this->adminUser)
+            ->test(DoctorReportTable::class)
+            ->assertSee('dr. Budi Santoso, Sp.A')
+            ->assertSee('Spesialis Anak')
+            ->assertSee('SIP-87654321')
+            ->assertSee('STR-12345678');
+    }
+
+    public function test_all_report_tables_render_with_data_without_errors(): void
+    {
+        Livewire::actingAs($this->adminUser)
+            ->test(EmployeeReportTable::class)
+            ->assertStatus(200);
+
+        Livewire::actingAs($this->adminUser)
+            ->test(AttendanceReportTable::class)
+            ->assertStatus(200);
+
+        Livewire::actingAs($this->adminUser)
+            ->test(LeaveReportTable::class)
+            ->assertStatus(200);
+
+        Livewire::actingAs($this->adminUser)
+            ->test(PayrollReportTable::class)
+            ->assertStatus(200);
     }
 }
