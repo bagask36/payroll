@@ -122,6 +122,49 @@ class SidebarAndModulesTest extends TestCase
         }
     }
 
+    public function test_sidebar_for_employee_only_contains_self_service_menus(): void
+    {
+        $department = Department::firstOrCreate(['code' => 'YANMED'], ['name' => 'Pelayanan Medis', 'is_active' => true]);
+        $unit = Unit::firstOrCreate(['code' => 'IGD'], ['name' => 'Instalasi Gawat Darurat', 'department_id' => $department->id, 'is_active' => true]);
+        $position = \App\Models\Position::firstOrCreate(['code' => 'PERAWAT'], ['title' => 'Perawat Pelaksana', 'unit_id' => $unit->id, 'grade_level' => 'staff']);
+        Employee::factory()->create([
+            'user_id' => $this->staffUser->id,
+            'unit_id' => $unit->id,
+            'position_id' => $position->id,
+            'nip' => 'PEG-TEST-001',
+            'full_name' => 'Budi Staff Test',
+        ]);
+
+        $response = $this->actingAs($this->staffUser)->get('/dashboard');
+        $response->assertStatus(200);
+
+        // Self-service allowed menus
+        $response->assertSee('Dashboard');
+        $response->assertSee('WAKTU & OPERASIONAL');
+        $response->assertSee('Jadwal & Shift Roster');
+        $response->assertSee('Presensi & Geofence');
+        $response->assertSee('Pengajuan Cuti & Izin');
+        $response->assertSee('KEUANGAN & DOKUMEN');
+        $response->assertSee('Slip Gaji Saya');
+        $response->assertSee('Arsip Dokumen');
+
+        // Admin & management menus MUST NOT BE SHOWN
+        $response->assertDontSee('Data Master');
+        $response->assertDontSee('KEPEGAWAIAN & MEDIS');
+        $response->assertDontSee('Pegawai & Staf');
+        $response->assertDontSee('Tenaga Medis & Dokter');
+        $response->assertDontSee('Struktur Organisasi');
+        $response->assertDontSee('Penggajian (Payroll)');
+        $response->assertDontSee('Laporan Kepegawaian');
+        $response->assertDontSee('Laporan Kehadiran');
+        $response->assertDontSee('Laporan Cuti & Izin');
+        $response->assertDontSee('Laporan Payroll');
+        $response->assertDontSee('Laporan Dokter');
+        $response->assertDontSee('Audit Trail');
+        $response->assertDontSee('Pengaturan Sistem');
+        $response->assertDontSee('ADMINISTRASI & SISTEM');
+    }
+
     public function test_can_create_and_toggle_earning_component(): void
     {
         Livewire::actingAs($this->adminUser)

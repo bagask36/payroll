@@ -11,6 +11,7 @@ use Database\Seeders\AttendanceSeeder;
 use Database\Seeders\DoctorSeeder;
 use Database\Seeders\EmployeeSeeder;
 use Database\Seeders\LeaveSeeder;
+use Database\Seeders\MasterPayrollAndSystemSeeder;
 use Database\Seeders\OrganizationSeeder;
 use Database\Seeders\PayrollSeeder;
 use Database\Seeders\RoleAndPermissionSeeder;
@@ -29,6 +30,7 @@ class PayrollTest extends TestCase
         parent::setUp();
         $this->seed([
             RoleAndPermissionSeeder::class,
+            MasterPayrollAndSystemSeeder::class,
             OrganizationSeeder::class,
             EmployeeSeeder::class,
             DoctorSeeder::class,
@@ -75,8 +77,14 @@ class PayrollTest extends TestCase
         $this->assertEquals(5200000.00, (float) $item->basic_salary);
         $this->assertGreaterThan(0.00, (float) $item->bpjs_kes_employee);
         $this->assertGreaterThan(0.00, (float) $item->bpjs_tk_employee);
+        $this->assertGreaterThan(0.00, (float) $item->pph21_tax);
         $this->assertEquals('BNI', $item->bank_name);
         $this->assertNotNull($item->bank_account_number);
+
+        // Verify net salary formula: gross - (deductions + kes + tk + pph21)
+        $expectedNet = (float) $item->basic_salary + (float) $item->allowances
+            - ((float) $item->deductions + (float) $item->bpjs_kes_employee + (float) $item->bpjs_tk_employee + (float) $item->pph21_tax);
+        $this->assertEquals(round($expectedNet, 2), (float) $item->net_salary);
     }
 
     public function test_immutability_protection_on_finalized_payroll(): void
