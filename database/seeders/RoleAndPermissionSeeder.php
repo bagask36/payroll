@@ -206,7 +206,7 @@ class RoleAndPermissionSeeder extends Seeder
             'attendance.view_own', 'attendance.check_in_out', 'attendance.adjust_request',
             'leave.view_own', 'leave.create_own', 'leave.cancel_own',
             'payroll.view_own',
-            'document.view_own', 'document.upload_own', 'document.download',
+            'document.view_own', 'document.upload_own',
         ];
         $this->syncRolePermissions($roles['doctor'], $doctorPerms, $permissionModels);
 
@@ -218,7 +218,7 @@ class RoleAndPermissionSeeder extends Seeder
             'attendance.view_own', 'attendance.check_in_out', 'attendance.adjust_request',
             'leave.view_own', 'leave.create_own', 'leave.cancel_own',
             'payroll.view_own',
-            'document.view_own', 'document.upload_own', 'document.download',
+            'document.view_own', 'document.upload_own',
         ];
         $this->syncRolePermissions($roles['employee'], $employeePerms, $permissionModels);
 
