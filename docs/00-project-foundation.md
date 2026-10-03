@@ -636,4 +636,4 @@ For every future task, first:
 7. Run tests.
 8. Report results.
 
-Do not make assumptions about undocumented business rules.
+Do not make assumptions about undocumented business rules. 

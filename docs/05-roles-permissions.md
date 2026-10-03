@@ -320,7 +320,7 @@ graph TD
 ## 12. SUMMARY REPORT
 
 - **Standard Roles Defined**: 8 Dedicated Roles.
-- **Granular Permissions Cataloged**: 48 Distinct Permissions across 10 functional domains.
+- **Granular Permissions Cataloged**: 60 Distinct Permissions across 10 functional domains.
 - **Access Tiers**: FULL, TEAM, OWN, READ, NONE.
 - **Sensitive Data Protections**: Base salary, bank accounts, tax, and documents isolated with field-level policy gates.
 - **Biometric Security**: Zero permissions exist for raw biometric vector extraction or downloading.

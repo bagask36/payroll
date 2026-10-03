@@ -4,10 +4,12 @@ namespace App\Providers;
 
 use App\Contracts\DocumentStorageProvider;
 use App\Contracts\FaceAiService;
+use App\Models\User;
 use App\Services\Audit\AuditService;
 use App\Services\Document\DocumentService;
 use App\Services\Document\LocalStorageProvider;
 use App\Services\FaceAi\LocalMockFaceAiService;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -34,6 +36,16 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::before(function (User $user, string $ability): ?bool {
+            if ($user->isSuperAdmin()) {
+                return true;
+            }
+
+            if ($user->hasPermission($ability)) {
+                return true;
+            }
+
+            return null;
+        });
     }
 }
