@@ -12,6 +12,10 @@ mkdir -p /var/www/html/storage/framework/cache/data \
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
+if [ -f /var/www/html/.env ]; then
+    chmod 664 /var/www/html/.env || true
+fi
+
 # Generate symlink storage jika belum ada
 if [ ! -L /var/www/html/public/storage ]; then
     php artisan storage:link || true
