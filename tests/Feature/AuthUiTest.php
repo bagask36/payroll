@@ -109,4 +109,48 @@ class AuthUiTest extends TestCase
             'auditable_id' => $user->id,
         ]);
     }
+
+    public function test_login_fails_when_captcha_is_invalid(): void
+    {
+        config(['captcha.disable' => false]);
+
+        User::factory()->create([
+            'email' => 'perawat@juwitahospital.com',
+            'password' => Hash::make('Secret123!'),
+            'is_active' => true,
+        ]);
+
+        Livewire::test(Login::class)
+            ->set('email', 'perawat@juwitahospital.com')
+            ->set('password', 'Secret123!')
+            ->set('captcha', 'wrong-code')
+            ->call('login')
+            ->assertHasErrors(['captcha']);
+
+        $this->assertGuest();
+    }
+
+    public function test_login_fails_when_captcha_is_empty_when_enabled(): void
+    {
+        config(['captcha.disable' => false]);
+
+        Livewire::test(Login::class)
+            ->set('email', 'perawat@juwitahospital.com')
+            ->set('password', 'Secret123!')
+            ->set('captcha', '')
+            ->call('login')
+            ->assertHasErrors(['captcha']);
+    }
+
+    public function test_captcha_can_be_reloaded_and_resets_input(): void
+    {
+        $component = Livewire::test(Login::class);
+        $initialKey = $component->get('captchaKey');
+
+        $component->set('captcha', 'old-value');
+        $component->call('reloadCaptcha');
+
+        $this->assertNotEquals($initialKey, $component->get('captchaKey'));
+        $this->assertSame('', $component->get('captcha'));
+    }
 }

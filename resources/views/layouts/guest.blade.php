@@ -24,7 +24,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @fluxAppearance
     </head>
-    <body class="h-full bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 antialiased flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 pt-safe pb-safe">
+    <body class="min-h-full bg-slate-50 dark:bg-zinc-950 text-zinc-800 dark:text-zinc-200 antialiased selection:bg-emerald-500 selection:text-white">
         {{ $slot }}
 
         @fluxScripts

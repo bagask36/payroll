@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -17,21 +16,65 @@ use Livewire\Component;
 #[Title('Masuk - SIM SDM RS Juwita')]
 class Login extends Component
 {
-    #[Rule(['required', 'string', 'email'])]
     public string $email = '';
 
-    #[Rule(['required', 'string'])]
     public string $password = '';
+
+    public string $captcha = '';
+
+    public string $captchaKey = '';
 
     public bool $remember = false;
 
+    public function mount(): void
+    {
+        $this->reloadCaptcha();
+    }
+
+    public function reloadCaptcha(): void
+    {
+        $this->captcha = '';
+        $this->captchaKey = Str::random(8);
+    }
+
+    protected function rules(): array
+    {
+        $rules = [
+            'email' => ['required', 'string', 'email'],
+            'password' => ['required', 'string'],
+        ];
+
+        if (! config('captcha.disable', false)) {
+            $rules['captcha'] = ['required', 'string', 'captcha'];
+        }
+
+        return $rules;
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'email.required' => __('Alamat email wajib diisi.'),
+            'email.email' => __('Format alamat email tidak valid.'),
+            'password.required' => __('Kata sandi wajib diisi.'),
+            'captcha.required' => __('Kode captcha keamanan wajib diisi.'),
+            'captcha.captcha' => __('Kode captcha tidak cocok atau telah kedaluwarsa. Silakan coba lagi.'),
+        ];
+    }
+
     public function login(AuditService $auditService): void
     {
-        $this->validate();
+        try {
+            $this->validate();
+        } catch (ValidationException $e) {
+            $this->reloadCaptcha();
+            throw $e;
+        }
 
         $throttleKey = Str::transliterate(Str::lower($this->email).'|'.request()->ip());
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $this->reloadCaptcha();
             $seconds = RateLimiter::availableIn($throttleKey);
 
             throw ValidationException::withMessages([
@@ -54,6 +97,8 @@ class Login extends Component
                 newValues: ['email' => $this->email, 'ip' => request()->ip()],
             );
 
+            $this->reloadCaptcha();
+
             throw ValidationException::withMessages([
                 'email' => __('Kredensial yang diberikan tidak cocok dengan data kami.'),
             ]);
@@ -70,6 +115,8 @@ class Login extends Component
                 oldValues: [],
                 newValues: ['email' => $this->email, 'ip' => request()->ip()],
             );
+
+            $this->reloadCaptcha();
 
             throw ValidationException::withMessages([
                 'email' => __('Akun Anda dinonaktifkan. Silakan hubungi bagian SDM RS Juwita.'),
