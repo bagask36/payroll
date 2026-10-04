@@ -291,6 +291,7 @@
                                 <th class="px-4 py-3">No. SK / Kontrak</th>
                                 <th class="px-4 py-3">Unit / Bagian</th>
                                 <th class="px-4 py-3">Jabatan</th>
+                                <th class="px-4 py-3">Pola Kerja</th>
                                 <th class="px-4 py-3">Ikatan Kerja</th>
                                 <th class="px-4 py-3">Mulai Tugas</th>
                                 <th class="px-4 py-3">Akhir Kontrak</th>
@@ -310,6 +311,13 @@
                                     </td>
                                     <td class="px-4 py-3 font-medium text-zinc-900 dark:text-zinc-100">{{ $empRec->unit?->name ?? ($employee->unit?->name ?? '-') }}</td>
                                     <td class="px-4 py-3 text-zinc-700 dark:text-zinc-300">{{ $empRec->position?->title ?? ($employee->position?->title ?? '-') }}</td>
+                                    <td class="px-4 py-3">
+                                        @if(($empRec->schedule_type ?? 'non_shift') === 'shift')
+                                            <flux:badge size="xs" color="indigo">Shift</flux:badge>
+                                        @else
+                                            <flux:badge size="xs" color="teal">Non-Shift</flux:badge>
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3 uppercase text-xs font-medium">
                                         @if($empRec->contract_type === 'permanent')
                                             Tetap (PKWTT)
@@ -349,7 +357,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9" class="px-4 py-6 text-center text-zinc-400 italic">Belum ada riwayat penugasan tercatat.</td>
+                                    <td colspan="10" class="px-4 py-6 text-center text-zinc-400 italic">Belum ada riwayat penugasan tercatat.</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -1385,6 +1393,34 @@
                     wire:model="employmentEndDate" 
                     placeholder="Kosongkan jika tetap" 
                 />
+
+                {{-- Pola Jam Kerja: Non-Shift vs Shift --}}
+                <div class="sm:col-span-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                    <label class="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider block mb-2">Pola Jam Kerja Penugasan</label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="flex items-start gap-3 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/60 {{ $employmentScheduleType === 'non_shift' ? 'ring-2 ring-teal-500 bg-teal-50/50 dark:bg-teal-950/20' : '' }}">
+                            <input type="radio" wire:model.live="employmentScheduleType" value="non_shift" class="mt-1 text-teal-600 focus:ring-teal-500">
+                            <div>
+                                <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                                    <span>Non-Shift (Reguler)</span>
+                                    <flux:badge size="xs" color="teal">Jam Kantor Tetap</flux:badge>
+                                </div>
+                                <div class="text-xs text-zinc-500 mt-0.5">Staf kantor / manajemen dengan jam kerja tetap. Otomatis presensi reguler tanpa perlu diplot ke roster mingguan.</div>
+                            </div>
+                        </label>
+
+                        <label class="flex items-start gap-3 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/60 {{ $employmentScheduleType === 'shift' ? 'ring-2 ring-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/20' : '' }}">
+                            <input type="radio" wire:model.live="employmentScheduleType" value="shift" class="mt-1 text-indigo-600 focus:ring-indigo-500">
+                            <div>
+                                <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                                    <span>Shift (Operasional)</span>
+                                    <flux:badge size="xs" color="indigo">Roster Mingguan</flux:badge>
+                                </div>
+                                <div class="text-xs text-zinc-500 mt-0.5">Pelayanan medis 24 jam / operasional bergilir (Pagi, Siang, Malam). Wajib diatur jadwal dinasnya pada menu Penjadwalan.</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
             </div>
 
             {{-- Upload Berkas Fisik SK --}}

@@ -198,4 +198,34 @@ class ShiftAndSchedulePatternTest extends TestCase
         $employee->refresh();
         $this->assertEquals('shift', $employee->schedule_type);
     }
+
+    public function test_employee_show_creates_new_employment_sk_with_schedule_type(): void
+    {
+        $employee = Employee::where('nip', 'PEG-2024001')->firstOrFail(); // Dewi Sartika
+        $this->assertEquals('non_shift', $employee->schedule_type);
+
+        Livewire::actingAs($this->adminUser)
+            ->test(EmployeeShow::class, ['id' => $employee->id])
+            ->call('openEmploymentModal')
+            ->assertSet('employmentScheduleType', 'non_shift')
+            ->set('employmentUnitId', 1)
+            ->set('employmentPositionId', 1)
+            ->set('employmentContractType', 'permanent')
+            ->set('employmentScheduleType', 'shift')
+            ->set('employmentContractNumber', 'SK/RSJ/2026/ROSTER-01')
+            ->set('employmentStartDate', Carbon::today()->toDateString())
+            ->call('saveEmployment')
+            ->assertHasNoErrors()
+            ->assertSet('showEmploymentModal', false);
+
+        $employee->refresh();
+        $this->assertEquals('shift', $employee->schedule_type);
+
+        $this->assertDatabaseHas('employee_employments', [
+            'employee_id' => $employee->id,
+            'contract_number' => 'SK/RSJ/2026/ROSTER-01',
+            'schedule_type' => 'shift',
+            'is_active' => true,
+        ]);
+    }
 }
