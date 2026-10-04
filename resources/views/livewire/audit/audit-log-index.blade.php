@@ -18,7 +18,7 @@
 
     {{-- Payload Inspection Modal --}}
     @if($selectedLog)
-        <flux:modal wire:model="showDetailModal" class="md:w-[36rem] space-y-4">
+        <flux:modal wire:model="showDetailModal" class="md:w-3xl space-y-4">
             <div class="border-b border-zinc-100 dark:border-zinc-800 pb-3">
                 <div class="flex items-center justify-between">
                     <flux:heading size="lg">Detail Payload Audit Log</flux:heading>

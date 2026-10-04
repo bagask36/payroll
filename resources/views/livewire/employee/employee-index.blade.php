@@ -31,7 +31,7 @@
     @endif
 
     {{-- KPI Metric Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <x-stat-card 
             label="Total Pegawai" 
             :value="$stats['total']" 
@@ -47,29 +47,67 @@
             sublabel="Status operasional aktif" 
         />
         <x-stat-card 
-            label="Pegawai Tetap (PKWTT)" 
+            label="Non-Shift (Kantor)" 
+            :value="$stats['non_shift']" 
+            icon="clock" 
+            color="teal" 
+            sublabel="Jadwal reguler standar" 
+        />
+        <x-stat-card 
+            label="Shift (Operasional)" 
+            :value="$stats['shift']" 
+            icon="calendar-days" 
+            color="indigo" 
+            sublabel="Pola dinas bergilir" 
+        />
+        <x-stat-card 
+            label="Pegawai Tetap" 
             :value="$stats['permanent']" 
             icon="building-office-2" 
             color="blue" 
-            sublabel="Ikatan kerja permanen" 
-        />
-        <x-stat-card 
-            label="Pegawai Kontrak (PKWT)" 
-            :value="$stats['contract']" 
-            icon="document-text" 
-            color="amber" 
-            sublabel="Perjanjian waktu tertentu" 
+            sublabel="Ikatan kerja PKWTT" 
         />
     </div>
 
-    {{-- PowerGrid Datatable --}}
-    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
-        <livewire:tables.employee-table />
+    {{-- Filter Quick Tabs & PowerGrid Datatable --}}
+    <flux:card class="p-3 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 dark:border-zinc-800 pb-3">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider mr-1">Pola Kerja:</span>
+                <button 
+                    type="button" 
+                    wire:click="$set('scheduleTypeFilter', 'all')" 
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer {{ $scheduleTypeFilter === 'all' ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-xs' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400' }}"
+                >
+                    Semua ({{ $stats['total'] }})
+                </button>
+                <button 
+                    type="button" 
+                    wire:click="$set('scheduleTypeFilter', 'non_shift')" 
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer {{ $scheduleTypeFilter === 'non_shift' ? 'bg-teal-600 text-white shadow-xs' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400' }}"
+                >
+                    Non-Shift / Kantor ({{ $stats['non_shift'] }})
+                </button>
+                <button 
+                    type="button" 
+                    wire:click="$set('scheduleTypeFilter', 'shift')" 
+                    class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer {{ $scheduleTypeFilter === 'shift' ? 'bg-indigo-600 text-white shadow-xs' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-400' }}"
+                >
+                    Shift Operasional ({{ $stats['shift'] }})
+                </button>
+            </div>
+            
+            <div class="text-xs text-zinc-400 italic">
+                *Pegawai Non-Shift otomatis mengikuti jam reguler tanpa perlu diplot mingguan.
+            </div>
+        </div>
+
+        <livewire:tables.employee-table :schedule-type-filter="$scheduleTypeFilter" :key="$scheduleTypeFilter" />
     </flux:card>
 
     {{-- Flux Native Modal for Create Employee --}}
     @if($showCreateModal)
-        <flux:modal wire:model="showCreateModal" class="md:w-[36rem] space-y-6">
+        <flux:modal wire:model="showCreateModal" class="md:w-3xl space-y-6">
             <div>
                 <flux:heading size="lg">Pendaftaran Pegawai Baru RS Juwita</flux:heading>
                 <flux:subheading class="text-xs text-zinc-500">Lengkapi data pokok kepegawaian dan penempatan.</flux:subheading>
@@ -95,6 +133,13 @@
                         label="Nomor Telepon / WhatsApp" 
                         placeholder="081234567890"
                         required 
+                    />
+
+                    <flux:input 
+                        wire:model="email" 
+                        label="Alamat Email (Opsional)" 
+                        type="email" 
+                        placeholder="pegawai@rsjuwita.co.id" 
                     />
 
                     <flux:select wire:model="gender" label="Jenis Kelamin">
@@ -143,6 +188,34 @@
                         type="date" 
                         required 
                     />
+
+                    {{-- Work Pattern: Non-Shift vs Shift --}}
+                    <div class="sm:col-span-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                        <label class="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider block mb-2">Pola Jam Kerja</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <label class="flex items-start gap-3 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/60 {{ $scheduleType === 'non_shift' ? 'ring-2 ring-teal-500 bg-teal-50/50 dark:bg-teal-950/20' : '' }}">
+                                <input type="radio" wire:model.live="scheduleType" value="non_shift" class="mt-1 text-teal-600 focus:ring-teal-500">
+                                <div>
+                                    <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                                        <span>Non-Shift (Reguler)</span>
+                                        <flux:badge size="xs" color="teal">Otomatis / Default</flux:badge>
+                                    </div>
+                                    <div class="text-xs text-zinc-500 mt-0.5">Staf kantor / manajemen dengan jam kerja tetap. Tidak perlu di-roster mingguan.</div>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start gap-3 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/60 {{ $scheduleType === 'shift' ? 'ring-2 ring-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/20' : '' }}">
+                                <input type="radio" wire:model.live="scheduleType" value="shift" class="mt-1 text-indigo-600 focus:ring-indigo-500">
+                                <div>
+                                    <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
+                                        <span>Shift Operasional</span>
+                                        <flux:badge size="xs" color="indigo">Roster Mingguan</flux:badge>
+                                    </div>
+                                    <div class="text-xs text-zinc-500 mt-0.5">Perawat & staf medis 24 jam yang jadwal dinasnya di-plot per minggu di menu Roster.</div>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="flex items-center justify-end gap-2 pt-4">

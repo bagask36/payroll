@@ -46,7 +46,7 @@
 
     {{-- Payslip Modal View --}}
     @if($selectedItem)
-        <flux:modal wire:model="showDetailModal" class="md:w-[34rem] space-y-4 max-w-full">
+        <flux:modal wire:model="showDetailModal" class="md:w-3xl space-y-4 max-w-full">
             <div class="border-b border-zinc-100 dark:border-zinc-800 pb-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">

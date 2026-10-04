@@ -284,7 +284,7 @@
     </div>
 
     {{-- MODAL: CREATE / EDIT DEPARTMENT --}}
-    <flux:modal wire:model="showDepartmentModal" class="md:w-md space-y-4">
+    <flux:modal wire:model="showDepartmentModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingDeptId ? 'Edit Departemen' : 'Tambah Departemen Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Kelola departemen atau divisi faskes.</flux:subheading>
@@ -316,7 +316,7 @@
     </flux:modal>
 
     {{-- MODAL: CREATE / EDIT UNIT --}}
-    <flux:modal wire:model="showUnitModal" class="md:w-md space-y-4">
+    <flux:modal wire:model="showUnitModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingUnitId ? 'Edit Unit Kerja' : 'Tambah Unit Kerja' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Kelola instalasi faskes atau ruangan rawat.</flux:subheading>
@@ -376,7 +376,7 @@
     </flux:modal>
 
     {{-- MODAL: CREATE / EDIT POSITION --}}
-    <flux:modal wire:model="showPositionModal" class="md:w-md space-y-4">
+    <flux:modal wire:model="showPositionModal" class="md:w-2xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingPositionId ? 'Edit Formasi Jabatan' : 'Tambah Formasi Jabatan' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Kelola formasi jabatan di Departemen atau Unit Kerja.</flux:subheading>
@@ -464,7 +464,7 @@
     </flux:modal>
 
     {{-- MODAL: DELETE CONFIRMATION --}}
-    <flux:modal wire:model="showDeleteModal" class="md:w-md space-y-4">
+    <flux:modal wire:model="showDeleteModal" class="md:w-lg space-y-4">
         <div class="flex items-start gap-3">
             <div class="size-9 rounded-full bg-rose-100 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
                 <flux:icon name="exclamation-triangle" class="size-5" />

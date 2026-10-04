@@ -34,7 +34,7 @@
     </div>
 
     {{-- Profile Summary Header Card --}}
-    <flux:card class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <flux:card class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
         <div>
             <span class="text-xs font-medium text-zinc-500">Unit / Departemen</span>
             <div class="text-base font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">
@@ -46,6 +46,17 @@
             <span class="text-xs font-medium text-zinc-500">Jabatan Saat Ini</span>
             <div class="text-base font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">
                 {{ $employee->position?->title ?? 'Staf' }}
+            </div>
+        </div>
+
+        <div>
+            <span class="text-xs font-medium text-zinc-500">Pola Jam Kerja</span>
+            <div class="mt-1">
+                @if(($employee->schedule_type ?? 'non_shift') === 'shift')
+                    <flux:badge size="sm" color="indigo">Shift Operasional</flux:badge>
+                @else
+                    <flux:badge size="sm" color="teal">Non-Shift (Reguler)</flux:badge>
+                @endif
             </div>
         </div>
 
@@ -1217,7 +1228,7 @@
     @endif
 
     {{-- MODAL TERBITKAN / EDIT SURAT PERINGATAN (SP) --}}
-    <flux:modal wire:model="showWarningLetterModal" class="md:w-2xl space-y-4">
+    <flux:modal wire:model="showWarningLetterModal" class="md:w-3xl space-y-4">
         <div>
             <flux:heading size="lg">
                 {{ $editingWarningLetterId ? 'Edit Surat Peringatan (SP)' : 'Terbitkan Surat Peringatan (SP) Baru' }}
@@ -1273,7 +1284,7 @@
     </flux:modal>
 
     {{-- MODAL PENCABUTAN SURAT PERINGATAN (REVOKE SP) --}}
-    <flux:modal wire:model="showRevokeModal" class="md:w-lg space-y-4">
+    <flux:modal wire:model="showRevokeModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">Cabut Surat Peringatan (Rehabilitasi)</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">
@@ -1298,7 +1309,7 @@
     </flux:modal>
 
     {{-- Modal: Catat Penugasan / SK Baru --}}
-    <flux:modal wire:model="showEmploymentModal" class="md:w-2xl space-y-4">
+    <flux:modal wire:model="showEmploymentModal" class="md:w-3xl space-y-4">
         <div>
             <flux:heading size="lg">
                 {{ $editingEmploymentId ? 'Koreksi / Lengkapi Riwayat SK Penugasan' : 'Catat Penugasan / SK Baru' }}
@@ -1448,7 +1459,7 @@
     </flux:modal>
 
     {{-- Modal: Edit Biodata --}}
-    <flux:modal wire:model="showBioModal" class="md:w-2xl space-y-4">
+    <flux:modal wire:model="showBioModal" class="md:w-3xl space-y-4">
         <div>
             <flux:heading size="lg">Edit Biodata Pegawai</flux:heading>
             <flux:subheading>Perubahan dicatat pada audit trail.</flux:subheading>
@@ -1457,6 +1468,7 @@
         <form wire:submit.prevent="saveBio" class="space-y-4">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <flux:input label="Nama Lengkap" wire:model="bioFullName" required />
+                <flux:input label="Alamat Email" type="email" wire:model="bioEmail" placeholder="pegawai@rsjuwita.co.id" />
                 <flux:input label="Nomor Telepon" wire:model="bioPhone" required />
                 <flux:select label="Jenis Kelamin" wire:model="bioGender">
                     <option value="male">Laki-laki</option>
@@ -1479,6 +1491,10 @@
                     <option value="khonghucu">Khonghucu (Imlek)</option>
                 </flux:select>
                 <flux:input label="Jumlah Tanggungan (PTKP, maks. 3)" type="number" min="0" max="3" wire:model="bioTaxDependents" />
+                <flux:select label="Pola Jam Kerja" wire:model="bioScheduleType" required>
+                    <option value="non_shift">Non-Shift (Reguler / Jam Kantor)</option>
+                    <option value="shift">Shift (Operasional / Roster Mingguan)</option>
+                </flux:select>
                 @if($canViewSensitive)
                     <flux:input label="NPWP" wire:model="bioNpwp" placeholder="Opsional" />
                     <flux:input label="NIK KTP (16 digit)" wire:model="bioKtp" maxlength="16" inputmode="numeric" required />
@@ -1498,7 +1514,7 @@
     </flux:modal>
 
     {{-- Modal: Rekening Bank --}}
-    <flux:modal wire:model="showBankModal" class="md:w-md space-y-4">
+    <flux:modal wire:model="showBankModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingBankId ? 'Edit Rekening Payroll' : 'Tambah Rekening Payroll' }}</flux:heading>
             <flux:subheading>Nomor rekening disimpan terenkripsi.</flux:subheading>
@@ -1526,7 +1542,7 @@
     </flux:modal>
 
     {{-- Modal: Unggah Dokumen --}}
-    <flux:modal wire:model="showDocModal" class="md:w-md space-y-4">
+    <flux:modal wire:model="showDocModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">Unggah Berkas Pegawai</flux:heading>
             <flux:subheading>Format PDF, JPG, atau PNG. Maksimal 10 MB.</flux:subheading>
@@ -1555,7 +1571,7 @@
     </flux:modal>
 
     {{-- Modal 1: Revisi Gaji Pokok --}}
-    <flux:modal wire:model="showSalaryModal" class="md:w-md space-y-4">
+    <flux:modal wire:model="showSalaryModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">Revisi Gaji Pokok Pegawai</flux:heading>
             <flux:subheading>Tetapkan perubahan nominal gaji pokok dengan tanggal efektif baru.</flux:subheading>
@@ -1606,7 +1622,7 @@
     </flux:modal>
 
     {{-- Modal 2: Kelola Komponen Gaji (Tunjangan / Potongan) --}}
-    <flux:modal wire:model="showComponentModal" class="md:w-lg space-y-4">
+    <flux:modal wire:model="showComponentModal" class="md:w-2xl space-y-4">
         <div>
             <flux:heading size="lg">
                 {{ $editingComponentAssignmentId ? 'Edit Komponen Gaji Pegawai' : 'Tetapkan Komponen Gaji Pegawai' }}

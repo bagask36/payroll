@@ -116,7 +116,7 @@
 
     {{-- Flux Native Modal for Adjustment Request --}}
     @if($showAdjustmentModal)
-        <flux:modal wire:model="showAdjustmentModal" class="md:w-[28rem] space-y-6">
+        <flux:modal wire:model="showAdjustmentModal" class="md:w-xl space-y-6">
             <div>
                 <flux:heading size="lg">Form Pengajuan Koreksi Presensi</flux:heading>
                 <flux:subheading class="text-xs text-zinc-500">Koreksi memerlukan tinjauan dan persetujuan dari atasan / HR.</flux:subheading>
@@ -165,7 +165,7 @@
             $personName = $detailAttendance->employee?->full_name ?? $detailAttendance->doctor?->name ?? 'Pegawai';
             $personId = $detailAttendance->employee?->nip ?? $detailAttendance->doctor?->specialization ?? '-';
         @endphp
-        <flux:modal wire:model="showDetailModal" class="md:w-[42rem] space-y-6">
+        <flux:modal wire:model="showDetailModal" class="md:w-4xl space-y-6">
             {{-- Modal Header --}}
             <div class="flex items-start justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
                 <div>

@@ -26,6 +26,8 @@ class ScheduleRoster extends Component
     // Assign Shift Modal State
     public bool $showAssignModal = false;
 
+    public bool $showAllEmployeesInAssign = false;
+
     #[Rule(['required', 'in:employee,doctor'])]
     public string $assignTargetType = 'employee';
 
@@ -157,7 +159,9 @@ class ScheduleRoster extends Component
             ->where('status', '!=', 'cancelled')
             ->orderBy('schedule_date', 'asc');
 
-        if ($this->personTypeFilter === 'employee') {
+        if ($this->personTypeFilter === 'shift_employee') {
+            $query->whereHas('employee', fn ($q) => $q->where('schedule_type', 'shift'));
+        } elseif ($this->personTypeFilter === 'employee') {
             $query->whereNotNull('employee_id');
         } elseif ($this->personTypeFilter === 'doctor') {
             $query->whereNotNull('doctor_id');
@@ -170,7 +174,15 @@ class ScheduleRoster extends Component
         $assignments = $query->get();
 
         $shifts = Shift::where('is_active', true)->orderBy('start_time')->get();
-        $employees = Employee::active()->orderBy('full_name')->get();
+
+        // Weekly schedule plotting defaults to shift workers
+        $employeeQuery = Employee::active()->orderBy('full_name');
+        if (! $this->showAllEmployeesInAssign) {
+            $employeeQuery->where('schedule_type', 'shift');
+        }
+        $employees = $employeeQuery->get();
+        $totalShiftEmployees = Employee::active()->where('schedule_type', 'shift')->count();
+
         $doctors = Doctor::active()->orderBy('name')->get();
 
         // 7 days array for header display
@@ -180,6 +192,7 @@ class ScheduleRoster extends Component
             'assignments' => $assignments,
             'shifts' => $shifts,
             'employees' => $employees,
+            'totalShiftEmployees' => $totalShiftEmployees,
             'doctors' => $doctors,
             'weekDays' => $weekDays,
             'startDate' => $start,

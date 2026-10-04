@@ -58,7 +58,7 @@
     </flux:card>
 
     {{-- MODAL GEOFENCE DENGAN MAP PINPOINT & RADIUS SETUP --}}
-    <flux:modal wire:model="showGeofenceModal" class="max-w-3xl w-full space-y-4">
+    <flux:modal wire:model="showGeofenceModal" class="max-w-4xl w-full space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingGeofenceId ? 'Edit Titik Geofence' : 'Tambah Titik Geofence' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Tentukan koordinat titik pusat menggunakan pin peta dan atur radius toleransi presensi.</flux:subheading>

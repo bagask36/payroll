@@ -97,6 +97,7 @@ class DoctorSeeder extends Seeder
                 'sip_number' => 'SIP/446/012/RSJ/2024',
                 'sip_valid_until' => '2029-05-10',
                 'phone_number' => '081298765432',
+                'email' => 'dr.hendra@juwitahospital.com',
                 'status' => 'active',
             ]
         );
@@ -123,6 +124,7 @@ class DoctorSeeder extends Seeder
                 'sip_number' => 'SIP/446/089/RSJ/2023',
                 'sip_valid_until' => '2028-11-24',
                 'phone_number' => '081387654321',
+                'email' => 'dr.citra@juwitahospital.com',
                 'status' => 'active',
             ]
         );

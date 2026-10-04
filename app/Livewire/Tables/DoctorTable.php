@@ -115,7 +115,15 @@ final class DoctorTable extends PowerGridComponent
                     <div class=\"mt-1\">{$badge}</div>
                 ";
             })
-            ->add('phone_number', fn (Doctor $doc) => e($doc->phone_number ?? '-'));
+            ->add('phone_number', function (Doctor $doc) {
+                $phone = e($doc->phone_number ?? '-');
+                $email = $doc->email !== '-' ? e($doc->email) : null;
+                if ($email) {
+                    return '<div><div class="font-medium text-zinc-800 dark:text-zinc-200">'.$phone.'</div><div class="text-xs text-zinc-400">'.$email.'</div></div>';
+                }
+
+                return $phone;
+            });
     }
 
     public function columns(): array

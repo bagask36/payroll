@@ -136,7 +136,7 @@
 
     {{-- Rejection Modal --}}
     @if($showRejectModal)
-        <flux:modal wire:model="showRejectModal" class="md:w-[28rem] space-y-4">
+        <flux:modal wire:model="showRejectModal" class="md:w-lg space-y-4">
             <div>
                 <flux:heading size="lg">Alasan Penolakan Cuti</flux:heading>
                 <flux:subheading class="text-xs text-zinc-500">Berikan keterangan alasan penolakan kepada pemohon cuti.</flux:subheading>
@@ -165,7 +165,7 @@
 
     {{-- Detail Modal --}}
     @if($showDetailModal && $selectedRequest)
-        <flux:modal wire:model="showDetailModal" class="md:w-[34rem] space-y-5">
+        <flux:modal wire:model="showDetailModal" class="md:w-2xl space-y-5">
             <div>
                 <div class="flex items-center justify-between gap-3">
                     <flux:heading size="lg">Detail Permohonan Cuti</flux:heading>

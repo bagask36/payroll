@@ -52,6 +52,7 @@ class EmployeeSeeder extends Seeder
                 'tax_dependents' => 1,
                 'npwp_number' => '85.123.456.7-412.000',
                 'phone_number' => '081234567890',
+                'email' => 'dewi.sartika@juwitahospital.com',
                 'residential_address' => 'Jl. Juwita Indah No. 12, Bandung',
                 'status' => 'active',
             ]
@@ -152,6 +153,7 @@ class EmployeeSeeder extends Seeder
                 'tax_dependents' => 3,
                 'npwp_number' => '81.111.222.3-412.000',
                 'phone_number' => '081211112222',
+                'email' => 'hr.manager@juwitahospital.com',
                 'residential_address' => 'Jl. Juwita Residence A1, Bandung',
                 'status' => 'active',
             ]
@@ -209,6 +211,7 @@ class EmployeeSeeder extends Seeder
                 'tax_dependents' => 2,
                 'npwp_number' => '73.456.789.0-412.000',
                 'phone_number' => '081345678901',
+                'email' => 'ratna.wulandari@juwitahospital.com',
                 'residential_address' => 'Jl. Mekar Wangi Blok C-4, Bandung',
                 'status' => 'active',
             ]
@@ -273,6 +276,7 @@ class EmployeeSeeder extends Seeder
                 'tax_dependents' => 0,
                 'npwp_number' => '91.234.567.8-412.000',
                 'phone_number' => '081456789012',
+                'email' => 'budi.santoso@juwitahospital.com',
                 'residential_address' => 'Jl. Cibabat Raya No. 45, Cimahi',
                 'status' => 'active',
                 'schedule_type' => 'shift',

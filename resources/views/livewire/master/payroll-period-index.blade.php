@@ -30,7 +30,7 @@
     </flux:card>
 
     {{-- MODAL PAYROLL PERIOD --}}
-    <flux:modal wire:model="showPeriodModal" class="md:w-96 space-y-4">
+    <flux:modal wire:model="showPeriodModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingPeriodId ? 'Edit Periode Payroll' : 'Buka Periode Payroll Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Tentukan kalender penggajian dan cut-off presensi bulanan.</flux:subheading>

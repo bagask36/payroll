@@ -51,7 +51,9 @@ final class ScheduleTable extends PowerGridComponent
             $query->whereBetween('schedule_date', [$start, $end]);
         }
 
-        if ($this->personTypeFilter === 'employee') {
+        if ($this->personTypeFilter === 'shift_employee') {
+            $query->whereHas('employee', fn ($q) => $q->where('schedule_type', 'shift'));
+        } elseif ($this->personTypeFilter === 'employee') {
             $query->whereNotNull('employee_id');
         } elseif ($this->personTypeFilter === 'doctor') {
             $query->whereNotNull('doctor_id');
@@ -91,8 +93,15 @@ final class ScheduleTable extends PowerGridComponent
                 }
 
                 if ($row->employee) {
+                    $patternBadge = ($row->employee->schedule_type ?? 'non_shift') === 'shift'
+                        ? '<span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300">Shift</span>'
+                        : '<span class="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-medium bg-teal-50 text-teal-700 border border-teal-200 dark:bg-teal-950/60 dark:text-teal-300">Non-Shift</span>';
+
                     return '
-                        <div class="font-semibold text-zinc-900 dark:text-zinc-100">'.e($row->employee->full_name).'</div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-semibold text-zinc-900 dark:text-zinc-100">'.e($row->employee->full_name).'</span>
+                            '.$patternBadge.'
+                        </div>
                         <div class="text-xs text-zinc-400 font-mono">'.e($row->employee->nip).'</div>
                     ';
                 }

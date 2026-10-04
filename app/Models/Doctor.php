@@ -32,6 +32,7 @@ class Doctor extends Model
         'sip_number',
         'sip_valid_until',
         'phone_number',
+        'email',
         'status',
     ];
 
@@ -153,5 +154,13 @@ class Doctor extends Model
     public function scopeActive(Builder $query): void
     {
         $query->where('status', 'active');
+    }
+
+    /**
+     * Get doctor email accessor.
+     */
+    public function getEmailAttribute(): string
+    {
+        return $this->attributes['email'] ?? $this->user?->email ?? '-';
     }
 }

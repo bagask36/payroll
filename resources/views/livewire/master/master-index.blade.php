@@ -196,6 +196,7 @@
             <flux:table>
                 <flux:table.columns>
                     <flux:table.column>Kode & Nama Shift</flux:table.column>
+                    <flux:table.column>Tipe Jam Kerja</flux:table.column>
                     <flux:table.column>Jam Mulai — Selesai</flux:table.column>
                     <flux:table.column>Karakteristik</flux:table.column>
                     <flux:table.column>Toleransi Terlambat</flux:table.column>
@@ -210,6 +211,13 @@
                                 <div class="font-semibold text-zinc-900 dark:text-zinc-100">{{ $s->name }}</div>
                                 <div class="text-[11px] font-mono text-zinc-400">{{ $s->code }}</div>
                             </flux:table.cell>
+                            <flux:table.cell>
+                                @if(($s->type ?? 'shift') === 'non_shift')
+                                    <flux:badge size="xs" color="teal">Reguler (Non-Shift)</flux:badge>
+                                @else
+                                    <flux:badge size="xs" color="indigo">Shift Operasional</flux:badge>
+                                @endif
+                            </flux:table.cell>
                             <flux:table.cell class="font-mono text-xs text-zinc-700 dark:text-zinc-300">
                                 {{ substr($s->start_time, 0, 5) }} — {{ substr($s->end_time, 0, 5) }}
                             </flux:table.cell>
@@ -217,7 +225,7 @@
                                 @if($s->is_overnight)
                                     <flux:badge size="xs" color="purple">Overnight (Lintas Hari)</flux:badge>
                                 @else
-                                    <flux:badge size="xs" color="zinc">Reguler (Satu Hari)</flux:badge>
+                                    <flux:badge size="xs" color="zinc">Satu Hari</flux:badge>
                                 @endif
                             </flux:table.cell>
                             <flux:table.cell class="text-xs text-zinc-500 font-mono">
@@ -236,7 +244,7 @@
                         </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="6" class="text-center py-8 text-zinc-400 italic">
+                            <flux:table.cell colspan="7" class="text-center py-8 text-zinc-400 italic">
                                 Belum ada shift kerja terdaftar.
                             </flux:table.cell>
                         </flux:table.row>
@@ -578,7 +586,7 @@
     @endif
 
     {{-- MODAL WARNING LETTER TYPE --}}
-    <flux:modal wire:model="showWarningLetterTypeModal" class="md:w-[500px] space-y-4">
+    <flux:modal wire:model="showWarningLetterTypeModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingWarningLetterTypeId ? 'Edit Jenis SP' : 'Tambah Jenis SP Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Konfigurasi standar tingkatan sanksi disiplin dan masa berlaku.</flux:subheading>
@@ -612,7 +620,7 @@
     </flux:modal>
 
     {{-- MODAL UNIT --}}
-    <flux:modal wire:model="showUnitModal" class="md:w-96 space-y-4">
+    <flux:modal wire:model="showUnitModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingUnitId ? 'Edit Unit Kerja' : 'Tambah Unit Kerja Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Definisikan ruangan atau instalasi operasional RS.</flux:subheading>
@@ -640,7 +648,7 @@
     </flux:modal>
 
     {{-- MODAL POSITION --}}
-    <flux:modal wire:model="showPositionModal" class="md:w-lg space-y-4">
+    <flux:modal wire:model="showPositionModal" class="md:w-3xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingPositionId ? 'Edit Standar Jabatan' : 'Tambah Jabatan Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Standar formasi jabatan fungsional atau struktural dan remunerasi.</flux:subheading>
@@ -688,7 +696,7 @@
     </flux:modal>
 
     {{-- MODAL SHIFT --}}
-    <flux:modal wire:model="showShiftModal" class="md:w-96 space-y-4">
+    <flux:modal wire:model="showShiftModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingShiftId ? 'Edit Shift Dinas' : 'Tambah Shift Dinas Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Atur jam operasional dinas dan toleransi keterlambatan.</flux:subheading>
@@ -697,6 +705,22 @@
         <form wire:submit="saveShift" class="space-y-4">
             <flux:input wire:model="shiftCode" label="Kode Shift (Misal: PAGI-1, SORE-1, ML-1)" required />
             <flux:input wire:model="shiftName" label="Nama Shift Dinas" required />
+
+            <div>
+                <label class="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider block mb-2">Tipe Jam Kerja</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="flex items-center gap-2 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-medium">
+                        <input type="radio" wire:model="shiftType" value="shift" class="text-indigo-600 focus:ring-indigo-500">
+                        <span>Shift Operasional</span>
+                    </label>
+                    <label class="flex items-center gap-2 p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-700 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800 text-xs font-medium">
+                        <input type="radio" wire:model="shiftType" value="non_shift" class="text-teal-600 focus:ring-teal-500">
+                        <span>Reguler (Non-Shift)</span>
+                    </label>
+                </div>
+                <p class="text-[11px] text-zinc-500 dark:text-zinc-400 mt-1">Pilih Reguler untuk staf kantor non-shift yang jam kerjanya tetap setiap hari kerja.</p>
+            </div>
+
             <div class="grid grid-cols-2 gap-3">
                 <flux:input wire:model="shiftStartTime" type="time" label="Jam Masuk" required />
                 <flux:input wire:model="shiftEndTime" type="time" label="Jam Pulang" required />
@@ -722,7 +746,7 @@
     </flux:modal>
 
     {{-- MODAL LEAVE TYPE --}}
-    <flux:modal wire:model="showLeaveTypeModal" class="md:w-96 space-y-4">
+    <flux:modal wire:model="showLeaveTypeModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingLeaveTypeId ? 'Edit Jenis Cuti' : 'Tambah Jenis Cuti Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Aturan kuota dan pemotongan jatah cuti tahunan.</flux:subheading>
@@ -756,7 +780,7 @@
     </flux:modal>
 
     {{-- MODAL GEOFENCE DENGAN MAP PINPOINT & RADIUS SETUP --}}
-    <flux:modal wire:model="showGeofenceModal" class="max-w-3xl w-full space-y-4">
+    <flux:modal wire:model="showGeofenceModal" class="max-w-4xl w-full space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingGeofenceId ? 'Edit Titik Geofence' : 'Tambah Titik Geofence' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Tentukan koordinat titik pusat menggunakan pin peta dan atur radius toleransi presensi.</flux:subheading>
@@ -875,7 +899,7 @@
     </flux:modal>
 
     {{-- MODAL PAYROLL PERIOD --}}
-    <flux:modal wire:model="showPeriodModal" class="md:w-96 space-y-4">
+    <flux:modal wire:model="showPeriodModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingPeriodId ? 'Edit Periode Payroll' : 'Buka Periode Payroll Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Tentukan kalender penggajian dan cut-off presensi bulanan.</flux:subheading>
@@ -901,7 +925,7 @@
     </flux:modal>
 
     {{-- MODAL BPJS RULE --}}
-    <flux:modal wire:model="showBpjsModal" class="md:w-96 space-y-4">
+    <flux:modal wire:model="showBpjsModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">Edit Tarif Regulasi BPJS</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">{{ strtoupper($bpjsProgramName) }}</flux:subheading>

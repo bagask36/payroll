@@ -6,6 +6,7 @@ use App\Contracts\FaceAiService;
 use App\Models\Attendance;
 use App\Models\GeofenceLocation;
 use App\Models\ScheduleAssignment;
+use App\Models\Shift;
 use App\Services\Audit\AuditService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -80,6 +81,26 @@ class ClockInOut extends Component
                 ->where('employee_id', $employee->id)
                 ->whereDate('schedule_date', $today)
                 ->first();
+
+            // Auto-fallback default regular schedule for non-shift personnel
+            if (! $this->todaySchedule && $employee->isNonShiftWorker()) {
+                $regularShift = Shift::where('type', 'non_shift')->orWhere('code', 'NON-SHIFT')->where('is_active', true)->first();
+                if ($regularShift) {
+                    $this->todaySchedule = ScheduleAssignment::firstOrCreate(
+                        [
+                            'employee_id' => $employee->id,
+                            'schedule_date' => $today,
+                        ],
+                        [
+                            'shift_id' => $regularShift->id,
+                            'status' => 'scheduled',
+                            'notes' => 'Jadwal Reguler Otomatis (Non-Shift)',
+                            'created_by' => $user->id,
+                        ]
+                    );
+                    $this->todaySchedule->load('shift');
+                }
+            }
 
             $this->todayAttendance = Attendance::with(['events', 'scheduleAssignment.shift'])
                 ->where('employee_id', $employee->id)

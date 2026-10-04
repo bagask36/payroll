@@ -17,6 +17,8 @@ final class EmployeeTable extends PowerGridComponent
 {
     public string $tableName = 'employees_table';
 
+    public string $scheduleTypeFilter = 'all';
+
     public function setUp(): array
     {
         return [
@@ -31,7 +33,7 @@ final class EmployeeTable extends PowerGridComponent
 
     public function datasource(): Builder
     {
-        return Employee::query()
+        $query = Employee::query()
             ->leftJoin('units', 'employees.unit_id', '=', 'units.id')
             ->leftJoin('positions', 'employees.position_id', '=', 'positions.id')
             ->select([
@@ -40,6 +42,17 @@ final class EmployeeTable extends PowerGridComponent
                 'positions.title as position_title',
             ])
             ->with(['currentEmployment']);
+
+        if ($this->scheduleTypeFilter === 'shift') {
+            $query->where('employees.schedule_type', 'shift');
+        } elseif ($this->scheduleTypeFilter === 'non_shift') {
+            $query->where(function ($q) {
+                $q->where('employees.schedule_type', 'non_shift')
+                    ->orWhereNull('employees.schedule_type');
+            });
+        }
+
+        return $query;
     }
 
     public function fields(): PowerGridFields
@@ -82,7 +95,23 @@ final class EmployeeTable extends PowerGridComponent
 
                 return '<span class="text-zinc-400 text-xs">-</span>';
             })
-            ->add('phone_number', fn (Employee $emp) => e($emp->phone_number ?? '-'))
+            ->add('schedule_type_badge', function (Employee $emp) {
+                $type = $emp->schedule_type ?? 'non_shift';
+                if ($type === 'shift') {
+                    return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/60 dark:text-indigo-300 dark:border-indigo-800">Shift</span>';
+                }
+
+                return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-teal-50 text-teal-700 border border-teal-200 dark:bg-teal-950/60 dark:text-teal-300 dark:border-teal-800">Non-Shift (Reguler)</span>';
+            })
+            ->add('phone_number', function (Employee $emp) {
+                $phone = e($emp->phone_number ?? '-');
+                $email = $emp->email !== '-' ? e($emp->email) : null;
+                if ($email) {
+                    return '<div><div class="font-medium text-zinc-800 dark:text-zinc-200">'.$phone.'</div><div class="text-xs text-zinc-400">'.$email.'</div></div>';
+                }
+
+                return $phone;
+            })
             ->add('status_badge', function (Employee $emp) {
                 if ($emp->status === 'active') {
                     return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800">Aktif</span>';
@@ -110,6 +139,9 @@ final class EmployeeTable extends PowerGridComponent
                 ->searchable()
                 ->sortable(),
 
+            Column::make('Pola Kerja', 'schedule_type_badge', 'employees.schedule_type')
+                ->sortable(),
+
             Column::make('Ikatan Kerja', 'contract_badge'),
 
             Column::make('Kontak', 'phone_number', 'employees.phone_number')
@@ -127,6 +159,14 @@ final class EmployeeTable extends PowerGridComponent
         return [
             Filter::inputText('employees.full_name')->placeholder('Cari nama...'),
             Filter::inputText('employees.nip')->placeholder('Cari NIP...'),
+            Filter::select('employees.schedule_type')
+                ->dataSource([
+                    ['name' => 'Semua Pola Kerja', 'id' => ''],
+                    ['name' => 'Non-Shift (Reguler)', 'id' => 'non_shift'],
+                    ['name' => 'Shift (Operasional)', 'id' => 'shift'],
+                ])
+                ->optionValue('id')
+                ->optionLabel('name'),
             Filter::select('employees.status')
                 ->dataSource([
                     ['name' => 'Semua Status', 'id' => ''],

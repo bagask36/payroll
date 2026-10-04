@@ -20,6 +20,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -46,6 +47,8 @@ class EmployeeShow extends Component
 
     public string $bioFullName = '';
 
+    public string $bioEmail = '';
+
     public string $bioPhone = '';
 
     public string $bioAddress = '';
@@ -61,6 +64,8 @@ class EmployeeShow extends Component
     public string $bioReligion = 'islam';
 
     public int $bioTaxDependents = 0;
+
+    public string $bioScheduleType = 'non_shift';
 
     public ?string $bioNpwp = null;
 
@@ -669,6 +674,7 @@ class EmployeeShow extends Component
         $e = $this->employee;
         $canSensitive = (bool) Auth::user()?->can('viewSensitive', $e);
         $this->bioFullName = (string) $e->full_name;
+        $this->bioEmail = (string) ($e->email !== '-' ? $e->email : '');
         $this->bioPhone = (string) $e->phone_number;
         $this->bioAddress = $canSensitive ? (string) $e->residential_address : '';
         $this->bioGender = (string) ($e->gender ?: 'male');
@@ -677,6 +683,7 @@ class EmployeeShow extends Component
         $this->bioMaritalStatus = (string) ($e->marital_status ?: 'single');
         $this->bioReligion = (string) ($e->religion ?: 'islam');
         $this->bioTaxDependents = (int) $e->tax_dependents;
+        $this->bioScheduleType = (string) ($e->schedule_type ?? 'non_shift');
         // Sensitive PII only pre-filled for users allowed to see it
         $this->bioNpwp = $canSensitive ? $e->npwp_number : null;
         $this->bioKtp = $canSensitive ? $e->ktp_number : null;
@@ -693,6 +700,7 @@ class EmployeeShow extends Component
 
         $rules = [
             'bioFullName' => ['required', 'string', 'max:150'],
+            'bioEmail' => ['nullable', 'email', 'max:150', Rule::unique('employees', 'email')->ignore($this->employee->id)],
             'bioPhone' => ['required', 'string', 'max:30'],
             'bioGender' => ['required', 'in:male,female'],
             'bioBirthPlace' => ['required', 'string', 'max:100'],
@@ -700,6 +708,7 @@ class EmployeeShow extends Component
             'bioMaritalStatus' => ['required', 'in:single,married,divorced,widowed'],
             'bioReligion' => ['nullable', 'in:islam,kristen,katolik,hindu,buddha,khonghucu'],
             'bioTaxDependents' => ['required', 'integer', 'min:0', 'max:3'],
+            'bioScheduleType' => ['required', 'in:non_shift,shift'],
         ];
         if ($canEditSensitive) {
             $rules['bioKtp'] = ['required', 'digits:16'];
@@ -709,6 +718,8 @@ class EmployeeShow extends Component
 
         $this->validate($rules, [
             'bioFullName.required' => 'Nama lengkap wajib diisi.',
+            'bioEmail.email' => 'Format alamat email tidak valid.',
+            'bioEmail.unique' => 'Alamat email sudah terdaftar pada pegawai lain.',
             'bioPhone.required' => 'Nomor telepon wajib diisi.',
             'bioAddress.required' => 'Alamat wajib diisi.',
             'bioBirthDate.before' => 'Tanggal lahir harus sebelum hari ini.',
@@ -716,13 +727,14 @@ class EmployeeShow extends Component
             'bioKtp.digits' => 'NIK KTP harus 16 digit angka.',
         ]);
 
-        $tracked = ['full_name', 'phone_number', 'residential_address', 'gender', 'birth_place', 'birth_date', 'marital_status', 'religion', 'tax_dependents', 'npwp_number'];
+        $tracked = ['full_name', 'email', 'phone_number', 'residential_address', 'gender', 'birth_place', 'birth_date', 'marital_status', 'religion', 'tax_dependents', 'npwp_number', 'schedule_type'];
         $old = collect($this->employee->only($tracked))
             ->map(fn ($v) => $v instanceof \DateTimeInterface ? $v->format('Y-m-d') : $v)
             ->all();
 
         $data = [
             'full_name' => $this->bioFullName,
+            'email' => $this->bioEmail ?: null,
             'phone_number' => $this->bioPhone,
             'gender' => $this->bioGender,
             'birth_place' => $this->bioBirthPlace,
@@ -730,6 +742,7 @@ class EmployeeShow extends Component
             'marital_status' => $this->bioMaritalStatus,
             'religion' => $this->bioReligion ?: null,
             'tax_dependents' => $this->bioTaxDependents,
+            'schedule_type' => $this->bioScheduleType,
         ];
 
         $ktpChanged = false;

@@ -37,9 +37,19 @@ class Employee extends Model
         'tax_dependents',
         'npwp_number',
         'phone_number',
+        'email',
         'residential_address',
         'face_biometric_vector',
         'status',
+        'schedule_type',
+    ];
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'schedule_type' => 'non_shift',
+        'status' => 'active',
     ];
 
     /**
@@ -250,7 +260,7 @@ class Employee extends Model
      */
     public function getEmailAttribute(): string
     {
-        return $this->user?->email ?? '-';
+        return $this->attributes['email'] ?? $this->user?->email ?? '-';
     }
 
     /**
@@ -269,6 +279,45 @@ class Employee extends Model
     public function scopeActive(Builder $query): void
     {
         $query->where('status', 'active');
+    }
+
+    /**
+     * Scope query to shift-based workers only.
+     *
+     * @param  Builder<$this>  $query
+     */
+    public function scopeShift(Builder $query): void
+    {
+        $query->where('schedule_type', 'shift');
+    }
+
+    /**
+     * Scope query to non-shift regular office workers only.
+     *
+     * @param  Builder<$this>  $query
+     */
+    public function scopeNonShift(Builder $query): void
+    {
+        $query->where(function (Builder $q) {
+            $q->where('schedule_type', 'non_shift')
+                ->orWhereNull('schedule_type');
+        });
+    }
+
+    /**
+     * Check if employee works on rotating shifts.
+     */
+    public function isShiftWorker(): bool
+    {
+        return $this->schedule_type === 'shift';
+    }
+
+    /**
+     * Check if employee works on regular non-shift office schedule.
+     */
+    public function isNonShiftWorker(): bool
+    {
+        return ($this->schedule_type ?? 'non_shift') === 'non_shift';
     }
 
     /**

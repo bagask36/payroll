@@ -30,7 +30,7 @@
     </flux:card>
 
     {{-- MODAL POSITION --}}
-    <flux:modal wire:model="showPositionModal" class="md:w-lg space-y-4">
+    <flux:modal wire:model="showPositionModal" class="md:w-3xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingPositionId ? 'Edit Standar Jabatan' : 'Tambah Jabatan Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Penetapan gelar posisi, jenjang karir, dan standar remunerasi.</flux:subheading>

@@ -29,8 +29,14 @@ class EmployeeIndex extends Component
     #[Url(except: 'all')]
     public string $contractFilter = 'all';
 
+    #[Url(except: 'all')]
+    public string $scheduleTypeFilter = 'all';
+
     // Create Employee Modal State
     public bool $showCreateModal = false;
+
+    #[Rule(['required', 'in:non_shift,shift'])]
+    public string $scheduleType = 'non_shift';
 
     #[Rule(['required', 'string', 'max:20', 'unique:employees,nip'])]
     public string $nip = '';
@@ -40,6 +46,9 @@ class EmployeeIndex extends Component
 
     #[Rule(['required', 'string', 'max:25'])]
     public string $phone = '';
+
+    #[Rule(['nullable', 'email', 'max:150', 'unique:employees,email'])]
+    public string $email = '';
 
     #[Rule(['required', 'in:male,female'])]
     public string $gender = 'male';
@@ -102,6 +111,7 @@ class EmployeeIndex extends Component
             'unitFilter' => 'all',
             'statusFilter' => 'active',
             'contractFilter' => 'all',
+            'scheduleTypeFilter' => 'all',
         ];
     }
 
@@ -109,7 +119,9 @@ class EmployeeIndex extends Component
     {
         $this->authorize('create', Employee::class);
         $this->resetValidation();
+        $this->scheduleType = 'non_shift';
         $this->nip = 'PEG-'.Carbon::now()->format('Ym').str_pad((string) rand(1, 999), 3, '0', STR_PAD_LEFT);
+        $this->email = '';
         $this->showCreateModal = true;
     }
 
@@ -122,6 +134,7 @@ class EmployeeIndex extends Component
             'nip' => $this->nip,
             'full_name' => $this->name,
             'phone_number' => $this->phone,
+            'email' => $this->email ?: null,
             'gender' => $this->gender,
             'birth_place' => $this->birthPlace,
             'birth_date' => $this->birthDate,
@@ -129,6 +142,7 @@ class EmployeeIndex extends Component
             'residential_address' => $this->address,
             'unit_id' => $this->unitId,
             'position_id' => $this->positionId,
+            'schedule_type' => $this->scheduleType,
             'status' => 'active',
         ]);
 
@@ -149,14 +163,16 @@ class EmployeeIndex extends Component
             newValues: [
                 'nip' => $this->nip,
                 'name' => $this->name,
+                'email' => $this->email ?: null,
                 'unit_id' => $this->unitId,
                 'position_id' => $this->positionId,
+                'schedule_type' => $this->scheduleType,
             ]
         );
 
         $this->showCreateModal = false;
         $this->feedbackMessage = "Pegawai {$this->name} (NIP: {$this->nip}) berhasil didaftarkan.";
-        $this->reset(['name', 'phone', 'ktpNumber']);
+        $this->reset(['name', 'phone', 'email', 'ktpNumber']);
     }
 
     public function render()
@@ -185,6 +201,14 @@ class EmployeeIndex extends Component
             });
         }
 
+        if ($this->scheduleTypeFilter === 'shift') {
+            $query->where('schedule_type', 'shift');
+        } elseif ($this->scheduleTypeFilter === 'non_shift') {
+            $query->where(function ($q) {
+                $q->where('schedule_type', 'non_shift')->orWhereNull('schedule_type');
+            });
+        }
+
         $this->applySorting($query, 'full_name', 'asc');
 
         $employees = $query->paginate($this->perPageValue());
@@ -194,6 +218,8 @@ class EmployeeIndex extends Component
         $stats = [
             'total' => Employee::count(),
             'active' => Employee::where('status', 'active')->count(),
+            'non_shift' => Employee::where(fn ($q) => $q->where('schedule_type', 'non_shift')->orWhereNull('schedule_type'))->where('status', 'active')->count(),
+            'shift' => Employee::where('schedule_type', 'shift')->where('status', 'active')->count(),
             'permanent' => Employee::whereHas('currentEmployment', fn ($q) => $q->where('contract_type', 'permanent'))->count(),
             'contract' => Employee::whereHas('currentEmployment', fn ($q) => $q->where('contract_type', 'contract'))->count(),
         ];

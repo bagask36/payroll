@@ -20,6 +20,7 @@ class Shift extends Model
     protected $fillable = [
         'code',
         'name',
+        'type',
         'start_time',
         'end_time',
         'is_overnight',
@@ -84,5 +85,41 @@ class Shift extends Model
     public function scopeActive(Builder $query): void
     {
         $query->where('is_active', true);
+    }
+
+    /**
+     * Check if this is an operational rotating shift.
+     */
+    public function isShift(): bool
+    {
+        return ($this->type ?? 'shift') === 'shift';
+    }
+
+    /**
+     * Check if this is a regular non-shift office hour schedule.
+     */
+    public function isNonShift(): bool
+    {
+        return $this->type === 'non_shift';
+    }
+
+    /**
+     * Scope query to rotating shifts only.
+     *
+     * @param  Builder<$this>  $query
+     */
+    public function scopeShift(Builder $query): void
+    {
+        $query->where('type', 'shift');
+    }
+
+    /**
+     * Scope query to non-shift regular schedules only.
+     *
+     * @param  Builder<$this>  $query
+     */
+    public function scopeNonShift(Builder $query): void
+    {
+        $query->where('type', 'non_shift');
     }
 }

@@ -135,7 +135,7 @@
     </flux:card>
 
     {{-- MODAL TAMBAH / EDIT --}}
-    <flux:modal wire:model="showModal" class="md:w-[500px] space-y-4">
+    <flux:modal wire:model="showModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingId ? 'Edit Master Jenis SP' : 'Tambah Jenis SP Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Atur kode sanksi, tingkat keparahan, dan standar masa berlaku surat peringatan.</flux:subheading>

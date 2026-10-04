@@ -10,9 +10,9 @@
             </flux:subheading>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
             @can('calculate', App\Models\PayrollRun::class)
-                <flux:button variant="subtle" icon="sparkles" wire:click="openThrModal" class="border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40">
+                <flux:button variant="subtle" icon="sparkles" wire:click="openThrModal" class="border border-purple-500/30 text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40">
                     Kalkulasi THR (Off-Cycle)
                 </flux:button>
                 <flux:button variant="primary" icon="calculator" wire:click="openCalculateModal">
@@ -45,38 +45,44 @@
 
     {{-- Run Selection & Status Header Card --}}
     <flux:card class="space-y-4">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div class="flex items-center gap-3">
-                <label class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Pilih Batch Payroll:</label>
-                <flux:select wire:model.live="selectedRunId" class="w-72">
-                    @forelse($runs as $r)
-                        <flux:select.option value="{{ $r->id }}">
-                            {{ $r->isThr() ? '🎉 [THR] ' : '' }}{{ $r->period?->name }} ({{ $r->run_date->format('d/m/Y') }})
-                        </flux:select.option>
-                    @empty
-                        <flux:select.option value="">Belum ada batch payroll</flux:select.option>
-                    @endforelse
-                </flux:select>
-            </div>
+        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+            {{-- Left: Batch Selector & Status Badges --}}
+            <div class="flex flex-wrap items-center gap-3 min-w-0">
+                <div class="flex items-center gap-2">
+                    <label class="text-xs font-semibold text-zinc-500 uppercase tracking-wider shrink-0">Batch Payroll:</label>
+                    <flux:select wire:model.live="selectedRunId" class="w-64 sm:w-72">
+                        @forelse($runs as $r)
+                            <flux:select.option value="{{ $r->id }}">
+                                {{ $r->isThr() ? '🎉 [THR] ' : '' }}{{ $r->period?->name }} ({{ $r->run_date->format('d/m/Y') }})
+                            </flux:select.option>
+                        @empty
+                            <flux:select.option value="">Belum ada batch payroll</flux:select.option>
+                        @endforelse
+                    </flux:select>
+                </div>
 
-            @if($selectedRun)
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-xs text-zinc-400">Status:</span>
-                        @if($selectedRun->isThr())
-                            <flux:badge size="sm" color="purple" icon="sparkles">Off-Cycle THR: {{ $selectedRun->metadata['holiday_name'] ?? 'Tunjangan Hari Raya' }}</flux:badge>
-                        @endif
+                @if($selectedRun)
+                    <div class="flex items-center gap-2">
                         @if($selectedRun->status === 'draft')
                             <flux:badge size="sm" color="zinc">Draft</flux:badge>
                         @elseif($selectedRun->status === 'calculated')
                             <flux:badge size="sm" color="amber">Terkalkulasi (Simulasi)</flux:badge>
                         @elseif($selectedRun->status === 'finalized')
-                            <flux:badge size="sm" color="emerald">Final & Terkunci (Immutable)</flux:badge>
+                            <flux:badge size="sm" color="emerald">Final & Terkunci</flux:badge>
                         @elseif($selectedRun->status === 'paid')
                             <flux:badge size="sm" color="blue">Telah Dicairkan (Paid)</flux:badge>
                         @endif
-                    </div>
 
+                        @if($selectedRun->isThr())
+                            <flux:badge size="sm" color="purple" icon="sparkles">Off-Cycle THR</flux:badge>
+                        @endif
+                    </div>
+                @endif
+            </div>
+
+            {{-- Right: Actions (CSV Export & Finalize) --}}
+            @if($selectedRun)
+                <div class="flex flex-wrap items-center gap-2 shrink-0">
                     @can('export', App\Models\PayrollRun::class)
                         <flux:button 
                             size="sm" 
@@ -84,7 +90,7 @@
                             icon="arrow-down-tray"
                             wire:click="exportBankDisbursement"
                         >
-                            Ekspor Transfer Bank (CSV)
+                            Ekspor Transfer (CSV)
                         </flux:button>
                     @endcan
 
@@ -106,36 +112,53 @@
             @endif
         </div>
 
+        {{-- Off-Cycle THR Metadata Banner --}}
+        @if($selectedRun && $selectedRun->isThr())
+            <div class="flex flex-wrap items-center justify-between gap-3 p-3 rounded-xl bg-purple-50/80 dark:bg-purple-950/30 border border-purple-200/80 dark:border-purple-800/60 text-xs">
+                <div class="flex items-center gap-2.5 text-purple-900 dark:text-purple-200 font-medium">
+                    <flux:icon name="sparkles" class="size-4 shrink-0 text-purple-600 dark:text-purple-400" />
+                    <span><strong>Event THR:</strong> {{ $selectedRun->metadata['holiday_name'] ?? 'Tunjangan Hari Raya' }}</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 text-purple-700 dark:text-purple-300">
+                    <span>Cutoff Masa Kerja: <strong class="font-mono">{{ \Carbon\Carbon::parse($selectedRun->metadata['cutoff_date'] ?? $selectedRun->run_date)->format('d/m/Y') }}</strong></span>
+                    <span>•</span>
+                    <span>Penerima: <strong class="capitalize">{{ $selectedRun->metadata['target_religion'] === 'all' || empty($selectedRun->metadata['target_religion']) ? 'Semua Karyawan' : $selectedRun->metadata['target_religion'] }}</strong></span>
+                    <span>•</span>
+                    <span>Total Personil: <strong>{{ $selectedRun->metadata['processed_count'] ?? $selectedRun->items()->count() }} Pegawai</strong></span>
+                </div>
+            </div>
+        @endif
+
         {{-- KPI Summary Cards for Selected Run --}}
         @if($selectedRun)
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
                 <x-stat-card 
-                    label="Total Penghasilan Bruto" 
+                    label="Total Penghasilan" 
                     value="Rp {{ number_format((float) $selectedRun->total_gross_pay, 0, ',', '.') }}" 
                     icon="banknotes" 
                     color="zinc" 
-                    sublabel="Gaji pokok & seluruh tunjangan" 
+                    hint="Gaji pokok & seluruh tunjangan" 
                 />
                 <x-stat-card 
-                    label="Total Potongan (BPJS & Pajak)" 
+                    label="Total Potongan" 
                     value="Rp {{ number_format((float) $selectedRun->total_deductions, 0, ',', '.') }}" 
                     icon="receipt-refund" 
                     color="red" 
-                    sublabel="Iuran BPJS karyawan & potongan" 
+                    hint="{{ $selectedRun->isThr() ? 'PPh 21 atas THR (Bebas BPJS)' : 'Iuran BPJS & PPh 21' }}" 
                 />
                 <x-stat-card 
-                    label="Total Gaji Bersih (Net Pay)" 
+                    label="Total Gaji Bersih" 
                     value="Rp {{ number_format((float) $selectedRun->total_net_pay, 0, ',', '.') }}" 
                     icon="check-circle" 
                     color="emerald" 
-                    sublabel="Komitmen transfer pencairan bank" 
+                    hint="Komitmen transfer bank" 
                 />
                 <x-stat-card 
-                    label="Status Pemrosesan" 
+                    label="Status Batch" 
                     value="{{ strtoupper($selectedRun->status) }}" 
                     icon="shield-check" 
                     color="blue" 
-                    sublabel="Diproses: {{ $selectedRun->processedBy?->name ?? '-' }}" 
+                    hint="Diproses: {{ $selectedRun->processedBy?->name ?? '-' }}" 
                 />
             </div>
         @endif
@@ -166,7 +189,7 @@
     @endif
 
     {{-- Calculate Payroll Modal --}}
-    <flux:modal wire:model="showCalculateModal" class="md:w-96 space-y-4">
+    <flux:modal wire:model="showCalculateModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">Kalkulasi Payroll Baru</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Pilih periode aktif untuk menghitung gaji seluruh pegawai aktif.</flux:subheading>
@@ -195,7 +218,7 @@
     </flux:modal>
 
     {{-- Calculate THR Modal --}}
-    <flux:modal wire:model="showThrModal" class="md:w-[28rem] space-y-4">
+    <flux:modal wire:model="showThrModal" class="md:w-2xl space-y-4">
         <div>
             <div class="flex items-center gap-2">
                 <flux:icon name="sparkles" class="size-5 text-emerald-600" />
@@ -267,7 +290,7 @@
 
     {{-- Payslip Item Detail Modal --}}
     @if($viewingItem)
-        <flux:modal wire:model="showItemDetailModal" class="md:w-[32rem] space-y-4">
+        <flux:modal wire:model="showItemDetailModal" class="md:w-3xl space-y-4">
             <div class="border-b border-zinc-100 dark:border-zinc-800 pb-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2.5">

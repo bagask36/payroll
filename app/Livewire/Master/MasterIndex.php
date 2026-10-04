@@ -68,6 +68,8 @@ class MasterIndex extends Component
 
     public string $shiftEndTime = '14:00';
 
+    public string $shiftType = 'shift';
+
     public bool $shiftIsOvernight = false;
 
     public int $shiftLateTolerance = 15;
@@ -282,6 +284,7 @@ class MasterIndex extends Component
     public function openCreateShift(): void
     {
         $this->reset(['editingShiftId', 'shiftCode', 'shiftName', 'shiftStartTime', 'shiftEndTime']);
+        $this->shiftType = 'shift';
         $this->shiftIsOvernight = false;
         $this->shiftLateTolerance = 15;
         $this->shiftIsActive = true;
@@ -294,6 +297,7 @@ class MasterIndex extends Component
         $this->editingShiftId = $shift->id;
         $this->shiftCode = $shift->code;
         $this->shiftName = $shift->name;
+        $this->shiftType = $shift->type ?? 'shift';
         $this->shiftStartTime = substr($shift->start_time, 0, 5);
         $this->shiftEndTime = substr($shift->end_time, 0, 5);
         $this->shiftIsOvernight = $shift->is_overnight;
@@ -307,6 +311,7 @@ class MasterIndex extends Component
         $this->validate([
             'shiftCode' => 'required|string|max:20|unique:shifts,code,'.$this->editingShiftId,
             'shiftName' => 'required|string|max:100',
+            'shiftType' => 'required|in:shift,non_shift',
             'shiftStartTime' => 'required|date_format:H:i',
             'shiftEndTime' => 'required|date_format:H:i',
             'shiftLateTolerance' => 'required|integer|min:0|max:120',
@@ -317,6 +322,7 @@ class MasterIndex extends Component
             $shift->update([
                 'code' => $this->shiftCode,
                 'name' => $this->shiftName,
+                'type' => $this->shiftType,
                 'start_time' => $this->shiftStartTime,
                 'end_time' => $this->shiftEndTime,
                 'is_overnight' => $this->shiftIsOvernight,
@@ -328,6 +334,7 @@ class MasterIndex extends Component
             $shift = Shift::create([
                 'code' => $this->shiftCode,
                 'name' => $this->shiftName,
+                'type' => $this->shiftType,
                 'start_time' => $this->shiftStartTime,
                 'end_time' => $this->shiftEndTime,
                 'is_overnight' => $this->shiftIsOvernight,
@@ -337,7 +344,7 @@ class MasterIndex extends Component
             $action = 'shift.created';
         }
 
-        $auditService->log(action: $action, auditable: $shift, newValues: ['name' => $shift->name]);
+        $auditService->log(action: $action, auditable: $shift, newValues: ['name' => $shift->name, 'type' => $shift->type]);
         $this->showShiftModal = false;
         $this->feedbackMessage = "Shift kerja {$shift->name} berhasil disimpan!";
     }

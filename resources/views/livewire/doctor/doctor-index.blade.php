@@ -9,6 +9,13 @@
                 Pemantauan kredensial praktik medis, Surat Tanda Registrasi (STR), dan Surat Izin Praktik (SIP) RS Juwita.
             </flux:subheading>
         </div>
+        @can('create', App\Models\Doctor::class)
+            <div class="flex items-center gap-2">
+                <flux:button variant="primary" icon="plus" wire:click="openCreateModal">
+                    Tambah Dokter Baru
+                </flux:button>
+            </div>
+        @endcan
     </div>
 
     {{-- Feedback Message --}}
@@ -59,15 +66,32 @@
         <livewire:tables.doctor-table />
     </flux:card>
 
-    {{-- Flux Native Modal for Credential Renewal --}}
+    {{-- Flux Native Modal for Credential Renewal & Contact Edit --}}
     @if($showRenewalModal)
-        <flux:modal wire:model="showRenewalModal" class="md:w-[28rem] space-y-6">
+        <flux:modal wire:model="showRenewalModal" class="md:w-2xl space-y-6">
             <div>
-                <flux:heading size="lg">Perbarui Kredensial Praktik Medis</flux:heading>
+                <flux:heading size="lg">Perbarui Kredensial & Kontak Dokter</flux:heading>
                 <flux:subheading class="text-xs text-zinc-500">Dokter: {{ $doctorName }}</flux:subheading>
             </div>
 
             <form wire:submit="updateCredentials" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <flux:input 
+                        wire:model="doctorEmail" 
+                        label="Alamat Email" 
+                        type="email"
+                        placeholder="dokter@rsjuwita.co.id" 
+                    />
+
+                    <flux:input 
+                        wire:model="doctorPhone" 
+                        label="Nomor Telepon / WhatsApp" 
+                        placeholder="081234567890" 
+                    />
+                </div>
+
+                <flux:separator />
+
                 <div class="space-y-3">
                     <flux:input 
                         wire:model="strNumber" 
@@ -105,7 +129,98 @@
                         <flux:button variant="subtle">Batal</flux:button>
                     </flux:modal.close>
                     <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
-                        Simpan Kredensial Baru
+                        Simpan Perubahan
+                    </flux:button>
+                </div>
+            </form>
+        </flux:modal>
+    @endif
+
+    {{-- Flux Native Modal for New Doctor Registration --}}
+    @if($showCreateModal)
+        <flux:modal wire:model="showCreateModal" class="md:w-3xl space-y-6">
+            <div>
+                <flux:heading size="lg">Pendaftaran Tenaga Medis / Dokter Baru</flux:heading>
+                <flux:subheading class="text-xs text-zinc-500">Lengkapi data pokok, kontak email, dan legalitas STR & SIP.</flux:subheading>
+            </div>
+
+            <form wire:submit="createDoctor" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                        <flux:input 
+                            wire:model="newName" 
+                            label="Nama Dokter & Gelar Lengkap" 
+                            placeholder="Contoh: dr. Ahmad Fauzi, Sp.A" 
+                            required 
+                        />
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <flux:input 
+                            wire:model="newSpecialization" 
+                            label="Spesialisasi / Bidang Keahlian" 
+                            placeholder="Contoh: Spesialis Anak" 
+                            required 
+                        />
+                    </div>
+
+                    <flux:input 
+                        wire:model="newEmail" 
+                        label="Alamat Email (Opsional)" 
+                        type="email" 
+                        placeholder="dokter@rsjuwita.co.id" 
+                    />
+
+                    <flux:input 
+                        wire:model="newPhone" 
+                        label="Nomor Telepon / WhatsApp" 
+                        placeholder="081234567890" 
+                    />
+
+                    <div class="sm:col-span-2">
+                        <flux:select wire:model="newEmployeeId" label="Tautkan Akun Pegawai Organik (Opsional)">
+                            <flux:select.option value="">Bukan Pegawai Organik (Dokter Tamu / Mitra)</flux:select.option>
+                            @foreach($organicEmployees as $emp)
+                                <flux:select.option value="{{ $emp->id }}">{{ $emp->full_name }} ({{ $emp->nip }})</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    </div>
+
+                    <flux:input 
+                        wire:model="newStrNumber" 
+                        label="Nomor STR Kemenkes" 
+                        placeholder="STR-XXXX-XXXX" 
+                        required 
+                    />
+
+                    <flux:input 
+                        wire:model="newStrValidUntil" 
+                        label="Masa Berlaku STR" 
+                        type="date" 
+                        required 
+                    />
+
+                    <flux:input 
+                        wire:model="newSipNumber" 
+                        label="Nomor SIP Dinkes" 
+                        placeholder="SIP-XXXX-XXXX" 
+                        required 
+                    />
+
+                    <flux:input 
+                        wire:model="newSipValidUntil" 
+                        label="Masa Berlaku SIP" 
+                        type="date" 
+                        required 
+                    />
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-4">
+                    <flux:modal.close>
+                        <flux:button variant="subtle">Batal</flux:button>
+                    </flux:modal.close>
+                    <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
+                        Daftarkan Dokter
                     </flux:button>
                 </div>
             </form>

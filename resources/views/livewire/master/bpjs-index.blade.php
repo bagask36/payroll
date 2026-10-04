@@ -35,7 +35,7 @@
     </flux:card>
 
     {{-- MODAL BPJS RULE --}}
-    <flux:modal wire:model="showBpjsModal" class="md:w-96 space-y-4">
+    <flux:modal wire:model="showBpjsModal" class="md:w-xl space-y-4">
         <div>
             <flux:heading size="lg">Edit Tarif Regulasi BPJS</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">{{ strtoupper($bpjsProgramName) }}</flux:subheading>

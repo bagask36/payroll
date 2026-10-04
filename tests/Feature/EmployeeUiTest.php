@@ -75,6 +75,7 @@ class EmployeeUiTest extends TestCase
             ->call('openCreateModal')
             ->set('nip', 'PEG-999901')
             ->set('name', 'Rahmat Hidayat, S.Kep')
+            ->set('email', 'rahmat.hidayat@rsjuwita.co.id')
             ->set('phone', '081234567899')
             ->set('gender', 'male')
             ->set('birthPlace', 'Bandung')
@@ -91,6 +92,7 @@ class EmployeeUiTest extends TestCase
         $this->assertDatabaseHas('employees', [
             'nip' => 'PEG-999901',
             'full_name' => 'Rahmat Hidayat, S.Kep',
+            'email' => 'rahmat.hidayat@rsjuwita.co.id',
             'birth_place' => 'Bandung',
             'unit_id' => $unit->id,
             'position_id' => $position->id,
@@ -104,6 +106,35 @@ class EmployeeUiTest extends TestCase
         $this->assertDatabaseHas('audit_logs', [
             'action' => 'employee.created',
         ]);
+    }
+
+    public function test_hr_admin_can_update_employee_email_via_biodata_modal(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('hr_admin');
+
+        $employee = Employee::factory()->create([
+            'full_name' => 'Siti Aminah',
+            'phone_number' => '081234567890',
+            'birth_place' => 'Jakarta',
+            'birth_date' => '1990-01-01',
+            'email' => 'siti.old@rsjuwita.co.id',
+            'ktp_number' => '3201010101900001',
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
+            ->call('openBioModal')
+            ->assertSet('showBioModal', true)
+            ->assertSet('bioEmail', 'siti.old@rsjuwita.co.id')
+            ->set('bioEmail', 'siti.new@rsjuwita.co.id')
+            ->call('saveBio')
+            ->assertHasNoErrors()
+            ->assertSet('showBioModal', false);
+
+        $employee->refresh();
+        $this->assertEquals('siti.new@rsjuwita.co.id', $employee->email);
     }
 
     public function test_regular_employee_cannot_view_another_employees_profile_idor(): void
