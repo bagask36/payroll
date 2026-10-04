@@ -148,7 +148,7 @@
 
                     @if(auth()->user()?->can('attendance.view_summary') || auth()->user()?->can('attendance.check_in_out') || auth()->user()?->can('attendance.view_own') || auth()->user()?->can('attendance.view_all'))
                         <flux:sidebar.item icon="clock" href="{{ route('attendance.index') }}" :current="request()->routeIs('attendance.*')">
-                            Presensi & Geofence
+                            Presensi
                         </flux:sidebar.item>
                     @endif
 
@@ -176,7 +176,7 @@
 
                         @if($canSeeMyPayslips)
                             <flux:sidebar.item icon="receipt-percent" href="{{ route('payroll.my-payslips') }}" :current="request()->routeIs('payroll.my-payslips')">
-                                Slip Gaji Saya
+                                Slip Gaji
                             </flux:sidebar.item>
                         @endif
 
