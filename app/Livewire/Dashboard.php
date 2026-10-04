@@ -27,6 +27,8 @@ class Dashboard extends Component
 
     public int $pendingLeavesCount = 0;
 
+    public array $hrAnalytics = [];
+
     // Role View Indicator
     public string $userRole = 'management';
 
@@ -83,6 +85,7 @@ class Dashboard extends Component
             $this->payroll = $dashboardService->getPayrollSummary();
             $this->doctorAlerts = $dashboardService->getDoctorCredentialsAlerts(expiringDays: 60);
             $this->pendingLeavesCount = LeaveRequest::whereIn('status', ['pending_tier1', 'pending_tier2'])->count();
+            $this->hrAnalytics = $dashboardService->getHrDemographicsAndKpis();
         } elseif ($user->hasRole('supervisor')) {
             $this->userRole = 'supervisor';
             $this->loadSupervisorData($user);

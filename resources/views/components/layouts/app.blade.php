@@ -374,17 +374,8 @@
                     <kbd class="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-white dark:bg-zinc-700 border border-zinc-200 dark:border-zinc-600 rounded text-zinc-400 dark:text-zinc-300">⌘K</kbd>
                 </button>
 
-                {{-- Notification / Pending Leave Quick Shortcut --}}
-                @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('supervisor') || auth()->user()?->hasRole('hr_manager'))
-                    <a 
-                        href="{{ route('leaves.index') }}" 
-                        title="Daftar Pengajuan Cuti &amp; Izin" 
-                        class="relative flex items-center justify-center size-8.5 rounded-xl border border-zinc-200/80 bg-zinc-50/80 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition-colors"
-                    >
-                        <flux:icon name="bell" class="size-4" />
-                        <span class="absolute top-1.5 right-1.5 size-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900"></span>
-                    </a>
-                @endif
+                {{-- Interactive Hospital Alert & Notification Dropdown --}}
+                <x-notification-dropdown />
 
                 {{-- Dark Mode Toggle --}}
                 <flux:button

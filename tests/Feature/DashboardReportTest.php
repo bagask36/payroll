@@ -131,4 +131,26 @@ class DashboardReportTest extends TestCase
         $this->assertEquals('[REDACTED]', $log->new_values['face_embedding']);
         $this->assertEquals(6500000, $log->new_values['basic_salary']);
     }
+
+    public function test_it_generates_comprehensive_hr_demographics_and_kpis(): void
+    {
+        $service = app(HospitalDashboardService::class);
+        $hrData = $service->getHrDemographicsAndKpis();
+
+        $this->assertArrayHasKey('total_active_employees', $hrData);
+        $this->assertArrayHasKey('average_age', $hrData);
+        $this->assertArrayHasKey('age_distribution', $hrData);
+        $this->assertArrayHasKey('gender', $hrData);
+        $this->assertArrayHasKey('education_distribution', $hrData);
+        $this->assertArrayHasKey('tenure', $hrData);
+        $this->assertArrayHasKey('unit_distribution', $hrData);
+        $this->assertArrayHasKey('kpis', $hrData);
+
+        $this->assertGreaterThan(0, $hrData['total_active_employees']);
+        $this->assertGreaterThan(18, $hrData['average_age']);
+        $this->assertGreaterThan(0, $hrData['gender']['male_count'] + $hrData['gender']['female_count']);
+        $this->assertNotEmpty($hrData['education_distribution']);
+        $this->assertGreaterThanOrEqual(0, $hrData['kpis']['attendance_rate']);
+        $this->assertGreaterThanOrEqual(0, $hrData['kpis']['discipline_index']);
+    }
 }

@@ -1232,78 +1232,366 @@
             </div>
         @endif
 
-        {{-- Quick Operational Shortcuts (Launchpad Hub) --}}
-        <div>
-            <div class="mb-3.5 flex items-center justify-between">
-                <div>
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Navigasi Operasional Cepat</h3>
-                    <p class="text-[11px] text-zinc-400 mt-0.5">Pusat kendali dan akses instan ke seluruh modul utama</p>
+        {{-- HR Analytics & SDM Demographics Dashboard --}}
+        @if(!empty($hrAnalytics))
+            <div class="space-y-6">
+                {{-- Section Title & Filter Summary --}}
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-zinc-200/80 pb-3.5 dark:border-zinc-800">
+                    <div>
+                        <div class="flex items-center gap-2.5">
+                            <h3 class="text-sm font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
+                                Statistik &amp; Demografi SDM Rumah Sakit
+                            </h3>
+                            <flux:badge size="sm" color="emerald" class="font-semibold shadow-2xs">
+                                Terverifikasi
+                            </flux:badge>
+                        </div>
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                            Profil komprehensif demografi pegawai, jenjang pendidikan, rasio gender, masa kerja, dan indikator performa (KPI)
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="rounded-xl border border-zinc-200/80 bg-zinc-50/80 px-3 py-1.5 text-xs font-semibold text-zinc-600 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-zinc-300">
+                            Total SDM Organik: <strong class="text-zinc-900 dark:text-zinc-100">{{ $hrAnalytics['total_active_employees'] ?? 0 }}</strong> Orang
+                        </span>
+                        <a href="{{ route('employees.index') }}" class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400">
+                            <span>Detail SDM</span>
+                            <span>&rarr;</span>
+                        </a>
+                    </div>
                 </div>
-                <button 
-                    type="button" 
-                    x-data 
-                    x-on:click="$dispatch('open-command-palette')" 
-                    class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400 cursor-pointer"
-                >
-                    Lihat Semua Menu (⌘K) &rarr;
-                </button>
+
+                {{-- 1. KPI & Performance Indicators (4 Modern Metric Cards) --}}
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    {{-- KPI 1: Kehadiran Bulanan --}}
+                    <div class="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                        <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Tingkat Kehadiran</span>
+                                <div class="flex size-9 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+                                    <flux:icon name="clock" class="size-4.5" />
+                                </div>
+                            </div>
+                            <div class="mt-3 flex items-baseline gap-2">
+                                <span class="font-mono text-3xl font-extrabold tabular-nums text-zinc-900 dark:text-zinc-100">
+                                    {{ $hrAnalytics['kpis']['attendance_rate'] ?? 100 }}%
+                                </span>
+                                <flux:badge size="xs" color="emerald" class="font-bold">Bulan Ini</flux:badge>
+                            </div>
+                        </div>
+                        <div class="mt-4 border-t border-zinc-100 pt-3 text-[11px] text-zinc-400 dark:border-zinc-800 flex items-center justify-between">
+                            <span>Target KPI: &ge; 95%</span>
+                            <span class="font-semibold text-emerald-600 dark:text-emerald-400">Optimal</span>
+                        </div>
+                    </div>
+
+                    {{-- KPI 2: Ketepatan Waktu Presensi --}}
+                    <div class="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                        <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Ketepatan Waktu</span>
+                                <div class="flex size-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+                                    <flux:icon name="check-circle" class="size-4.5" />
+                                </div>
+                            </div>
+                            <div class="mt-3 flex items-baseline gap-2">
+                                <span class="font-mono text-3xl font-extrabold tabular-nums text-blue-600 dark:text-blue-400">
+                                    {{ $hrAnalytics['kpis']['punctuality_rate'] ?? 100 }}%
+                                </span>
+                                <flux:badge size="xs" color="blue" class="font-bold">Punctuality</flux:badge>
+                            </div>
+                        </div>
+                        <div class="mt-4 border-t border-zinc-100 pt-3 text-[11px] text-zinc-400 dark:border-zinc-800 flex items-center justify-between">
+                            <span>Check-in bebas keterlambatan</span>
+                            <span class="font-semibold text-blue-600 dark:text-blue-400">Terpantau</span>
+                        </div>
+                    </div>
+
+                    {{-- KPI 3: Indeks Kepatuhan Disiplin (Bebas SP) --}}
+                    <div class="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                        <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-purple-500 to-violet-500"></div>
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Kepatuhan Disiplin</span>
+                                <div class="flex size-9 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
+                                    <flux:icon name="shield-check" class="size-4.5" />
+                                </div>
+                            </div>
+                            <div class="mt-3 flex items-baseline gap-2">
+                                <span class="font-mono text-3xl font-extrabold tabular-nums text-purple-600 dark:text-purple-400">
+                                    {{ $hrAnalytics['kpis']['discipline_index'] ?? 100 }}%
+                                </span>
+                                <flux:badge size="xs" color="purple" class="font-bold">Bebas SP</flux:badge>
+                            </div>
+                        </div>
+                        <div class="mt-4 border-t border-zinc-100 pt-3 text-[11px] text-zinc-400 dark:border-zinc-800 flex items-center justify-between">
+                            <span>SP/Teguran Aktif: <strong class="text-zinc-700 dark:text-zinc-300">{{ $hrAnalytics['kpis']['active_warning_letters'] ?? 0 }}</strong></span>
+                            <span class="font-semibold text-purple-600 dark:text-purple-400">Disiplin Kerja</span>
+                        </div>
+                    </div>
+
+                    {{-- KPI 4: Rata-Rata Saldo Cuti Aktif --}}
+                    <div class="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                        <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500"></div>
+                        <div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Sisa Cuti Rata-rata</span>
+                                <div class="flex size-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
+                                    <flux:icon name="document-text" class="size-4.5" />
+                                </div>
+                            </div>
+                            <div class="mt-3 flex items-baseline gap-2">
+                                <span class="font-mono text-3xl font-extrabold tabular-nums text-amber-600 dark:text-amber-400">
+                                    {{ $hrAnalytics['kpis']['avg_leave_balance'] ?? 0 }}
+                                </span>
+                                <span class="text-xs font-bold text-zinc-400">Hari / Pegawai</span>
+                            </div>
+                        </div>
+                        <div class="mt-4 border-t border-zinc-100 pt-3 text-[11px] text-zinc-400 dark:border-zinc-800 flex items-center justify-between">
+                            <span>Kesejahteraan &amp; Hak Istirahat</span>
+                            <span class="font-semibold text-amber-600 dark:text-amber-400">Tahun {{ now()->year }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 2. Core Demographics Grid (Usia, Gender, Pendidikan) --}}
+                <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
+                    {{-- Card 1: Statistik Karyawan per Usia --}}
+                    <div class="flex flex-col justify-between rounded-3xl border border-zinc-200/80 bg-white p-5 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <div>
+                            <div class="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
+                                <div>
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200">
+                                        Demografi Rentang Usia
+                                    </h4>
+                                    <p class="text-[11px] text-zinc-400 mt-0.5">
+                                        Rata-rata Usia: <strong class="text-emerald-600 dark:text-emerald-400 font-mono">{{ $hrAnalytics['average_age'] ?? 0 }} Tahun</strong>
+                                    </p>
+                                </div>
+                                <div class="flex size-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+                                    <flux:icon name="user" class="size-4" />
+                                </div>
+                            </div>
+
+                            <div class="mt-4 space-y-3.5">
+                                @forelse($hrAnalytics['age_distribution'] ?? [] as $ageGroup)
+                                    <div>
+                                        <div class="flex items-center justify-between text-xs mb-1">
+                                            <span class="font-medium text-zinc-700 dark:text-zinc-300">
+                                                {{ $ageGroup['range'] }} Thn
+                                            </span>
+                                            <span class="font-mono text-zinc-500 dark:text-zinc-400">
+                                                <strong class="text-zinc-900 dark:text-zinc-100">{{ $ageGroup['count'] }}</strong> ({{ $ageGroup['percentage'] }}%)
+                                            </span>
+                                        </div>
+                                        <div class="h-2 w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                                            <div 
+                                                class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all duration-500" 
+                                                style="width: {{ $ageGroup['percentage'] }}%"
+                                            ></div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <p class="text-xs text-zinc-400 py-4 text-center">Data usia belum tersedia</p>
+                                @endforelse
+                            </div>
+                        </div>
+
+                        <div class="mt-5 pt-3.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[11px] text-zinc-400">
+                            <span>Kelompok usia produktif</span>
+                            <span class="font-semibold text-emerald-600 dark:text-emerald-400">25 - 45 Thn Dominan</span>
+                        </div>
+                    </div>
+
+                    {{-- Card 2: Komposisi Jenis Kelamin --}}
+                    <div class="flex flex-col justify-between rounded-3xl border border-zinc-200/80 bg-white p-5 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <div>
+                            <div class="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
+                                <div>
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200">
+                                        Proporsi Jenis Kelamin
+                                    </h4>
+                                    <p class="text-[11px] text-zinc-400 mt-0.5">Komposisi gender tenaga kerja RS</p>
+                                </div>
+                                <div class="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
+                                    <flux:icon name="users" class="size-4" />
+                                </div>
+                            </div>
+
+                            @php
+                                $mCount = (int) ($hrAnalytics['gender']['male_count'] ?? 0);
+                                $fCount = (int) ($hrAnalytics['gender']['female_count'] ?? 0);
+                                $mPct = (float) ($hrAnalytics['gender']['male_percentage'] ?? 0);
+                                $fPct = (float) ($hrAnalytics['gender']['female_percentage'] ?? 0);
+                            @endphp
+
+                            {{-- Gender Split Visual Progress Bar --}}
+                            <div class="mt-4">
+                                <div class="h-3.5 w-full rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 flex shadow-inner">
+                                    <div class="bg-blue-500 h-full transition-all duration-500" style="width: {{ $mPct }}%" title="Laki-laki: {{ $mCount }} ({{ $mPct }}%)"></div>
+                                    <div class="bg-rose-500 h-full transition-all duration-500" style="width: {{ $fPct }}%" title="Perempuan: {{ $fCount }} ({{ $fPct }}%)"></div>
+                                </div>
+                            </div>
+
+                            {{-- Gender Details Pill Deck --}}
+                            <div class="mt-5 grid grid-cols-2 gap-3">
+                                {{-- Laki-laki --}}
+                                <div class="rounded-2xl border border-blue-100 bg-blue-50/50 p-3.5 dark:border-blue-900/40 dark:bg-blue-950/30">
+                                    <div class="flex items-center gap-2">
+                                        <span class="size-2.5 rounded-full bg-blue-500"></span>
+                                        <span class="text-xs font-bold text-blue-950 dark:text-blue-200">Laki-laki</span>
+                                    </div>
+                                    <div class="mt-2 font-mono text-2xl font-extrabold text-blue-700 dark:text-blue-300">
+                                        {{ $mCount }}
+                                    </div>
+                                    <div class="mt-0.5 text-[11px] font-semibold text-blue-600/80 dark:text-blue-400">
+                                        {{ $mPct }}% dari total
+                                    </div>
+                                </div>
+
+                                {{-- Perempuan --}}
+                                <div class="rounded-2xl border border-rose-100 bg-rose-50/50 p-3.5 dark:border-rose-900/40 dark:bg-rose-950/30">
+                                    <div class="flex items-center gap-2">
+                                        <span class="size-2.5 rounded-full bg-rose-500"></span>
+                                        <span class="text-xs font-bold text-rose-950 dark:text-rose-200">Perempuan</span>
+                                    </div>
+                                    <div class="mt-2 font-mono text-2xl font-extrabold text-rose-700 dark:text-rose-300">
+                                        {{ $fCount }}
+                                    </div>
+                                    <div class="mt-0.5 text-[11px] font-semibold text-rose-600/80 dark:text-rose-400">
+                                        {{ $fPct }}% dari total
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-5 pt-3.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[11px] text-zinc-400">
+                            <span>Keseimbangan lingkungan kerja</span>
+                            <span class="font-semibold text-zinc-600 dark:text-zinc-300">Inklusif &amp; Terbuka</span>
+                        </div>
+                    </div>
+
+                    {{-- Card 3: Tingkat Pendidikan --}}
+                    <div class="flex flex-col justify-between rounded-3xl border border-zinc-200/80 bg-white p-5 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <div>
+                            <div class="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
+                                <div>
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200">
+                                        Tingkat Pendidikan
+                                    </h4>
+                                    <p class="text-[11px] text-zinc-400 mt-0.5">Kualifikasi akademik staf RS</p>
+                                </div>
+                                <div class="flex size-8 items-center justify-center rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-950/60 dark:text-purple-400">
+                                    <flux:icon name="academic-cap" class="size-4" />
+                                </div>
+                            </div>
+
+                            <div class="mt-4 space-y-3">
+                                @forelse($hrAnalytics['education_distribution'] ?? [] as $edu)
+                                    <div>
+                                        <div class="flex items-center justify-between text-xs mb-1">
+                                            <span class="font-medium text-zinc-700 dark:text-zinc-300">
+                                                {{ $edu['level'] }}
+                                            </span>
+                                            <span class="font-mono text-zinc-500 dark:text-zinc-400">
+                                                <strong class="text-zinc-900 dark:text-zinc-100">{{ $edu['count'] }}</strong> ({{ $edu['percentage'] }}%)
+                                            </span>
+                                        </div>
+                                        <div class="h-2 w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                                            <div 
+                                                class="h-full rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-500" 
+                                                style="width: {{ $edu['percentage'] }}%"
+                                            ></div>
+                                        </div>
+                                    </div>
+                                @empty
+                                    <p class="text-xs text-zinc-400 py-4 text-center">Data kualifikasi belum terdata</p>
+                                @endforelse
+                            </div>
+                        </div>
+
+                        <div class="mt-5 pt-3.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[11px] text-zinc-400">
+                            <span>Standar kompetensi medis</span>
+                            <span class="font-semibold text-purple-600 dark:text-purple-400">Kualifikasi Terverifikasi</span>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- 3. Row 3: Masa Kerja & Sebaran Unit Operasional --}}
+                <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                    {{-- Masa Kerja / Tenure --}}
+                    <div class="rounded-3xl border border-zinc-200/80 bg-white p-5 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <div class="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
+                            <div>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200">
+                                    Masa Kerja Pegawai (Tenure)
+                                </h4>
+                                <p class="text-[11px] text-zinc-400 mt-0.5">
+                                    Rata-rata Masa Bakti: <strong class="text-indigo-600 dark:text-indigo-400 font-mono">{{ $hrAnalytics['tenure']['average_years'] ?? 0 }} Tahun</strong>
+                                </p>
+                            </div>
+                            <div class="flex size-8 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
+                                <flux:icon name="briefcase" class="size-4" />
+                            </div>
+                        </div>
+
+                        <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                            @foreach($hrAnalytics['tenure']['distribution'] ?? [] as $tGroup)
+                                <div class="rounded-2xl border border-zinc-100 bg-zinc-50/70 p-3 text-center dark:border-zinc-800 dark:bg-zinc-850">
+                                    <div class="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400">{{ $tGroup['range'] }}</div>
+                                    <div class="mt-1.5 font-mono text-xl font-extrabold text-zinc-900 dark:text-zinc-100">
+                                        {{ $tGroup['count'] }}
+                                    </div>
+                                    <div class="mt-0.5 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400">
+                                        {{ $tGroup['percentage'] }}%
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- Top 5 Unit Distribusi --}}
+                    <div class="rounded-3xl border border-zinc-200/80 bg-white p-5 sm:p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <div class="flex items-center justify-between border-b border-zinc-100 pb-3 dark:border-zinc-800">
+                            <div>
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200">
+                                    Sebaran Unit Kerja Terbesar
+                                </h4>
+                                <p class="text-[11px] text-zinc-400 mt-0.5">Penempatan staf aktif pada unit operasional utama</p>
+                            </div>
+                            <div class="flex size-8 items-center justify-center rounded-xl bg-teal-50 text-teal-600 dark:bg-teal-950/60 dark:text-teal-400">
+                                <flux:icon name="building-office" class="size-4" />
+                            </div>
+                        </div>
+
+                        <div class="mt-4 space-y-3">
+                            @forelse($hrAnalytics['unit_distribution'] ?? [] as $unit)
+                                <div>
+                                    <div class="flex items-center justify-between text-xs mb-1">
+                                        <span class="font-medium text-zinc-700 dark:text-zinc-300 truncate max-w-[200px]">
+                                            {{ $unit['name'] }}
+                                        </span>
+                                        <span class="font-mono text-zinc-500 dark:text-zinc-400">
+                                            <strong class="text-zinc-900 dark:text-zinc-100">{{ $unit['count'] }}</strong> Staf ({{ $unit['percentage'] }}%)
+                                        </span>
+                                    </div>
+                                    <div class="h-2 w-full rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                                        <div 
+                                            class="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-400 transition-all duration-500" 
+                                            style="width: {{ $unit['percentage'] }}%"
+                                        ></div>
+                                    </div>
+                                </div>
+                            @empty
+                                <p class="text-xs text-zinc-400 py-4 text-center">Belum ada data unit kerja</p>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <div class="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-6">
-                <a href="{{ route('employees.index') }}" class="group flex flex-col items-center rounded-3xl border border-zinc-200/80 bg-white p-5 text-center shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-blue-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="flex size-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-all group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-950/60 dark:text-blue-400 shadow-2xs">
-                        <flux:icon name="users" class="size-6" />
-                    </div>
-                    <span class="mt-3 text-xs font-bold text-zinc-900 dark:text-zinc-100">Karyawan</span>
-                    <span class="text-[10px] text-zinc-400 font-medium">Direktori SDM</span>
-                </a>
-
-                <a href="{{ route('doctors.index') }}" class="group flex flex-col items-center rounded-3xl border border-zinc-200/80 bg-white p-5 text-center shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-emerald-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 transition-all group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950/60 dark:text-emerald-400 shadow-2xs">
-                        <flux:icon name="user-group" class="size-6" />
-                    </div>
-                    <span class="mt-3 text-xs font-bold text-zinc-900 dark:text-zinc-100">Dokter</span>
-                    <span class="text-[10px] text-zinc-400 font-medium">STR &amp; SIP</span>
-                </a>
-
-                <a href="{{ route('schedules.index') }}" class="group flex flex-col items-center rounded-3xl border border-zinc-200/80 bg-white p-5 text-center shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-indigo-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="flex size-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 transition-all group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white dark:bg-indigo-950/60 dark:text-indigo-400 shadow-2xs">
-                        <flux:icon name="calendar" class="size-6" />
-                    </div>
-                    <span class="mt-3 text-xs font-bold text-zinc-900 dark:text-zinc-100">Jadwal Shift</span>
-                    <span class="text-[10px] text-zinc-400 font-medium">Roster Bulanan</span>
-                </a>
-
-                <a href="{{ route('attendance.index') }}" class="group flex flex-col items-center rounded-3xl border border-zinc-200/80 bg-white p-5 text-center shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-teal-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="flex size-12 items-center justify-center rounded-2xl bg-teal-50 text-teal-600 transition-all group-hover:scale-110 group-hover:bg-teal-600 group-hover:text-white dark:bg-teal-950/60 dark:text-teal-400 shadow-2xs">
-                        <flux:icon name="clock" class="size-6" />
-                    </div>
-                    <span class="mt-3 text-xs font-bold text-zinc-900 dark:text-zinc-100">Presensi</span>
-                    <span class="text-[10px] text-zinc-400 font-medium">Monitor Log</span>
-                </a>
-
-                <a href="{{ route('leaves.index') }}" class="group flex flex-col items-center rounded-3xl border border-zinc-200/80 bg-white p-5 text-center shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="flex size-12 items-center justify-center rounded-2xl bg-purple-50 text-purple-600 transition-all group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white dark:bg-purple-950/60 dark:text-purple-400 shadow-2xs">
-                        <flux:icon name="document-text" class="size-6" />
-                    </div>
-                    <span class="mt-3 text-xs font-bold text-zinc-900 dark:text-zinc-100">Cuti &amp; Izin</span>
-                    <span class="text-[10px] font-medium">
-                        @if($pendingLeavesCount > 0)
-                            <strong class="text-amber-600 dark:text-amber-400">{{ $pendingLeavesCount }} Menunggu</strong>
-                        @else
-                            <span class="text-zinc-400">Approval Cuti</span>
-                        @endif
-                    </span>
-                </a>
-
-                <a href="{{ route('payroll.index') }}" class="group flex flex-col items-center rounded-3xl border border-zinc-200/80 bg-white p-5 text-center shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-amber-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="flex size-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 transition-all group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white dark:bg-amber-950/60 dark:text-amber-400 shadow-2xs">
-                        <flux:icon name="banknotes" class="size-6" />
-                    </div>
-                    <span class="mt-3 text-xs font-bold text-zinc-900 dark:text-zinc-100">Payroll</span>
-                    <span class="text-[10px] text-zinc-400 font-medium">Proses &amp; Slip</span>
-                </a>
-            </div>
-        </div>
+        @endif
     @endif
 </div>
+

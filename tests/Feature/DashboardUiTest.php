@@ -159,6 +159,15 @@ class DashboardUiTest extends TestCase
             ->assertSee('Distribusi Ketenagaan Rumah Sakit')
             ->assertSee('dr. Hendra Sp.PD')
             ->assertSee('Peringatan Kepatuhan Izin Praktik Medis')
+            ->assertSee('Statistik &amp; Demografi SDM Rumah Sakit', false)
+            ->assertSee('Demografi Rentang Usia')
+            ->assertSee('Proporsi Jenis Kelamin')
+            ->assertSee('Tingkat Pendidikan')
+            ->assertSee('Tingkat Kehadiran')
+            ->assertSee('Ketepatan Waktu')
+            ->assertSee('Kepatuhan Disiplin')
+            ->assertSee('Masa Kerja Pegawai (Tenure)')
+            ->assertDontSee('Navigasi Operasional Cepat')
             ->call('refreshData')
             ->assertStatus(200);
     }
