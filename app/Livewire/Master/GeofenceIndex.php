@@ -62,8 +62,9 @@ class GeofenceIndex extends Component
     }
 
     #[On('editGeofence')]
-    public function editGeofence(int $id): void
+    public function editGeofence(int|array $id): void
     {
+        $id = is_array($id) ? (int) ($id['id'] ?? reset($id)) : (int) $id;
         $geo = GeofenceLocation::findOrFail($id);
         $this->editingGeofenceId = $geo->id;
         $this->geofenceName = $geo->name;

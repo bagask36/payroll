@@ -48,7 +48,7 @@
             x-init="initOverviewMap()"
             class="relative w-full h-72 sm:h-80 rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800"
         >
-            <div x-ref="overviewMapContainer" class="w-full h-full z-0"></div>
+            <div wire:ignore x-ref="overviewMapContainer" class="w-full h-full z-0"></div>
         </div>
     </flux:card>
 
@@ -95,7 +95,7 @@
 
                 {{-- Interactive Map Viewport --}}
                 <div class="relative w-full h-72 rounded-xl overflow-hidden border border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 shadow-inner">
-                    <div x-ref="pickerMapContainer" class="w-full h-full z-0"></div>
+                    <div wire:ignore x-ref="pickerMapContainer" class="w-full h-full z-0"></div>
                     <div class="absolute bottom-2 left-2 z-10 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xs px-2.5 py-1 rounded-md text-[11px] font-mono text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 shadow-xs pointer-events-none">
                         Lat: <span x-text="lat?.toFixed(6) ?? '-'"></span> | Lng: <span x-text="lng?.toFixed(6) ?? '-'"></span> | Radius: <span x-text="radius"></span>m
                     </div>
@@ -181,18 +181,30 @@
         function geofenceOverviewMap(geofences) {
             return {
                 map: null,
+                resizeObserver: null,
                 initOverviewMap() {
                     const container = this.$refs.overviewMapContainer;
                     if (!container) return;
 
                     const renderMap = () => {
                         if (!window.L) {
-                            setTimeout(renderMap, 100);
+                            setTimeout(renderMap, 50);
                             return;
                         }
 
+                        if (this.map && this.map._container !== container) {
+                            try { this.map.remove(); } catch (e) {}
+                            this.map = null;
+                        }
+
+                        if (container._leaflet_id && !this.map) {
+                            delete container._leaflet_id;
+                            container.innerHTML = '';
+                        }
+
                         if (this.map) {
-                            this.map.remove();
+                            try { this.map.remove(); } catch (e) {}
+                            this.map = null;
                         }
 
                         this.map = L.map(container).setView([-6.2088, 106.8456], 15);
@@ -240,10 +252,19 @@
                             this.map.fitBounds(bounds, { padding: [50, 50], maxZoom: 17 });
                         }
 
+                        if (window.ResizeObserver && !this.resizeObserver) {
+                            this.resizeObserver = new ResizeObserver(() => {
+                                if (this.map && container.clientHeight > 0) {
+                                    this.map.invalidateSize();
+                                }
+                            });
+                            this.resizeObserver.observe(container);
+                        }
+
                         setTimeout(() => this.map && this.map.invalidateSize(), 300);
                     };
 
-                    setTimeout(renderMap, 150);
+                    setTimeout(renderMap, 100);
                 }
             };
         }
@@ -256,6 +277,7 @@
                 map: null,
                 marker: null,
                 circle: null,
+                resizeObserver: null,
 
                 initPicker() {
                     window.addEventListener('init-geofence-map', (e) => {
@@ -273,9 +295,7 @@
                             this.lat = parseFloat(this.$wire.get('geofenceLat')) || -6.2088;
                             this.lng = parseFloat(this.$wire.get('geofenceLng')) || 106.8456;
                             this.radius = parseInt(this.$wire.get('geofenceRadius')) || 150;
-                            setTimeout(() => {
-                                this.setupOrUpdateMap();
-                            }, 250);
+                            this.setupOrUpdateMap();
                         }
                     });
                 },
@@ -286,8 +306,18 @@
 
                     const initLeaflet = () => {
                         if (!window.L) {
-                            setTimeout(initLeaflet, 100);
+                            setTimeout(initLeaflet, 50);
                             return;
+                        }
+
+                        if (this.map && this.map._container !== container) {
+                            try { this.map.remove(); } catch (e) {}
+                            this.map = null;
+                        }
+
+                        if (container._leaflet_id && !this.map) {
+                            delete container._leaflet_id;
+                            container.innerHTML = '';
                         }
 
                         if (!this.map) {
@@ -328,6 +358,15 @@
                                 const pos = e.target.getLatLng();
                                 this.setPosition(pos.lat, pos.lng);
                             });
+
+                            if (window.ResizeObserver && !this.resizeObserver) {
+                                this.resizeObserver = new ResizeObserver(() => {
+                                    if (this.map && container.clientHeight > 0) {
+                                        this.map.invalidateSize();
+                                    }
+                                });
+                                this.resizeObserver.observe(container);
+                            }
                         } else {
                             this.map.setView([this.lat, this.lng], 16);
                             if (this.marker) this.marker.setLatLng([this.lat, this.lng]);
@@ -337,12 +376,18 @@
                             }
                         }
 
-                        setTimeout(() => {
-                            if (this.map) this.map.invalidateSize();
-                        }, 300);
+                        const invalidate = () => {
+                            if (this.map && container.clientHeight > 0) {
+                                this.map.invalidateSize();
+                            }
+                        };
+                        invalidate();
+                        setTimeout(invalidate, 100);
+                        setTimeout(invalidate, 300);
+                        setTimeout(invalidate, 600);
                     };
 
-                    setTimeout(initLeaflet, 100);
+                    setTimeout(initLeaflet, 50);
                 },
 
                 setPosition(newLat, newLng) {

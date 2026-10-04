@@ -48,7 +48,7 @@ final class ScheduleTable extends PowerGridComponent
         if ($this->weekStartDate) {
             $start = Carbon::parse($this->weekStartDate)->startOfDay();
             $end = Carbon::parse($this->weekStartDate)->endOfWeek()->endOfDay();
-            $query->whereBetween('schedule_date', [$start->toDateString(), $end->toDateString()]);
+            $query->whereBetween('schedule_date', [$start, $end]);
         }
 
         if ($this->personTypeFilter === 'employee') {

@@ -222,13 +222,25 @@
                 {{-- Face Oval --}}
                 <div class="w-44 h-56 sm:w-48 sm:h-60 rounded-[50%] border-2 border-dashed border-emerald-400 shadow-[0_0_24px_rgba(16,185,129,0.35)] flex items-center justify-center relative">
                     <div class="w-full h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent absolute animate-pulse"></div>
+
+                    {{-- Countdown Badge inside Oval --}}
+                    <template x-if="countdown > 0">
+                        <div class="flex flex-col items-center justify-center gap-1 z-20">
+                            <div class="w-16 h-16 rounded-full bg-zinc-950/85 border-2 border-emerald-400 backdrop-blur-md flex items-center justify-center shadow-[0_0_25px_rgba(16,185,129,0.6)]">
+                                <span class="text-3xl font-extrabold font-mono text-emerald-400 animate-pulse" x-text="countdown">3</span>
+                            </div>
+                            <span class="text-[10px] font-semibold text-emerald-300 bg-zinc-950/85 px-2.5 py-0.5 rounded-full border border-emerald-500/40">Posisikan Wajah</span>
+                        </div>
+                    </template>
                 </div>
 
-                {{-- Active Challenge floating badge --}}
+                {{-- Active Challenge & Countdown floating badge --}}
                 <div class="mt-3 px-3.5 py-1.5 rounded-full bg-zinc-950/90 border border-zinc-700 backdrop-blur-md text-[11px] font-semibold text-white shadow-xl flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
-                    <span class="text-amber-300 font-bold uppercase text-[9px]">Hint:</span>
-                    <span>{{ $challengeLabel }}</span>
+                    <span class="text-amber-300 font-bold uppercase text-[9px]">Otomatis:</span>
+                    <span class="font-mono text-emerald-400 font-bold" x-text="countdown + ' detik'">3 detik</span>
+                    <span class="text-zinc-600">|</span>
+                    <span class="text-zinc-300">{{ $challengeLabel }}</span>
                 </div>
 
                 {{-- Liveness Progress Bar --}}
@@ -390,6 +402,8 @@
                 isFrontCamera: true,
                 mediaStream: null,
                 animFrameId: null,
+                countdownTimer: null,
+                countdown: 3,
                 lastImageData: null,
                 motionProgress: 0,
                 motionThresholdPassed: false,
@@ -414,6 +428,7 @@
                                 this.motionThresholdPassed = false;
                                 this.lastImageData = null;
                                 this.startLivenessLoop();
+                                this.startCountdown();
                             })
                             .catch(err => {
                                 alert('Gagal mengakses kamera perangkat: ' + err.message);
@@ -423,6 +438,30 @@
                     }
                 },
 
+                startCountdown() {
+                    if (this.countdownTimer) {
+                        clearInterval(this.countdownTimer);
+                        this.countdownTimer = null;
+                    }
+                    this.countdown = 3;
+                    this.countdownTimer = setInterval(() => {
+                        if (!this.isStreaming) {
+                            clearInterval(this.countdownTimer);
+                            this.countdownTimer = null;
+                            return;
+                        }
+
+                        if (this.countdown > 1) {
+                            this.countdown--;
+                        } else {
+                            this.countdown = 0;
+                            clearInterval(this.countdownTimer);
+                            this.countdownTimer = null;
+                            this.captureAndFinalize();
+                        }
+                    }, 1000);
+                },
+
                 switchCamera() {
                     this.isFrontCamera = !this.isFrontCamera;
                     this.stopCamera();
@@ -430,6 +469,10 @@
                 },
 
                 stopCamera() {
+                    if (this.countdownTimer) {
+                        clearInterval(this.countdownTimer);
+                        this.countdownTimer = null;
+                    }
                     if (this.animFrameId) {
                         cancelAnimationFrame(this.animFrameId);
                         this.animFrameId = null;
@@ -445,9 +488,14 @@
                     @this.generateChallenge();
                     this.motionProgress = 0;
                     this.motionThresholdPassed = false;
+                    this.startCountdown();
                 },
 
                 retake() {
+                    if (this.countdownTimer) {
+                        clearInterval(this.countdownTimer);
+                        this.countdownTimer = null;
+                    }
                     @this.set('faceImageBase64', null);
                     @this.set('livenessPassed', false);
                     this.motionProgress = 0;
@@ -464,7 +512,7 @@
                     motionCanvas.height = 48;
 
                     const analyze = () => {
-                        if (!this.isStreaming || this.motionThresholdPassed) return;
+                        if (!this.isStreaming) return;
 
                         if (video.readyState >= 2) {
                             ctx.drawImage(video, 0, 0, 64, 48);
@@ -483,18 +531,15 @@
                                 
                                 const avgDiff = diffSum / (dataA.length / 4);
 
-                                // Dynamic facial motion (blinking, slight turn/nod) produces avgDiff > 2.2
-                                // Static paper print held still produces avgDiff < 1.0
-                                if (avgDiff > 2.2 && avgDiff < 38) {
-                                    this.motionProgress = Math.min(100, this.motionProgress + 15);
+                                // Dynamic facial motion progress bar indicator (smooth accumulation)
+                                if (avgDiff > 2.0 && avgDiff < 40) {
+                                    this.motionProgress = Math.min(100, this.motionProgress + 3);
                                 } else if (this.motionProgress > 0) {
-                                    this.motionProgress = Math.max(0, this.motionProgress - 2.5);
+                                    this.motionProgress = Math.max(0, this.motionProgress - 1);
                                 }
 
-                                if (this.motionProgress >= 100) {
+                                if (this.motionProgress >= 70) {
                                     this.motionThresholdPassed = true;
-                                    this.captureAndFinalize();
-                                    return;
                                 }
                             }
                             this.lastImageData = currentImg;
@@ -506,6 +551,10 @@
                 },
 
                 manualCapture() {
+                    if (this.countdownTimer) {
+                        clearInterval(this.countdownTimer);
+                        this.countdownTimer = null;
+                    }
                     this.captureAndFinalize();
                 },
 

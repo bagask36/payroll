@@ -388,15 +388,16 @@ class MasterIndex extends Component
         ]);
     }
 
-    public function editGeofence(int $id): void
+    public function editGeofence(int|array $id): void
     {
+        $id = is_array($id) ? (int) ($id['id'] ?? reset($id)) : (int) $id;
         $geo = GeofenceLocation::findOrFail($id);
         $this->editingGeofenceId = $geo->id;
         $this->geofenceName = $geo->name;
-        $this->geofenceLat = $geo->latitude;
-        $this->geofenceLng = $geo->longitude;
-        $this->geofenceRadius = $geo->radius_meters;
-        $this->geofenceIsActive = $geo->is_active;
+        $this->geofenceLat = (float) $geo->latitude;
+        $this->geofenceLng = (float) $geo->longitude;
+        $this->geofenceRadius = (int) $geo->radius_meters;
+        $this->geofenceIsActive = (bool) $geo->is_active;
         $this->showGeofenceModal = true;
         $this->dispatch('init-geofence-map', [
             'lat' => $this->geofenceLat,

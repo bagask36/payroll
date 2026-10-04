@@ -153,7 +153,7 @@ class ScheduleRoster extends Component
         $end = Carbon::parse($this->weekStartDate)->endOfWeek()->endOfDay();
 
         $query = ScheduleAssignment::with(['shift', 'employee.unit', 'doctor'])
-            ->whereBetween('schedule_date', [$start->toDateString(), $end->toDateString()])
+            ->whereBetween('schedule_date', [$start, $end])
             ->where('status', '!=', 'cancelled')
             ->orderBy('schedule_date', 'asc');
 

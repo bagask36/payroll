@@ -254,7 +254,7 @@
                         <flux:icon name="clock" class="size-5" />
                     </div>
                     <div class="min-w-0">
-                        <div class="truncate text-xs font-bold text-zinc-900 dark:text-zinc-100">Presensi & Geofence</div>
+                        <div class="truncate text-xs font-bold text-zinc-900 dark:text-zinc-100">Presensi &amp; Geofence</div>
                         <div class="text-[11px] text-zinc-400">Clock-in / History</div>
                     </div>
                 </a>

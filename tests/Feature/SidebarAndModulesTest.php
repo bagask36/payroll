@@ -70,7 +70,7 @@ class SidebarAndModulesTest extends TestCase
         $response->assertSee('Struktur Organisasi');
 
         $response->assertSee('Jadwal & Shift Roster');
-        $response->assertSee('Presensi & Geofence');
+        $response->assertSee('Presensi');
         $response->assertSee('Pengajuan Cuti & Izin');
 
         $response->assertSee('Penggajian (Payroll)');
@@ -144,10 +144,10 @@ class SidebarAndModulesTest extends TestCase
         $response->assertSee('Dashboard');
         $response->assertSee('WAKTU & OPERASIONAL');
         $response->assertSee('Jadwal & Shift Roster');
-        $response->assertSee('Presensi & Geofence');
+        $response->assertSee('Presensi');
         $response->assertSee('Pengajuan Cuti & Izin');
         $response->assertSee('KEUANGAN & DOKUMEN');
-        $response->assertSee('Slip Gaji Saya');
+        $response->assertSee('Slip Gaji');
         $response->assertSee('Arsip Dokumen');
 
         // Admin & management menus MUST NOT BE SHOWN

@@ -120,6 +120,29 @@ class MasterAndReportPowerGridTablesTest extends TestCase
             ->assertSee('RS Juwita Kampus Utama');
     }
 
+    public function test_geofence_edit_handles_powergrid_dispatch_and_opens_modal(): void
+    {
+        $geo = GeofenceLocation::firstOrCreate(
+            ['name' => 'RS Juwita Kampus Utama'],
+            [
+                'latitude' => -6.91746400,
+                'longitude' => 107.61912200,
+                'radius_meters' => 100,
+                'is_active' => true,
+            ]
+        );
+
+        $admin = \App\Models\User::where('email', 'admin@juwitahospital.com')->first();
+
+        \Livewire\Livewire::actingAs($admin)
+            ->test(\App\Livewire\Master\GeofenceIndex::class)
+            ->dispatch('editGeofence', ['id' => $geo->id])
+            ->assertSet('showGeofenceModal', true)
+            ->assertSet('editingGeofenceId', $geo->id)
+            ->assertSet('geofenceName', $geo->name)
+            ->assertDispatched('init-geofence-map');
+    }
+
     public function test_payroll_period_table_renders(): void
     {
         Livewire::test(PayrollPeriodTable::class)
