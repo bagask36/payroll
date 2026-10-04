@@ -14,7 +14,7 @@
     </div>
 
     <flux:card class="space-y-6 shadow-xl border-zinc-200/80 dark:border-zinc-800">
-        <form wire:submit="login" class="space-y-5">
+        <form wire:submit="login" method="POST" class="space-y-5">
             <flux:input 
                 wire:model="email" 
                 label="Alamat Email" 
