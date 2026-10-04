@@ -232,9 +232,22 @@ class ThrCalculationTest extends TestCase
         // 50% of 4,000,000 = 2,000,000
         $this->assertEquals(2000000.00, (float) $item2->basic_salary);
 
+        // Verify prorata metadata
+        $this->assertFalse($item1->metadata['is_prorated']);
+        $this->assertEquals(1.0, $item1->metadata['factor']);
+        $this->assertEquals(100, $item1->metadata['factor_percent']);
+        $this->assertEquals('12/12', $item1->metadata['factor_fraction']);
+
+        $this->assertTrue($item2->metadata['is_prorated']);
+        $this->assertEquals(0.5, $item2->metadata['factor']);
+        $this->assertEquals(50, $item2->metadata['factor_percent']);
+        $this->assertEquals('6/12', $item2->metadata['factor_fraction']);
+        $this->assertStringContainsString('(6/12)', $item2->metadata['formula_text']);
+
         // Verify component itemization
         $this->assertTrue($item1->components()->where('name', 'like', '%THR Gaji Pokok%')->exists());
         $this->assertTrue($item1->components()->where('name', 'like', '%THR Tunjangan Tetap%')->exists());
+        $this->assertTrue($item2->components()->where('name', 'like', '%Prorata 6/12%')->exists());
     }
 
     public function test_finalized_thr_run_is_strictly_immutable(): void

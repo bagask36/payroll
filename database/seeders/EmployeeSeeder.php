@@ -434,5 +434,115 @@ class EmployeeSeeder extends Seeder
                 'account_holder' => 'Siti Rahmawati',
             ]
         );
+
+        // 7. Prorated Employee 1: Dimas Prasetyo (TMT 01-04-2026, ~6 bulan masa kerja untuk simulasi THR 50%)
+        $empDimas = Employee::updateOrCreate(
+            ['nip' => 'PEG-2026010'],
+            [
+                'user_id' => null,
+                'unit_id' => $icuUnit->id,
+                'position_id' => $icuNursePos->id,
+                'ktp_number' => '3201051508980007',
+                'full_name' => 'Dimas Prasetyo, S.Kep',
+                'gender' => 'male',
+                'birth_place' => 'Bogor',
+                'birth_date' => '1998-08-15',
+                'marital_status' => 'single',
+                'religion' => 'islam',
+                'tax_dependents' => 0,
+                'npwp_number' => '93.444.555.6-412.000',
+                'phone_number' => '081677778888',
+                'email' => 'dimas.prasetyo@juwitahospital.com',
+                'residential_address' => 'Jl. Pajajaran No. 25, Bogor',
+                'status' => 'active',
+                'schedule_type' => 'shift',
+            ]
+        );
+
+        EmployeeEmployment::updateOrCreate(
+            ['employee_id' => $empDimas->id, 'contract_number' => 'SPK/RSJ/2026/010'],
+            [
+                'unit_id' => $icuUnit->id,
+                'position_id' => $icuNursePos->id,
+                'contract_type' => 'contract',
+                'start_date' => '2026-04-01',
+                'end_date' => '2027-03-31',
+                'is_active' => true,
+            ]
+        );
+
+        EmployeeSalary::updateOrCreate(
+            ['employee_id' => $empDimas->id, 'effective_from' => '2026-04-01'],
+            [
+                'basic_salary' => 5000000.00,
+                'effective_to' => null,
+                'revision_reason' => 'Gaji Pokok Awal 2026',
+                'created_by' => $adminId,
+            ]
+        );
+
+        EmployeeBankAccount::updateOrCreate(
+            ['employee_id' => $empDimas->id, 'is_primary' => true],
+            [
+                'bank_name' => 'Bank Mandiri',
+                'account_number' => '1330018273645',
+                'account_holder' => 'Dimas Prasetyo',
+            ]
+        );
+
+        // 8. Prorated Employee 2: Anisa Putri (TMT 01-07-2026, ~3 bulan masa kerja untuk simulasi THR 25%)
+        $empAnisa = Employee::updateOrCreate(
+            ['nip' => 'PEG-2026025'],
+            [
+                'user_id' => null,
+                'unit_id' => $igdUnit->id,
+                'position_id' => $igdNursePos->id,
+                'ktp_number' => '3201066512000008',
+                'full_name' => 'Anisa Putri, A.Md.Keb',
+                'gender' => 'female',
+                'birth_place' => 'Bekasi',
+                'birth_date' => '2000-12-25',
+                'marital_status' => 'single',
+                'religion' => 'islam',
+                'tax_dependents' => 0,
+                'npwp_number' => '94.555.666.7-412.000',
+                'phone_number' => '081788889999',
+                'email' => 'anisa.putri@juwitahospital.com',
+                'residential_address' => 'Jl. Cut Meutia No. 10, Bekasi',
+                'status' => 'active',
+                'schedule_type' => 'shift',
+            ]
+        );
+
+        EmployeeEmployment::updateOrCreate(
+            ['employee_id' => $empAnisa->id, 'contract_number' => 'SPK/RSJ/2026/025'],
+            [
+                'unit_id' => $igdUnit->id,
+                'position_id' => $igdNursePos->id,
+                'contract_type' => 'contract',
+                'start_date' => '2026-07-01',
+                'end_date' => '2027-06-30',
+                'is_active' => true,
+            ]
+        );
+
+        EmployeeSalary::updateOrCreate(
+            ['employee_id' => $empAnisa->id, 'effective_from' => '2026-07-01'],
+            [
+                'basic_salary' => 4800000.00,
+                'effective_to' => null,
+                'revision_reason' => 'Gaji Pokok Awal 2026',
+                'created_by' => $adminId,
+            ]
+        );
+
+        EmployeeBankAccount::updateOrCreate(
+            ['employee_id' => $empAnisa->id, 'is_primary' => true],
+            [
+                'bank_name' => 'BCA',
+                'account_number' => '7730918273',
+                'account_holder' => 'Anisa Putri',
+            ]
+        );
     }
 }

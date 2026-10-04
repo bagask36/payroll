@@ -129,6 +129,20 @@ class ThrCalculationService
 
         $netThr = max(0.0, $grossThr - $pph21Tax);
 
+        $isProrated = ($factor > 0.0 && $factor < 1.0);
+        $factorFraction = $tenureMonths >= 12 ? '12/12' : ($tenureMonths >= 1 ? "{$tenureMonths}/12" : '0/12');
+        $factorPercent = (int) round($factor * 100);
+
+        $formattedBaseWage = 'Rp ' . number_format($baseWage, 0, ',', '.');
+        $formattedGrossThr = 'Rp ' . number_format($grossThr, 0, ',', '.');
+        if ($factor >= 1.0) {
+            $formulaText = "100% × {$formattedBaseWage} = {$formattedGrossThr}";
+        } elseif ($factor > 0.0) {
+            $formulaText = "({$tenureMonths}/12) × {$formattedBaseWage} = {$formattedGrossThr}";
+        } else {
+            $formulaText = "Masa kerja < 1 bulan = Rp 0";
+        }
+
         return [
             'employee_id' => $employee->id,
             'full_name' => $employee->full_name,
@@ -136,6 +150,12 @@ class ThrCalculationService
             'religion' => $employee->religion,
             'tenure_months' => $tenureMonths,
             'factor' => $factor,
+            'factor_fraction' => $factorFraction,
+            'factor_percent' => $factorPercent,
+            'is_prorated' => $isProrated,
+            'start_date' => $startDate->toDateString(),
+            'cutoff_date' => $cutoff->toDateString(),
+            'formula_text' => $formulaText,
             'is_eligible' => $isEligible,
             'basic_salary' => $basicSalary,
             'fixed_allowance' => $fixedAllowance,
@@ -184,7 +204,9 @@ class ThrCalculationService
             }
 
             $bank = $employee->primaryBankAccount;
-            $factorPercent = round($preview['factor'] * 100);
+            $factorPercent = $preview['factor_percent'];
+            $isProrated = $preview['is_prorated'];
+            $badgeText = $isProrated ? "Prorata {$preview['factor_fraction']} ({$factorPercent}%)" : "Penuh ({$factorPercent}%)";
 
             $item = PayrollItem::create([
                 'payroll_run_id' => $run->id,
@@ -201,18 +223,32 @@ class ThrCalculationService
                 'payment_status' => 'pending',
                 'bank_name' => $bank?->bank_name,
                 'bank_account_number' => $bank?->account_number,
+                'metadata' => [
+                    'type' => 'thr',
+                    'is_prorated' => $preview['is_prorated'],
+                    'tenure_months' => $preview['tenure_months'],
+                    'factor' => $preview['factor'],
+                    'factor_fraction' => $preview['factor_fraction'],
+                    'factor_percent' => $preview['factor_percent'],
+                    'start_date' => $preview['start_date'],
+                    'cutoff_date' => $preview['cutoff_date'],
+                    'base_wage' => $preview['base_wage'],
+                    'master_basic_salary' => $preview['basic_salary'],
+                    'master_fixed_allowance' => $preview['fixed_allowance'],
+                    'formula_text' => $preview['formula_text'],
+                ],
             ]);
 
             // Add component breakdown
             $item->components()->create([
-                'name' => "THR Gaji Pokok ({$factorPercent}%)",
+                'name' => "THR Gaji Pokok ({$badgeText})",
                 'type' => 'earning',
                 'amount' => $preview['thr_basic'],
             ]);
 
             if ($preview['thr_allowance'] > 0) {
                 $item->components()->create([
-                    'name' => "THR Tunjangan Tetap ({$factorPercent}%)",
+                    'name' => "THR Tunjangan Tetap ({$badgeText})",
                     'type' => 'earning',
                     'amount' => $preview['thr_allowance'],
                 ]);

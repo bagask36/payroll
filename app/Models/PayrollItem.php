@@ -32,6 +32,7 @@ class PayrollItem extends Model
         'payment_status',
         'bank_name',
         'bank_account_number',
+        'metadata',
     ];
 
     /**
@@ -50,6 +51,7 @@ class PayrollItem extends Model
             'pph21_tax' => 'decimal:2',
             'net_salary' => 'decimal:2',
             'bank_account_number' => 'encrypted',
+            'metadata' => 'array',
         ];
     }
 

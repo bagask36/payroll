@@ -290,14 +290,23 @@
 
     {{-- Payslip Item Detail Modal --}}
     @if($viewingItem)
+        @php
+            $isThrItem = $viewingItem->run?->isThr() ?? false;
+            $thrMeta = $isThrItem ? ($viewingItem->metadata ?? []) : [];
+            $isProrated = $thrMeta['is_prorated'] ?? false;
+        @endphp
         <flux:modal wire:model="showItemDetailModal" class="w-full max-w-3xl space-y-5">
             <div class="border-b border-zinc-100 dark:border-zinc-800 pb-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
                         <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="Logo RS Juwita" class="h-7 w-auto max-w-[90px] object-contain" />
-                        <flux:heading size="lg">Slip Gaji Pegawai</flux:heading>
+                        <flux:heading size="lg">
+                            {{ $isThrItem ? 'Slip Tunjangan Hari Raya (THR)' : 'Slip Gaji Pegawai' }}
+                        </flux:heading>
                     </div>
-                    <flux:badge size="xs" color="emerald">{{ $viewingItem->run?->period?->name }}</flux:badge>
+                    <flux:badge size="xs" color="{{ $isThrItem ? 'purple' : 'emerald' }}">
+                        {{ $isThrItem ? ($viewingItem->run?->metadata['holiday_name'] ?? 'THR Off-Cycle') : ($viewingItem->run?->period?->name ?? 'Gaji Rutin') }}
+                    </flux:badge>
                 </div>
                 <div class="mt-2 text-sm">
                     <span class="font-bold text-zinc-900 dark:text-zinc-100">{{ $viewingItem->employee?->full_name }}</span>
@@ -309,16 +318,64 @@
                 </div>
             </div>
 
+            @if($isThrItem)
+                {{-- Rich Prorata Formula & Calculation Card --}}
+                @php
+                    $tenureMonths = $thrMeta['tenure_months'] ?? null;
+                    $factorFraction = $thrMeta['factor_fraction'] ?? '12/12';
+                    $factorPercent = $thrMeta['factor_percent'] ?? 100;
+                    $formulaText = $thrMeta['formula_text'] ?? '-';
+                    $baseWage = $thrMeta['base_wage'] ?? ((float) $viewingItem->basic_salary + (float) $viewingItem->allowances);
+                    $startDate = $thrMeta['start_date'] ?? $viewingItem->employee?->currentEmployment?->start_date;
+                @endphp
+                <div class="p-3.5 rounded-xl border {{ $isProrated ? 'bg-amber-50/70 border-amber-200 dark:bg-amber-950/20 dark:border-amber-900/50' : 'bg-purple-50/70 border-purple-200 dark:bg-purple-950/20 dark:border-purple-900/50' }}">
+                    <div class="flex items-center justify-between pb-2 border-b {{ $isProrated ? 'border-amber-200/60 dark:border-amber-900/40' : 'border-purple-200/60 dark:border-purple-900/40' }}">
+                        <div class="flex items-center gap-2">
+                            <flux:badge size="xs" color="{{ $isProrated ? 'amber' : 'purple' }}">
+                                {{ $isProrated ? "Prorata ({$factorFraction})" : 'Penuh (100%)' }}
+                            </flux:badge>
+                            <span class="text-xs font-semibold {{ $isProrated ? 'text-amber-900 dark:text-amber-200' : 'text-purple-900 dark:text-purple-200' }}">
+                                Ketentuan Permenaker No. 6/2016
+                            </span>
+                        </div>
+                        <span class="text-xs font-mono font-bold {{ $isProrated ? 'text-amber-800 dark:text-amber-300' : 'text-purple-800 dark:text-purple-300' }}">
+                            Faktor: {{ $factorPercent }}%
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2.5 text-xs">
+                        <div>
+                            <span class="text-zinc-500 dark:text-zinc-400 block text-[11px]">TMT Bekerja</span>
+                            <span class="font-medium font-mono text-zinc-800 dark:text-zinc-200">{{ $startDate ? \Carbon\Carbon::parse($startDate)->format('d M Y') : '-' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-zinc-500 dark:text-zinc-400 block text-[11px]">Masa Kerja</span>
+                            <span class="font-medium text-zinc-800 dark:text-zinc-200">{{ $tenureMonths !== null ? "{$tenureMonths} Bulan" : '-' }}</span>
+                        </div>
+                        <div>
+                            <span class="text-zinc-500 dark:text-zinc-400 block text-[11px]">Upah Acuan Dasar</span>
+                            <span class="font-mono font-medium text-zinc-800 dark:text-zinc-200">Rp {{ number_format((float) $baseWage, 0, ',', '.') }}</span>
+                        </div>
+                        <div>
+                            <span class="text-zinc-500 dark:text-zinc-400 block text-[11px]">Formula Perhitungan</span>
+                            <span class="font-mono font-semibold {{ $isProrated ? 'text-amber-700 dark:text-amber-400' : 'text-purple-700 dark:text-purple-400' }}">{{ $formulaText }}</span>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <div class="space-y-3 text-sm">
-                {{-- Earnings --}}
+                {{-- Earnings / THR Hak --}}
                 <div class="space-y-1.5">
-                    <span class="text-xs font-bold text-zinc-500 uppercase tracking-wider">Penghasilan (Earnings)</span>
+                    <span class="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                        {{ $isThrItem ? 'Komponen Hak Tunjangan Hari Raya' : 'Penghasilan (Earnings)' }}
+                    </span>
                     <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
-                        <span class="text-zinc-600 dark:text-zinc-400">Gaji Pokok</span>
+                        <span class="text-zinc-600 dark:text-zinc-400">{{ $isThrItem ? 'THR Gaji Pokok' : 'Gaji Pokok' }}</span>
                         <span class="font-mono font-medium">Rp {{ number_format((float) $viewingItem->basic_salary, 0, ',', '.') }}</span>
                     </div>
-                    @php $allowanceComps = $viewingItem->components->whereIn('type', ['allowance', 'earning']); @endphp
+                    @php $allowanceComps = $viewingItem->components->whereIn('type', ['allowance', 'earning'])->where('name', '!=', 'THR Gaji Pokok'); @endphp
                     @forelse($allowanceComps as $comp)
+                        @continue(str_contains($comp->name, 'THR Gaji Pokok'))
                         <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
                             <span class="text-zinc-600 dark:text-zinc-400">{{ $comp->name }}</span>
                             <span class="font-mono font-medium text-emerald-700 dark:text-emerald-400">+Rp {{ number_format((float) $comp->amount, 0, ',', '.') }}</span>
@@ -326,7 +383,7 @@
                     @empty
                         @if((float) $viewingItem->allowances > 0)
                             <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
-                                <span class="text-zinc-600 dark:text-zinc-400">Tunjangan Operasional</span>
+                                <span class="text-zinc-600 dark:text-zinc-400">{{ $isThrItem ? 'THR Tunjangan Tetap' : 'Tunjangan Operasional' }}</span>
                                 <span class="font-mono font-medium text-emerald-700 dark:text-emerald-400">+Rp {{ number_format((float) $viewingItem->allowances, 0, ',', '.') }}</span>
                             </div>
                         @endif
@@ -336,21 +393,29 @@
                 {{-- Deductions --}}
                 <div class="space-y-1.5 pt-2">
                     <span class="text-xs font-bold text-zinc-500 uppercase tracking-wider">Potongan Resmi (Deductions)</span>
-                    <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
-                        <span class="text-zinc-600 dark:text-zinc-400">BPJS Kesehatan Pegawai (1%)</span>
-                        <span class="font-mono text-rose-600">-Rp {{ number_format((float) $viewingItem->bpjs_kes_employee, 0, ',', '.') }}</span>
-                    </div>
-                    <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
-                        <span class="text-zinc-600 dark:text-zinc-400">BPJS TK (JHT & JP Pegawai)</span>
-                        <span class="font-mono text-rose-600">-Rp {{ number_format((float) $viewingItem->bpjs_tk_employee, 0, ',', '.') }}</span>
-                    </div>
+                    @if(! $isThrItem)
+                        <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
+                            <span class="text-zinc-600 dark:text-zinc-400">BPJS Kesehatan Pegawai (1%)</span>
+                            <span class="font-mono text-rose-600">-Rp {{ number_format((float) $viewingItem->bpjs_kes_employee, 0, ',', '.') }}</span>
+                        </div>
+                        <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
+                            <span class="text-zinc-600 dark:text-zinc-400">BPJS TK (JHT & JP Pegawai)</span>
+                            <span class="font-mono text-rose-600">-Rp {{ number_format((float) $viewingItem->bpjs_tk_employee, 0, ',', '.') }}</span>
+                        </div>
+                    @else
+                        <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
+                            <span class="text-zinc-600 dark:text-zinc-400">BPJS Kesehatan & Ketenagakerjaan</span>
+                            <span class="text-xs text-zinc-400 font-mono">Rp 0 (Bebas Iuran THR)</span>
+                        </div>
+                    @endif
+
                     @if((float) $viewingItem->pph21_tax > 0)
                         <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
-                            <span class="text-zinc-600 dark:text-zinc-400">PPh 21 (Pajak Penghasilan)</span>
+                            <span class="text-zinc-600 dark:text-zinc-400">PPh 21 (Pajak Penghasilan TER)</span>
                             <span class="font-mono text-rose-600">-Rp {{ number_format((float) $viewingItem->pph21_tax, 0, ',', '.') }}</span>
                         </div>
                     @endif
-                    @php $deductionComps = $viewingItem->components->where('type', 'deduction'); @endphp
+                    @php $deductionComps = $viewingItem->components->where('type', 'deduction')->where('name', '!=', 'PPh 21 atas THR'); @endphp
                     @foreach($deductionComps as $comp)
                         <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
                             <span class="text-zinc-600 dark:text-zinc-400">{{ $comp->name }}</span>
@@ -362,7 +427,9 @@
                 {{-- Net Pay --}}
                 <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex justify-between items-center">
                     <div>
-                        <div class="text-xs font-semibold text-emerald-800 dark:text-emerald-300 uppercase">Gaji Bersih Diterima (Take Home Pay)</div>
+                        <div class="text-xs font-semibold text-emerald-800 dark:text-emerald-300 uppercase">
+                            {{ $isThrItem ? 'Total THR Bersih Diterima' : 'Gaji Bersih Diterima (Take Home Pay)' }}
+                        </div>
                         <div class="text-[11px] text-emerald-600 dark:text-emerald-400">Ditransfer ke {{ $viewingItem->bank_name ?? 'Bank' }}</div>
                     </div>
                     <span class="text-xl font-bold font-mono text-emerald-700 dark:text-emerald-400">

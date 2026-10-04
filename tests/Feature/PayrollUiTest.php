@@ -279,5 +279,44 @@ class PayrollUiTest extends TestCase
         $this->assertTrue($thrRun->isThr());
         $this->assertEquals('THR Idul Fitri 1447 H', $thrRun->metadata['holiday_name']);
         $this->assertGreaterThan(0, $thrRun->items()->count());
+
+        $firstItem = $thrRun->items()->first();
+        $this->assertNotNull($firstItem->metadata);
+        $this->assertArrayHasKey('formula_text', $firstItem->metadata);
+    }
+
+    public function test_thr_run_item_displays_prorata_details_in_modal(): void
+    {
+        $payrollUser = User::factory()->create();
+        $payrollUser->assignRole('payroll');
+
+        $period = PayrollPeriod::create([
+            'name' => 'Off-Cycle THR Natal 2026',
+            'start_date' => '2026-12-01',
+            'end_date' => '2026-12-24',
+            'cutoff_date' => '2026-12-24',
+            'is_closed' => false,
+        ]);
+
+        $this->actingAs($payrollUser);
+
+        $test = Livewire::test(PayrollIndex::class)
+            ->call('openThrModal')
+            ->set('selectedThrPeriodId', $period->id)
+            ->set('thrHolidayName', 'THR Natal 2026')
+            ->set('thrCutoffDate', '2026-12-24')
+            ->set('thrTargetReligion', 'all')
+            ->call('calculateThr');
+
+        $thrRun = PayrollRun::where('payroll_period_id', $period->id)->where('type', 'thr')->firstOrFail();
+        $item = $thrRun->items()->firstOrFail();
+
+        $test->call('viewItemDetail', $item->id)
+            ->assertSet('showItemDetailModal', true)
+            ->assertSee('Slip Tunjangan Hari Raya (THR)')
+            ->assertSee('Ketentuan Permenaker No. 6/2016')
+            ->assertSee('Komponen Hak Tunjangan Hari Raya')
+            ->assertSee('Bebas Iuran THR')
+            ->assertSee('Total THR Bersih Diterima');
     }
 }
