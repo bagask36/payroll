@@ -1,47 +1,24 @@
-<div class="space-y-6">
+<div class="app-page-container">
     {{-- Top Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                Manajemen Penggajian (Payroll)
-            </flux:heading>
-            <flux:subheading class="mt-1 text-zinc-500 dark:text-zinc-400">
-                Kalkulasi kompensasi berkala, BPJS Kesehatan & Ketenagakerjaan, serta finalisasi pencairan gaji.
-            </flux:subheading>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-2 shrink-0">
-            @can('calculate', App\Models\PayrollRun::class)
+    <x-page-header 
+        title="Manajemen Penggajian (Payroll)" 
+        subtitle="Kalkulasi kompensasi berkala, BPJS Kesehatan & Ketenagakerjaan, serta finalisasi pencairan gaji."
+    >
+        @can('calculate', App\Models\PayrollRun::class)
+            <x-slot:actions>
                 <flux:button variant="subtle" icon="sparkles" wire:click="openThrModal" class="border border-purple-500/30 text-purple-700 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40">
                     Kalkulasi THR (Off-Cycle)
                 </flux:button>
                 <flux:button variant="primary" icon="calculator" wire:click="openCalculateModal">
                     Kalkulasi Payroll Baru
                 </flux:button>
-            @endcan
-        </div>
-    </div>
+            </x-slot:actions>
+        @endcan
+    </x-page-header>
 
     {{-- Feedback & Error Alerts --}}
-    @if($feedbackMessage)
-        <div class="p-4 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <flux:icon name="check-circle" class="size-5 text-emerald-600 dark:text-emerald-400" />
-                <span class="text-sm font-medium">{{ $feedbackMessage }}</span>
-            </div>
-            <flux:button size="sm" variant="subtle" wire:click="$set('feedbackMessage', null)">Tutup</flux:button>
-        </div>
-    @endif
-
-    @if($errorMessage)
-        <div class="p-4 rounded-xl border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-200 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <flux:icon name="exclamation-circle" class="size-5 text-red-600 dark:text-red-400 shrink-0" />
-                <span class="text-sm font-medium">{{ $errorMessage }}</span>
-            </div>
-            <flux:button size="sm" variant="subtle" wire:click="$set('errorMessage', null)">Tutup</flux:button>
-        </div>
-    @endif
+    <x-flash-message :message="$feedbackMessage" />
+    <x-flash-message :message="$errorMessage" type="danger" wire-dismiss="$set('errorMessage', null)" />
 
     {{-- Run Selection & Status Header Card --}}
     <flux:card class="space-y-4">

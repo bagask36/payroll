@@ -16,25 +16,8 @@
     </x-page-header>
 
     {{-- Feedback & Error Banners --}}
-    @if($feedbackMessage)
-        <div class="p-4 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <flux:icon name="check-circle" class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span class="text-sm font-medium">{{ $feedbackMessage }}</span>
-            </div>
-            <flux:button size="sm" variant="subtle" wire:click="$set('feedbackMessage', null)">Tutup</flux:button>
-        </div>
-    @endif
-
-    @if($errorMessage)
-        <div class="p-4 rounded-xl border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-200 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <flux:icon name="exclamation-circle" class="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
-                <span class="text-sm font-medium">{{ $errorMessage }}</span>
-            </div>
-            <flux:button size="sm" variant="subtle" wire:click="$set('errorMessage', null)">Tutup</flux:button>
-        </div>
-    @endif
+    <x-flash-message :message="$feedbackMessage" />
+    <x-flash-message :message="$errorMessage" type="danger" wire-dismiss="$set('errorMessage', null)" />
 
     {{-- Personal Quota Summary Cards (if balances exist) --}}
     @if($balances->isNotEmpty())

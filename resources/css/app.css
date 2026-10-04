@@ -458,3 +458,25 @@ html, body {
 [data-flux-sidebar-item]:hover {
     transition: all 0.15s ease-in-out;
 }
+
+/* ==========================================================================
+   MOBILE SIDEBAR OVERLAY FIX (AGAINST BOTTOM BAR)
+   ========================================================================== */
+@media (max-width: 1023px) {
+    /* Backdrop must cover everything behind the open sidebar, including the bottom nav bar */
+    [data-flux-sidebar-backdrop] {
+        z-index: 60 !important;
+    }
+
+    /* Open mobile sidebar must sit cleanly on top of backdrop and bottom nav */
+    [data-flux-sidebar] {
+        z-index: 70 !important;
+    }
+
+    /* When mobile sidebar is open, slide bottom nav down or hide */
+    body:has([data-flux-sidebar-backdrop]:not(.hidden):not([style*="display: none"])) .mobile-bottom-nav {
+        transform: translateY(100%);
+        pointer-events: none;
+        opacity: 0;
+    }
+}

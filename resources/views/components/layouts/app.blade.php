@@ -28,7 +28,7 @@
     </head>
     <body class="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 antialiased selection:bg-emerald-500/20">
         {{-- Collapsible Sidebar with Enhanced Desktop Noticeability --}}
-        <flux:sidebar sticky collapsible class="border-r border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900 w-72 sm:w-80 max-w-[85vw] lg:w-68 max-lg:shadow-2xl pt-safe">
+        <flux:sidebar sticky collapsible class="border-r border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900 w-72 sm:w-80 max-w-[85vw] lg:w-68 max-lg:shadow-2xl max-lg:z-70! pt-safe">
             <flux:sidebar.header class="px-2 py-3 border-b border-zinc-100 dark:border-zinc-800/80">
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-3 min-w-0 group">
                     <div class="relative flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-500/10 to-teal-500/10 p-1.5 border border-emerald-500/20 dark:border-emerald-500/30 shadow-2xs group-hover:scale-105 transition-transform">
@@ -290,7 +290,7 @@
             <flux:sidebar.spacer />
 
             <flux:sidebar.nav>
-                <div class="px-1 py-2 border-t border-zinc-100 dark:border-zinc-800/80 pb-safe max-lg:pb-5">
+                <div class="px-1 py-2 border-t border-zinc-100 dark:border-zinc-800/80 pb-safe max-lg:pb-10">
                     <flux:dropdown position="top" align="start" class="w-full">
                         <button type="button" class="group flex w-full items-center gap-3 rounded-2xl p-2 text-left transition-all hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 cursor-pointer">
                             <div class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 font-mono text-xs font-bold text-white shadow-xs">
@@ -465,7 +465,7 @@
         </flux:main>
 
         {{-- Mobile Bottom App Navigation Bar (Phone Only: hidden on md/lg tablet and desktop) --}}
-        <nav class="fixed bottom-0 inset-x-0 z-40 md:hidden bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200/80 dark:border-zinc-800 pb-safe select-none shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+        <nav class="mobile-bottom-nav fixed bottom-0 inset-x-0 z-30 md:hidden bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200/80 dark:border-zinc-800 pb-safe select-none shadow-[0_-4px_20px_rgba(0,0,0,0.06)] transition-all duration-200">
             <div class="grid grid-cols-5 h-16 items-center px-1">
                 {{-- 1. Beranda --}}
                 <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center gap-1 py-1 transition-colors {{ request()->routeIs('dashboard') ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200' }}">
