@@ -1,36 +1,22 @@
-<div class="space-y-6">
+<div class="app-page-container">
     {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                Riwayat & Log Presensi
-            </flux:heading>
-            <flux:subheading class="mt-1 text-zinc-500 dark:text-zinc-400">
-                Rekapitulasi jam kerja, ketepatan waktu, dan pengajuan koreksi presensi.
-            </flux:subheading>
-        </div>
-
+    <x-page-header 
+        title="Riwayat &amp; Log Presensi" 
+        subtitle="Rekapitulasi jam kerja, ketepatan waktu, dan pengajuan koreksi presensi."
+    >
         @can('attendance.check_in_out')
-            <div>
+            <x-slot:actions>
                 <a href="{{ route('attendance.clock') }}">
                     <flux:button variant="primary" icon="clock">
                         Presensi Mandiri Hari Ini
                     </flux:button>
                 </a>
-            </div>
+            </x-slot:actions>
         @endcan
-    </div>
+    </x-page-header>
 
     {{-- Feedback Message --}}
-    @if($feedbackMessage)
-        <div class="p-4 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <flux:icon name="check-circle" class="size-5 text-emerald-600 dark:text-emerald-400" />
-                <span class="text-sm font-medium">{{ $feedbackMessage }}</span>
-            </div>
-            <flux:button size="sm" variant="subtle" wire:click="$set('feedbackMessage', null)">Tutup</flux:button>
-        </div>
-    @endif
+    <x-flash-message :message="$feedbackMessage" />
 
     {{-- Pending Approvals for Supervisors/HR --}}
     @if($pendingAdjustments->isNotEmpty())

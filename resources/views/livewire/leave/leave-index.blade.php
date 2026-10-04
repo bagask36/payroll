@@ -1,25 +1,19 @@
-<div class="space-y-6">
+<div class="app-page-container">
     {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                Manajemen Cuti & Izin Kerja
-            </flux:heading>
-            <flux:subheading class="mt-1 text-zinc-500 dark:text-zinc-400">
-                Pemantauan kuota saldo cuti, permohonan istirahat tahunan, dan persetujuan dinas berjenjang.
-            </flux:subheading>
-        </div>
-
+    <x-page-header 
+        title="Manajemen Cuti & Izin Kerja" 
+        subtitle="Pemantauan kuota saldo cuti, permohonan istirahat tahunan, dan persetujuan dinas berjenjang."
+    >
         @can('create', App\Models\LeaveRequest::class)
-            <div>
+            <x-slot:actions>
                 <a href="{{ route('leaves.apply') }}">
                     <flux:button variant="primary" icon="plus">
                         Ajukan Cuti Baru
                     </flux:button>
                 </a>
-            </div>
+            </x-slot:actions>
         @endcan
-    </div>
+    </x-page-header>
 
     {{-- Feedback & Error Banners --}}
     @if($feedbackMessage)

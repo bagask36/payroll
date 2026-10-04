@@ -27,25 +27,28 @@
         @fluxAppearance
     </head>
     <body class="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 antialiased selection:bg-emerald-500/20">
-        {{-- Collapsible Sidebar according to Flux UI official demos --}}
-        <flux:sidebar sticky collapsible class="border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 w-72 sm:w-80 max-w-[85vw] lg:w-64 max-lg:shadow-2xl pt-safe">
-            <flux:sidebar.header>
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 px-1 min-w-0">
-                    <img 
-                        src="{{ asset('assets/logo-rs-juwita.png') }}" 
-                        alt="SIM SDM RS Juwita" 
-                        class="h-8.5 w-auto max-w-[160px] object-contain in-data-flux-sidebar-collapsed-desktop:hidden" 
-                    />
-                    <div class="size-8 rounded-lg overflow-hidden shrink-0 hidden in-data-flux-sidebar-collapsed-desktop:flex items-center justify-center bg-white dark:bg-zinc-800 p-0.5 border border-zinc-200 dark:border-zinc-700 shadow-2xs">
+        {{-- Collapsible Sidebar with Enhanced Desktop Noticeability --}}
+        <flux:sidebar sticky collapsible class="border-r border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900 w-72 sm:w-80 max-w-[85vw] lg:w-68 max-lg:shadow-2xl pt-safe">
+            <flux:sidebar.header class="px-2 py-3 border-b border-zinc-100 dark:border-zinc-800/80">
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 min-w-0 group">
+                    <div class="relative flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-500/10 to-teal-500/10 p-1.5 border border-emerald-500/20 dark:border-emerald-500/30 shadow-2xs group-hover:scale-105 transition-transform">
                         <img 
                             src="{{ asset('assets/logo-rs-juwita.png') }}" 
-                            alt="SIM SDM RS Juwita" 
-                            class="w-full h-full object-contain" 
+                            alt="RS Juwita" 
+                            class="size-full object-contain" 
                         />
+                        <span class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900 animate-pulse"></span>
+                    </div>
+                    <div class="min-w-0 flex-1 in-data-flux-sidebar-collapsed-desktop:hidden">
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-sm font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">RS JUWITA</span>
+                            <span class="rounded-full bg-emerald-500/10 px-1.5 py-0.2 text-[9px] font-bold text-emerald-700 dark:text-emerald-300">ONLINE</span>
+                        </div>
+                        <p class="truncate text-[11px] font-medium text-zinc-400">SIM SDM &amp; Payroll</p>
                     </div>
                 </a>
 
-                <flux:sidebar.collapse class="max-lg:hidden in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2" />
+                <flux:sidebar.collapse class="max-lg:hidden in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2 cursor-pointer" />
                 <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
             </flux:sidebar.header>
 
@@ -287,28 +290,39 @@
             <flux:sidebar.spacer />
 
             <flux:sidebar.nav>
-                <div class="px-1 py-1.5 border-t border-zinc-200 dark:border-zinc-800 pb-safe max-lg:pb-5">
+                <div class="px-1 py-2 border-t border-zinc-100 dark:border-zinc-800/80 pb-safe max-lg:pb-5">
                     <flux:dropdown position="top" align="start" class="w-full">
-                        <flux:profile 
-                            name="{{ auth()->user()?->name ?? 'User' }}" 
-                            initials="{{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 2)) }}"
-                            class="w-full justify-start cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800/50 rounded-lg p-1.5"
-                        />
+                        <button type="button" class="group flex w-full items-center gap-3 rounded-2xl p-2 text-left transition-all hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 cursor-pointer">
+                            <div class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 font-mono text-xs font-bold text-white shadow-xs">
+                                {{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 2)) }}
+                            </div>
+                            <div class="min-w-0 flex-1 in-data-flux-sidebar-collapsed-desktop:hidden">
+                                <div class="truncate text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                                    {{ auth()->user()?->name ?? 'Pengguna' }}
+                                </div>
+                                <div class="truncate text-[10px] text-zinc-400 font-medium">
+                                    {{ auth()->user()?->roles->first()?->name ? ucfirst(str_replace('_', ' ', auth()->user()->roles->first()->name)) : 'Staf RS' }}
+                                </div>
+                            </div>
+                            <flux:icon name="chevron-up-down" class="size-4 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 in-data-flux-sidebar-collapsed-desktop:hidden" />
+                        </button>
 
-                        <flux:menu class="w-60">
-                            <div class="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
-                                <p class="text-xs text-zinc-400 font-medium">Masuk sebagai:</p>
-                                <p class="text-sm font-semibold truncate">{{ auth()->user()?->email }}</p>
+                        <flux:menu class="w-64 p-1.5 rounded-2xl shadow-xl border border-zinc-200/80 dark:border-zinc-800">
+                            <div class="px-3 py-2.5 border-b border-zinc-100 dark:border-zinc-800">
+                                <p class="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Masuk sebagai</p>
+                                <p class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate mt-0.5">{{ auth()->user()?->email }}</p>
                                 @if(auth()->user()?->roles->isNotEmpty())
-                                    <flux:badge size="sm" color="emerald" class="mt-1">
-                                        {{ auth()->user()->roles->pluck('name')->join(', ') }}
-                                    </flux:badge>
+                                    <div class="mt-1.5 flex flex-wrap gap-1">
+                                        @foreach(auth()->user()->roles as $role)
+                                            <flux:badge size="xs" color="emerald" class="font-bold">{{ ucfirst(str_replace('_', ' ', $role->name)) }}</flux:badge>
+                                        @endforeach
+                                    </div>
                                 @endif
                             </div>
 
-                            <form method="POST" action="{{ route('logout') }}">
+                            <form method="POST" action="{{ route('logout') }}" class="mt-1">
                                 @csrf
-                                <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full text-red-600 dark:text-red-400">
+                                <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full text-rose-600 dark:text-rose-400 font-medium cursor-pointer">
                                     Keluar (Logout)
                                 </flux:menu.item>
                             </form>
@@ -342,92 +356,6 @@
                     <span>RS Juwita • 24 Jam</span>
                 </div>
             </div>
-
-            {{-- Center: Desktop Primary Quick Navigation Bar (Prominent & Noticeable) --}}
-            <nav class="hidden lg:flex items-center gap-1 mx-auto px-2 py-1 rounded-xl bg-zinc-100/80 dark:bg-zinc-800/60 border border-zinc-200/60 dark:border-zinc-700/50">
-                {{-- 1. Dashboard --}}
-                <a 
-                    href="{{ route('dashboard') }}" 
-                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('dashboard') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
-                >
-                    <flux:icon name="home" class="size-3.5 {{ request()->routeIs('dashboard') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
-                    <span>Dashboard</span>
-                </a>
-
-                {{-- 2. Presensi --}}
-                @if(auth()->user()?->can('attendance.view_summary') || auth()->user()?->can('attendance.check_in_out') || auth()->user()?->can('attendance.view_own') || auth()->user()?->can('attendance.view_all'))
-                    <a 
-                        href="{{ route('attendance.index') }}" 
-                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('attendance.*') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
-                    >
-                        <flux:icon name="clock" class="size-3.5 {{ request()->routeIs('attendance.*') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
-                        <span>Presensi</span>
-                    </a>
-                @endif
-
-                {{-- 3. Jadwal & Shift --}}
-                @can('schedule.view')
-                    <a 
-                        href="{{ route('schedules.index') }}" 
-                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('schedules.*') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
-                    >
-                        <flux:icon name="calendar" class="size-3.5 {{ request()->routeIs('schedules.*') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
-                        <span>Jadwal</span>
-                    </a>
-                @endcan
-
-                {{-- 4. Cuti & Izin --}}
-                @if(auth()->user()?->can('leave.view_own') || auth()->user()?->can('leave.create_own') || auth()->user()?->can('leave.view_all'))
-                    <a 
-                        href="{{ route('leaves.index') }}" 
-                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('leaves.*') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
-                    >
-                        <flux:icon name="document-text" class="size-3.5 {{ request()->routeIs('leaves.*') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
-                        <span>Cuti &amp; Izin</span>
-                    </a>
-                @endif
-
-                {{-- 5. Slip Gaji / Payroll --}}
-                @if(auth()->user()?->employee)
-                    <a 
-                        href="{{ route('payroll.my-payslips') }}" 
-                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('payroll.my-payslips') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
-                    >
-                        <flux:icon name="receipt-percent" class="size-3.5 {{ request()->routeIs('payroll.my-payslips') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
-                        <span>Slip Gaji</span>
-                    </a>
-                @elseif(auth()->user()?->can('payroll.view_all'))
-                    <a 
-                        href="{{ route('payroll.index') }}" 
-                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('payroll.*') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
-                    >
-                        <flux:icon name="banknotes" class="size-3.5 {{ request()->routeIs('payroll.*') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
-                        <span>Payroll</span>
-                    </a>
-                @endif
-
-                {{-- 6. Pegawai (Admin / HR) --}}
-                @if(auth()->user()?->can('employee.view'))
-                    <a 
-                        href="{{ route('employees.index') }}" 
-                        class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('employees.*') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
-                    >
-                        <flux:icon name="users" class="size-3.5 {{ request()->routeIs('employees.*') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
-                        <span>Pegawai</span>
-                    </a>
-                @endif
-
-                {{-- 7. Dokter (Admin / HR / Medis) --}}
-                @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('hr_manager') || auth()->user()?->can('doctor.manage_credentials'))
-                    <a 
-                        href="{{ route('doctors.index') }}" 
-                        class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('doctors.*') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
-                    >
-                        <flux:icon name="user-group" class="size-3.5 {{ request()->routeIs('doctors.*') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
-                        <span>Dokter</span>
-                    </a>
-                @endif
-            </nav>
 
             <flux:spacer />
 

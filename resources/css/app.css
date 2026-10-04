@@ -419,3 +419,42 @@ html, body {
 .pr-safe {
     padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
 }
+
+/* ==========================================================================
+   DESKTOP SIDEBAR ENHANCEMENTS
+   ========================================================================== */
+[data-flux-sidebar] {
+    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Sidebar navigation item active indicator */
+[data-flux-sidebar-item][data-current="true"],
+[data-flux-sidebar-item][aria-current="page"] {
+    position: relative;
+    font-weight: 700 !important;
+    color: #047857 !important; /* emerald-700 */
+    background: rgba(16, 185, 129, 0.08) !important;
+    border-radius: 0.75rem !important;
+}
+
+.dark [data-flux-sidebar-item][data-current="true"],
+.dark [data-flux-sidebar-item][aria-current="page"] {
+    color: #34d399 !important; /* emerald-400 */
+    background: rgba(16, 185, 129, 0.15) !important;
+}
+
+[data-flux-sidebar-item][data-current="true"]::before,
+[data-flux-sidebar-item][aria-current="page"]::before {
+    content: '';
+    position: absolute;
+    left: -0.25rem;
+    top: 22%;
+    bottom: 22%;
+    width: 3.5px;
+    border-radius: 9999px;
+    background: linear-gradient(to bottom, #10b981, #0d9488);
+}
+
+[data-flux-sidebar-item]:hover {
+    transition: all 0.15s ease-in-out;
+}

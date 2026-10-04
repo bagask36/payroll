@@ -1,45 +1,23 @@
-<div class="space-y-6">
+<div class="app-page-container">
     {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-5">
-        <div>
-            <div class="flex items-center gap-2 mb-1">
-                <a href="{{ route('master.index') }}" class="text-xs text-zinc-500 hover:text-emerald-600 dark:text-zinc-400">Data Master</a>
-                <span class="text-xs text-zinc-400">/</span>
-                <span class="text-xs font-medium text-emerald-600 dark:text-emerald-400">Komponen Penghasilan</span>
-            </div>
-            <h1 class="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 flex items-center gap-2.5">
-                <flux:icon name="currency-dollar" class="size-7 text-emerald-600" />
-                Komponen Penghasilan (Allowances)
-            </h1>
-            <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                Kelola master tunjangan, premi shift, uang saku, dan penambah gaji pegawai RS Juwita.
-            </p>
-        </div>
-
-        <div class="flex items-center gap-3">
+    <x-page-header 
+        title="Komponen Penghasilan (Allowances)" 
+        subtitle="Kelola master tunjangan, premi shift, uang saku, dan penambah gaji pegawai RS Juwita."
+    >
+        <x-slot:actions>
             <flux:button wire:click="openCreate" variant="primary" icon="plus" class="bg-emerald-600 hover:bg-emerald-700 text-white">
                 Tambah Komponen
             </flux:button>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Feedback Alert --}}
-    @if ($feedbackMessage)
-        <div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-sm flex items-center justify-between shadow-xs">
-            <div class="flex items-center gap-2.5">
-                <flux:icon name="check-circle" class="size-5 text-emerald-600 shrink-0" />
-                <span>{{ $feedbackMessage }}</span>
-            </div>
-            <button wire:click="$set('feedbackMessage', null)" class="text-emerald-500 hover:text-emerald-700">
-                <flux:icon name="x-mark" class="size-4" />
-            </button>
-        </div>
-    @endif
+    <x-flash-message :message="$feedbackMessage" />
 
     {{-- PowerGrid Datatable --}}
-    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+    <x-table-card>
         <livewire:tables.earning-component-table />
-    </flux:card>
+    </x-table-card>
 
     {{-- Modal Form --}}
     <flux:modal wire:model="showModal" class="w-full max-w-2xl space-y-4">

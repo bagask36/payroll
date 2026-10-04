@@ -1,36 +1,23 @@
-<div class="space-y-6">
+<div class="app-page-container">
     {{-- Page Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                Direktori Tenaga Medis & Dokter Spesialis
-            </flux:heading>
-            <flux:subheading class="mt-1 text-zinc-500 dark:text-zinc-400">
-                Pemantauan kredensial praktik medis, Surat Tanda Registrasi (STR), dan Surat Izin Praktik (SIP) RS Juwita.
-            </flux:subheading>
-        </div>
+    <x-page-header 
+        title="Direktori Tenaga Medis &amp; Dokter Spesialis" 
+        subtitle="Pemantauan kredensial praktik medis, Surat Tanda Registrasi (STR), dan Surat Izin Praktik (SIP) RS Juwita."
+    >
         @can('create', App\Models\Doctor::class)
-            <div class="flex items-center gap-2">
+            <x-slot:actions>
                 <flux:button variant="primary" icon="plus" wire:click="openCreateModal">
                     Tambah Dokter Baru
                 </flux:button>
-            </div>
+            </x-slot:actions>
         @endcan
-    </div>
+    </x-page-header>
 
     {{-- Feedback Message --}}
-    @if($feedbackMessage)
-        <div class="p-4 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <flux:icon name="check-circle" class="size-5 text-emerald-600 dark:text-emerald-400" />
-                <span class="text-sm font-medium">{{ $feedbackMessage }}</span>
-            </div>
-            <flux:button size="sm" variant="subtle" wire:click="$set('feedbackMessage', null)">Tutup</flux:button>
-        </div>
-    @endif
+    <x-flash-message :message="$feedbackMessage" />
 
     {{-- KPI Metric Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="app-stat-grid">
         <x-stat-card 
             label="Total Dokter Terdaftar" 
             :value="$stats['total']" 
