@@ -1,24 +1,5 @@
 # ==============================================================================
-# Stage 1: Build Frontend Assets (Vite + Tailwind CSS v4)
-# ==============================================================================
-FROM node:22-alpine AS node-builder
-
-WORKDIR /app
-
-# Cache package installation
-COPY package.json package-lock.json ./
-RUN npm ci
-
-# Copy application files needed for Vite compilation
-COPY vite.config.js ./
-COPY resources/ ./resources/
-COPY public/ ./public/
-COPY vendor/ ./vendor/
-
-RUN npm run build
-
-# ==============================================================================
-# Stage 2: Composer Dependencies (Production Only)
+# Stage 1: Composer Dependencies (Production Only)
 # ==============================================================================
 FROM composer:2 AS composer-builder
 
@@ -43,6 +24,27 @@ COPY artisan ./
 
 # Generate optimized autoloader
 RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
+
+# ==============================================================================
+# Stage 2: Build Frontend Assets (Vite + Tailwind CSS v4)
+# ==============================================================================
+FROM node:22-alpine AS node-builder
+
+WORKDIR /app
+
+# Cache package installation
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Copy application files needed for Vite compilation
+COPY vite.config.js ./
+COPY resources/ ./resources/
+COPY public/ ./public/
+
+# Copy vendor from composer-builder for Tailwind @import / @source (Flux UI & PowerGrid)
+COPY --from=composer-builder /app/vendor/ ./vendor/
+
+RUN npm run build
 
 # ==============================================================================
 # Stage 3: PHP-FPM Production Runtime (App Container)
@@ -83,10 +85,10 @@ WORKDIR /var/www/html
 # Copy application source code
 COPY . /var/www/html
 
-# Copy compiled frontend assets from Stage 1
+# Copy compiled frontend assets from Stage 2
 COPY --from=node-builder /app/public/build /var/www/html/public/build
 
-# Copy vendor dependencies from Stage 2
+# Copy vendor dependencies from Stage 1
 COPY --from=composer-builder /app/vendor /var/www/html/vendor
 
 # Copy entrypoint script
