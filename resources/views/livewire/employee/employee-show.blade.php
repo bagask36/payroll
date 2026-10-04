@@ -1228,7 +1228,7 @@
     @endif
 
     {{-- MODAL TERBITKAN / EDIT SURAT PERINGATAN (SP) --}}
-    <flux:modal wire:model="showWarningLetterModal" class="md:w-3xl space-y-4">
+    <flux:modal wire:model="showWarningLetterModal" class="w-full max-w-3xl space-y-5">
         <div>
             <flux:heading size="lg">
                 {{ $editingWarningLetterId ? 'Edit Surat Peringatan (SP)' : 'Terbitkan Surat Peringatan (SP) Baru' }}
@@ -1284,7 +1284,7 @@
     </flux:modal>
 
     {{-- MODAL PENCABUTAN SURAT PERINGATAN (REVOKE SP) --}}
-    <flux:modal wire:model="showRevokeModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showRevokeModal" class="w-full max-w-xl space-y-4">
         <div>
             <flux:heading size="lg">Cabut Surat Peringatan (Rehabilitasi)</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">
@@ -1309,7 +1309,7 @@
     </flux:modal>
 
     {{-- Modal: Catat Penugasan / SK Baru --}}
-    <flux:modal wire:model="showEmploymentModal" class="md:w-3xl space-y-4">
+    <flux:modal wire:model="showEmploymentModal" class="w-full max-w-3xl space-y-5">
         <div>
             <flux:heading size="lg">
                 {{ $editingEmploymentId ? 'Koreksi / Lengkapi Riwayat SK Penugasan' : 'Catat Penugasan / SK Baru' }}
@@ -1459,7 +1459,7 @@
     </flux:modal>
 
     {{-- Modal: Edit Biodata --}}
-    <flux:modal wire:model="showBioModal" class="md:w-3xl space-y-4">
+    <flux:modal wire:model="showBioModal" class="w-full max-w-4xl space-y-5">
         <div>
             <flux:heading size="lg">Edit Biodata Pegawai</flux:heading>
             <flux:subheading>Perubahan dicatat pada audit trail.</flux:subheading>
@@ -1514,7 +1514,7 @@
     </flux:modal>
 
     {{-- Modal: Rekening Bank --}}
-    <flux:modal wire:model="showBankModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showBankModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingBankId ? 'Edit Rekening Payroll' : 'Tambah Rekening Payroll' }}</flux:heading>
             <flux:subheading>Nomor rekening disimpan terenkripsi.</flux:subheading>
@@ -1542,7 +1542,7 @@
     </flux:modal>
 
     {{-- Modal: Unggah Dokumen --}}
-    <flux:modal wire:model="showDocModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showDocModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">Unggah Berkas Pegawai</flux:heading>
             <flux:subheading>Format PDF, JPG, atau PNG. Maksimal 10 MB.</flux:subheading>
@@ -1571,7 +1571,7 @@
     </flux:modal>
 
     {{-- Modal 1: Revisi Gaji Pokok --}}
-    <flux:modal wire:model="showSalaryModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showSalaryModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">Revisi Gaji Pokok Pegawai</flux:heading>
             <flux:subheading>Tetapkan perubahan nominal gaji pokok dengan tanggal efektif baru.</flux:subheading>
@@ -1622,7 +1622,7 @@
     </flux:modal>
 
     {{-- Modal 2: Kelola Komponen Gaji (Tunjangan / Potongan) --}}
-    <flux:modal wire:model="showComponentModal" class="md:w-2xl space-y-4">
+    <flux:modal wire:model="showComponentModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">
                 {{ $editingComponentAssignmentId ? 'Edit Komponen Gaji Pegawai' : 'Tetapkan Komponen Gaji Pegawai' }}

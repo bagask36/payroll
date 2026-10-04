@@ -586,7 +586,7 @@
     @endif
 
     {{-- MODAL WARNING LETTER TYPE --}}
-    <flux:modal wire:model="showWarningLetterTypeModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showWarningLetterTypeModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingWarningLetterTypeId ? 'Edit Jenis SP' : 'Tambah Jenis SP Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Konfigurasi standar tingkatan sanksi disiplin dan masa berlaku.</flux:subheading>
@@ -620,7 +620,7 @@
     </flux:modal>
 
     {{-- MODAL UNIT --}}
-    <flux:modal wire:model="showUnitModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showUnitModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingUnitId ? 'Edit Unit Kerja' : 'Tambah Unit Kerja Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Definisikan ruangan atau instalasi operasional RS.</flux:subheading>
@@ -648,7 +648,7 @@
     </flux:modal>
 
     {{-- MODAL POSITION --}}
-    <flux:modal wire:model="showPositionModal" class="md:w-3xl space-y-4">
+    <flux:modal wire:model="showPositionModal" class="w-full max-w-3xl space-y-5">
         <div>
             <flux:heading size="lg">{{ $editingPositionId ? 'Edit Standar Jabatan' : 'Tambah Jabatan Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Standar formasi jabatan fungsional atau struktural dan remunerasi.</flux:subheading>
@@ -696,7 +696,7 @@
     </flux:modal>
 
     {{-- MODAL SHIFT --}}
-    <flux:modal wire:model="showShiftModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showShiftModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingShiftId ? 'Edit Shift Dinas' : 'Tambah Shift Dinas Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Atur jam operasional dinas dan toleransi keterlambatan.</flux:subheading>
@@ -746,7 +746,7 @@
     </flux:modal>
 
     {{-- MODAL LEAVE TYPE --}}
-    <flux:modal wire:model="showLeaveTypeModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showLeaveTypeModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingLeaveTypeId ? 'Edit Jenis Cuti' : 'Tambah Jenis Cuti Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Aturan kuota dan pemotongan jatah cuti tahunan.</flux:subheading>
@@ -780,7 +780,7 @@
     </flux:modal>
 
     {{-- MODAL GEOFENCE DENGAN MAP PINPOINT & RADIUS SETUP --}}
-    <flux:modal wire:model="showGeofenceModal" class="max-w-4xl w-full space-y-4">
+    <flux:modal wire:model="showGeofenceModal" class="w-full max-w-4xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingGeofenceId ? 'Edit Titik Geofence' : 'Tambah Titik Geofence' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Tentukan koordinat titik pusat menggunakan pin peta dan atur radius toleransi presensi.</flux:subheading>
@@ -899,7 +899,7 @@
     </flux:modal>
 
     {{-- MODAL PAYROLL PERIOD --}}
-    <flux:modal wire:model="showPeriodModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showPeriodModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingPeriodId ? 'Edit Periode Payroll' : 'Buka Periode Payroll Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Tentukan kalender penggajian dan cut-off presensi bulanan.</flux:subheading>
@@ -925,7 +925,7 @@
     </flux:modal>
 
     {{-- MODAL BPJS RULE --}}
-    <flux:modal wire:model="showBpjsModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showBpjsModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">Edit Tarif Regulasi BPJS</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">{{ strtoupper($bpjsProgramName) }}</flux:subheading>

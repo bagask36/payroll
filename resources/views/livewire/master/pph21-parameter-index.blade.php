@@ -79,7 +79,7 @@
     @endif
 
     {{-- Edit Modal --}}
-    <flux:modal wire:model="showModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showModal" class="w-full max-w-2xl space-y-4">
         <form wire:submit.prevent="save" class="space-y-4">
             <div>
                 <flux:heading size="lg">Edit Parameter PPh 21</flux:heading>

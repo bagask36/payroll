@@ -30,7 +30,7 @@
     </flux:card>
 
     {{-- MODAL SHIFT --}}
-    <flux:modal wire:model="showShiftModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showShiftModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingShiftId ? 'Edit Shift Kerja' : 'Tambah Shift Kerja Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Tentukan jam masuk, jam pulang, dan batas toleransi keterlambatan.</flux:subheading>

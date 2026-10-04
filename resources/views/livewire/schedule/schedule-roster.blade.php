@@ -81,7 +81,7 @@
 
     {{-- Flux Native Modal for Assign Shift --}}
     @if($showAssignModal)
-        <flux:modal wire:model="showAssignModal" class="md:w-xl space-y-6">
+        <flux:modal wire:model="showAssignModal" class="w-full max-w-2xl space-y-6">
             <div>
                 <flux:heading size="lg">Tetapkan Penugasan Shift Baru</flux:heading>
                 <flux:subheading class="text-xs text-zinc-500">Pilih personil medis atau staf shift beserta jadwal dinas mingguan.</flux:subheading>

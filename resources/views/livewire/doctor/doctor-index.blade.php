@@ -68,7 +68,7 @@
 
     {{-- Flux Native Modal for Credential Renewal & Contact Edit --}}
     @if($showRenewalModal)
-        <flux:modal wire:model="showRenewalModal" class="md:w-2xl space-y-6">
+        <flux:modal wire:model="showRenewalModal" class="w-full max-w-2xl space-y-6">
             <div>
                 <flux:heading size="lg">Perbarui Kredensial & Kontak Dokter</flux:heading>
                 <flux:subheading class="text-xs text-zinc-500">Dokter: {{ $doctorName }}</flux:subheading>
@@ -138,7 +138,7 @@
 
     {{-- Flux Native Modal for New Doctor Registration --}}
     @if($showCreateModal)
-        <flux:modal wire:model="showCreateModal" class="md:w-3xl space-y-6">
+        <flux:modal wire:model="showCreateModal" class="w-full max-w-4xl space-y-6">
             <div>
                 <flux:heading size="lg">Pendaftaran Tenaga Medis / Dokter Baru</flux:heading>
                 <flux:subheading class="text-xs text-zinc-500">Lengkapi data pokok, kontak email, dan legalitas STR & SIP.</flux:subheading>

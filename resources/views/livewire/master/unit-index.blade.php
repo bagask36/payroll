@@ -30,7 +30,7 @@
     </flux:card>
 
     {{-- MODAL UNIT --}}
-    <flux:modal wire:model="showUnitModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showUnitModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingUnitId ? 'Edit Unit Kerja' : 'Tambah Unit Kerja Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Penamaan dan penempatan departemen rumah sakit.</flux:subheading>

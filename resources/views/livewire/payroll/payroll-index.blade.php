@@ -189,7 +189,7 @@
     @endif
 
     {{-- Calculate Payroll Modal --}}
-    <flux:modal wire:model="showCalculateModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showCalculateModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">Kalkulasi Payroll Baru</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Pilih periode aktif untuk menghitung gaji seluruh pegawai aktif.</flux:subheading>
@@ -218,7 +218,7 @@
     </flux:modal>
 
     {{-- Calculate THR Modal --}}
-    <flux:modal wire:model="showThrModal" class="md:w-2xl space-y-4">
+    <flux:modal wire:model="showThrModal" class="w-full max-w-3xl space-y-5">
         <div>
             <div class="flex items-center gap-2">
                 <flux:icon name="sparkles" class="size-5 text-emerald-600" />
@@ -290,7 +290,7 @@
 
     {{-- Payslip Item Detail Modal --}}
     @if($viewingItem)
-        <flux:modal wire:model="showItemDetailModal" class="md:w-3xl space-y-4">
+        <flux:modal wire:model="showItemDetailModal" class="w-full max-w-3xl space-y-5">
             <div class="border-b border-zinc-100 dark:border-zinc-800 pb-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2.5">

@@ -107,7 +107,7 @@
 
     {{-- Flux Native Modal for Create Employee --}}
     @if($showCreateModal)
-        <flux:modal wire:model="showCreateModal" class="md:w-3xl space-y-6">
+        <flux:modal wire:model="showCreateModal" class="w-full max-w-4xl space-y-6">
             <div>
                 <flux:heading size="lg">Pendaftaran Pegawai Baru RS Juwita</flux:heading>
                 <flux:subheading class="text-xs text-zinc-500">Lengkapi data pokok kepegawaian dan penempatan.</flux:subheading>

@@ -30,7 +30,7 @@
     </flux:card>
 
     {{-- MODAL LEAVE TYPE --}}
-    <flux:modal wire:model="showLeaveTypeModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showLeaveTypeModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingLeaveTypeId ? 'Edit Jenis Cuti' : 'Tambah Jenis Cuti Baru' }}</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Konfigurasi kuota tahunan dan aturan pemotongan saldo.</flux:subheading>

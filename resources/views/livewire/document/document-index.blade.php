@@ -46,7 +46,7 @@
     </flux:card>
 
     {{-- Upload Document Modal --}}
-    <flux:modal wire:model="showUploadModal" class="md:w-xl space-y-4">
+    <flux:modal wire:model="showUploadModal" class="w-full max-w-2xl space-y-4">
         <div>
             <flux:heading size="lg">Unggah Dokumen Kepatuhan</flux:heading>
             <flux:subheading class="text-xs text-zinc-500">Format PDF, JPG, atau PNG (Maksimal 10 MB).</flux:subheading>
