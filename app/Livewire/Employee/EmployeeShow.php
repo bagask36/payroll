@@ -9,14 +9,17 @@ use App\Models\EmployeeBankAccount;
 use App\Models\EmployeeEmployment;
 use App\Models\EmployeeSalary;
 use App\Models\EmployeeSalaryComponent;
+use App\Models\EmployeeWarningLetter;
 use App\Models\Position;
 use App\Models\SalaryComponent;
 use App\Models\Unit;
+use App\Models\WarningLetterType;
 use App\Services\Audit\AuditService;
 use App\Services\Document\DocumentService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -146,9 +149,51 @@ class EmployeeShow extends Component
 
     public ?string $employmentPositionalAllowance = '';
 
+    public ?int $editingEmploymentId = null;
+
+    public $employmentDocumentFile = null;
+
+    public ?int $employmentExistingDocumentId = null;
+
+    public ?string $employmentExistingDocumentName = null;
+
     public ?string $employmentFeedback = null;
 
     public ?string $employmentError = null;
+
+    // --- WARNING LETTERS & DISCIPLINARY STATE ---
+    public bool $showWarningLetterModal = false;
+
+    public ?int $editingWarningLetterId = null;
+
+    public ?int $spTypeId = null;
+
+    public string $spLetterNumber = '';
+
+    public string $spIssuedDate = '';
+
+    public string $spValidFrom = '';
+
+    public string $spValidUntil = '';
+
+    public string $spViolationReason = '';
+
+    public string $spAuthorizedBy = '';
+
+    public string $spNotes = '';
+
+    public $spDocumentFile = null;
+
+    public ?string $spFeedback = null;
+
+    public ?string $spError = null;
+
+    // Revocation Modal State
+    public bool $showRevokeModal = false;
+
+    public ?int $revokingWarningLetterId = null;
+
+    public string $revocationReason = '';
 
     public function mount(int $id): void
     {
@@ -157,11 +202,14 @@ class EmployeeShow extends Component
             'position',
             'employments.unit',
             'employments.position',
+            'employments.document',
             'salaries',
             'currentSalary',
             'salaryComponents.component',
             'bankAccounts',
             'documents',
+            'warningLetters.warningLetterType',
+            'warningLetters.revoker',
         ])->findOrFail($id);
 
         $this->authorize('view', $this->employee);
@@ -187,6 +235,8 @@ class EmployeeShow extends Component
         $this->docError = null;
         $this->employmentFeedback = null;
         $this->employmentError = null;
+        $this->spFeedback = null;
+        $this->spError = null;
     }
 
     // =========================================================
@@ -228,6 +278,11 @@ class EmployeeShow extends Component
 
         $latestEmployment = $this->employee->currentEmployment;
 
+        $this->editingEmploymentId = null;
+        $this->employmentDocumentFile = null;
+        $this->employmentExistingDocumentId = null;
+        $this->employmentExistingDocumentName = null;
+
         $this->employmentUnitId = $this->employee->unit_id;
         $this->employmentPositionId = $this->employee->position_id;
         $this->employmentContractType = $latestEmployment?->contract_type ?? 'permanent';
@@ -251,7 +306,56 @@ class EmployeeShow extends Component
         $this->showEmploymentModal = true;
     }
 
-    public function saveEmployment(AuditService $auditService): void
+    public function editEmployment(int $id): void
+    {
+        $this->authorize('updateEmployment', $this->employee);
+        $this->resetMessages();
+        $this->resetValidation();
+
+        $rec = $this->employee->employments()->with('document')->findOrFail($id);
+
+        $this->editingEmploymentId = $rec->id;
+        $this->employmentUnitId = $rec->unit_id;
+        $this->employmentPositionId = $rec->position_id;
+        $this->employmentContractType = $rec->contract_type;
+        $this->employmentContractNumber = $rec->contract_number;
+        $this->employmentStartDate = $rec->start_date?->toDateString() ?? '';
+        $this->employmentEndDate = $rec->end_date?->toDateString();
+        $this->employmentNotes = $rec->notes ?? '';
+        $this->syncSalaryWithSk = false;
+        $this->employmentDocumentFile = null;
+        $this->employmentExistingDocumentId = $rec->document_id;
+        $this->employmentExistingDocumentName = $rec->document?->original_name;
+
+        $pos = $rec->position;
+        $this->employmentBasicSalary = $pos?->default_basic_salary !== null ? (string) (float) $pos->default_basic_salary : '';
+        $this->employmentPositionalAllowance = $pos?->default_positional_allowance !== null ? (string) (float) $pos->default_positional_allowance : '';
+
+        $this->showEmploymentModal = true;
+    }
+
+    public function downloadEmploymentDocument(int $employmentId, DocumentService $documentService)
+    {
+        $employment = $this->employee->employments()->with('document')->findOrFail($employmentId);
+        if (! $employment->document) {
+            abort(404, 'Berkas fisik SK belum diunggah.');
+        }
+
+        $this->authorize('download', $employment->document);
+
+        $content = $documentService->download($employment->document->storage_path);
+        if (! $content) {
+            abort(404, 'Berkas fisik tidak ditemukan di penyimpanan server.');
+        }
+
+        return response()->streamDownload(function () use ($content) {
+            echo $content;
+        }, $employment->document->original_name, [
+            'Content-Type' => $employment->document->mime_type,
+        ]);
+    }
+
+    public function saveEmployment(AuditService $auditService, DocumentService $documentService): void
     {
         $this->authorize('updateEmployment', $this->employee);
         $this->resetMessages();
@@ -266,6 +370,7 @@ class EmployeeShow extends Component
             'employmentStartDate' => ['required', 'date'],
             'employmentEndDate' => ['nullable', 'date', 'after_or_equal:employmentStartDate'],
             'employmentNotes' => ['nullable', 'string', 'max:500'],
+            'employmentDocumentFile' => ['nullable', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png'],
         ];
 
         if ($this->syncSalaryWithSk && $canUpdateSalary) {
@@ -282,117 +387,224 @@ class EmployeeShow extends Component
             'employmentEndDate.after_or_equal' => 'Tanggal akhir kontrak harus sama atau setelah tanggal mulai.',
             'employmentBasicSalary.numeric' => 'Nominal gaji pokok SK harus berupa angka.',
             'employmentPositionalAllowance.numeric' => 'Nominal tunjangan jabatan SK harus berupa angka.',
+            'employmentDocumentFile.max' => 'Ukuran berkas SK maksimal 10 MB.',
+            'employmentDocumentFile.mimes' => 'Format berkas SK harus berupa PDF, JPG, atau PNG.',
         ]);
 
-        $oldUnitId = $this->employee->unit_id;
-        $oldPositionId = $this->employee->position_id;
-        $oldContractType = $this->employee->currentEmployment?->contract_type;
+        $uploadedDocId = $this->employmentExistingDocumentId;
+        if ($this->employmentDocumentFile) {
+            $originalName = $this->employmentDocumentFile->getClientOriginalName();
+            $stored = $documentService->upload(
+                category: 'compliance/contract',
+                file: $this->employmentDocumentFile,
+                customFileName: $originalName,
+            );
 
-        DB::transaction(function () use ($canUpdateSalary) {
-            // Non-aktifkan ikatan kerja aktif sebelumnya
-            EmployeeEmployment::where('employee_id', $this->employee->id)
-                ->where('is_active', true)
-                ->update(['is_active' => false]);
-
-            // Buat record riwayat penugasan baru dengan snapshot unit dan jabatan saat penugasan
-            EmployeeEmployment::create([
-                'employee_id' => $this->employee->id,
-                'unit_id' => $this->employmentUnitId,
-                'position_id' => $this->employmentPositionId,
-                'contract_type' => $this->employmentContractType,
-                'contract_number' => $this->employmentContractNumber,
-                'start_date' => $this->employmentStartDate,
-                'end_date' => $this->employmentEndDate ?: null,
-                'notes' => $this->employmentNotes ?: null,
-                'is_active' => true,
+            $doc = Document::create([
+                'documentable_type' => Employee::class,
+                'documentable_id' => $this->employee->id,
+                'document_type' => 'contract',
+                'original_name' => $originalName,
+                'storage_path' => $stored->fileIdentifier,
+                'mime_type' => $stored->mimeType,
+                'file_size' => $stored->sizeBytes,
+                'storage_provider' => $stored->provider,
+                'uploaded_by' => Auth::id() ?? 1,
             ]);
 
-            // Otomatis mutasikan / perbarui unit & jabatan aktif di profil pegawai
-            $this->employee->update([
-                'unit_id' => $this->employmentUnitId,
-                'position_id' => $this->employmentPositionId,
-            ]);
+            $uploadedDocId = $doc->id;
+        }
 
-            // Sinkronkan remunerasi standar jika opsi aktif dan user berwenang
-            if ($this->syncSalaryWithSk && $canUpdateSalary) {
-                $pos = Position::find($this->employmentPositionId);
-                $posTitle = $pos?->title ?? 'Jabatan';
+        if ($this->editingEmploymentId) {
+            // Edit & Koreksi riwayat penugasan yang sudah ada (masa lalu maupun aktif)
+            $empRec = EmployeeEmployment::where('employee_id', $this->employee->id)->findOrFail($this->editingEmploymentId);
+            $oldValues = [
+                'unit_id' => $empRec->unit_id,
+                'position_id' => $empRec->position_id,
+                'contract_type' => $empRec->contract_type,
+                'contract_number' => $empRec->contract_number,
+                'start_date' => $empRec->start_date?->toDateString(),
+                'end_date' => $empRec->end_date?->toDateString(),
+            ];
 
-                // 1. Gaji Pokok
-                if ($this->employmentBasicSalary !== '' && $this->employmentBasicSalary !== null && (float) $this->employmentBasicSalary > 0) {
-                    $previous = $this->employee->currentSalary;
-                    if ($previous) {
-                        $previousEffectiveTo = Carbon::parse($this->employmentStartDate)->subDay()->toDateString();
-                        if ($previous->effective_from <= $previousEffectiveTo) {
-                            $previous->update(['effective_to' => $previousEffectiveTo]);
-                        }
-                    }
+            DB::transaction(function () use ($empRec, $uploadedDocId, $canUpdateSalary) {
+                $empRec->update([
+                    'unit_id' => $this->employmentUnitId,
+                    'position_id' => $this->employmentPositionId,
+                    'contract_type' => $this->employmentContractType,
+                    'contract_number' => $this->employmentContractNumber,
+                    'start_date' => $this->employmentStartDate,
+                    'end_date' => $this->employmentEndDate ?: null,
+                    'notes' => $this->employmentNotes ?: null,
+                    'document_id' => $uploadedDocId,
+                ]);
 
-                    EmployeeSalary::create([
-                        'employee_id' => $this->employee->id,
-                        'basic_salary' => $this->employmentBasicSalary,
-                        'effective_from' => $this->employmentStartDate,
-                        'effective_to' => null,
-                        'revision_reason' => "SK Penetapan Jabatan {$posTitle} (No. {$this->employmentContractNumber})",
-                        'created_by' => Auth::id() ?? 1,
+                // Jika yang diedit merupakan penugasan aktif, sinkronkan profil utama pegawai
+                if ($empRec->is_active) {
+                    $this->employee->update([
+                        'unit_id' => $this->employmentUnitId,
+                        'position_id' => $this->employmentPositionId,
                     ]);
                 }
 
-                // 2. Tunjangan Jabatan (TUNJ_JABATAN)
-                if ($this->employmentPositionalAllowance !== '' && $this->employmentPositionalAllowance !== null) {
-                    $tunjJabatanComp = SalaryComponent::where('code', 'TUNJ_JABATAN')->first()
-                        ?? SalaryComponent::where('type', 'allowance')->where('name', 'like', '%Jabatan%')->first();
-
-                    if ($tunjJabatanComp) {
-                        EmployeeSalaryComponent::where('employee_id', $this->employee->id)
-                            ->where('salary_component_id', $tunjJabatanComp->id)
-                            ->where('is_active', true)
-                            ->update([
-                                'is_active' => false,
-                                'effective_to' => Carbon::parse($this->employmentStartDate)->subDay()->toDateString(),
-                            ]);
-
-                        if ((float) $this->employmentPositionalAllowance > 0) {
-                            EmployeeSalaryComponent::create([
-                                'employee_id' => $this->employee->id,
-                                'salary_component_id' => $tunjJabatanComp->id,
-                                'amount' => $this->employmentPositionalAllowance,
-                                'effective_from' => $this->employmentStartDate,
-                                'effective_to' => null,
-                                'notes' => "SK Penetapan Jabatan (No. {$this->employmentContractNumber})",
-                                'is_active' => true,
-                                'created_by' => Auth::id() ?? 1,
-                            ]);
-                        }
-                    }
+                if ($this->syncSalaryWithSk && $canUpdateSalary) {
+                    $this->applyRemunerationFromSk();
                 }
-            }
-        });
+            });
 
-        $this->employee->refresh();
-        $this->employee->load(['unit', 'position', 'employments.unit', 'employments.position', 'currentEmployment', 'currentSalary', 'salaries', 'salaryComponents.component', 'activeSalaryComponents.component']);
+            $auditService->log(
+                action: 'employee.assignment_updated',
+                auditable: $this->employee,
+                oldValues: $oldValues,
+                newValues: [
+                    'unit_id' => $this->employmentUnitId,
+                    'position_id' => $this->employmentPositionId,
+                    'contract_number' => $this->employmentContractNumber,
+                    'start_date' => $this->employmentStartDate,
+                    'has_document' => (bool) $uploadedDocId,
+                ]
+            );
 
-        $auditService->log(
-            action: 'employee.assignment_recorded',
-            auditable: $this->employee,
-            oldValues: [
-                'unit_id' => $oldUnitId,
-                'position_id' => $oldPositionId,
-                'contract_type' => $oldContractType,
-            ],
-            newValues: [
-                'unit_id' => $this->employmentUnitId,
-                'position_id' => $this->employmentPositionId,
-                'contract_type' => $this->employmentContractType,
-                'contract_number' => $this->employmentContractNumber,
-                'start_date' => $this->employmentStartDate,
-                'notes' => $this->employmentNotes,
-                'sync_salary' => $this->syncSalaryWithSk && $canUpdateSalary,
-            ]
-        );
+            $this->employmentFeedback = 'Data SK penugasan berhasil disesuaikan dan diperbarui.';
+        } else {
+            // Catat penugasan baru (Mendukung tanggal berlaku surut / retroactive)
+            $oldUnitId = $this->employee->unit_id;
+            $oldPositionId = $this->employee->position_id;
+            $oldContractType = $this->employee->currentEmployment?->contract_type;
+
+            DB::transaction(function () use ($uploadedDocId, $canUpdateSalary) {
+                $startDate = Carbon::parse($this->employmentStartDate);
+                $prevEndDate = $startDate->copy()->subDay()->toDateString();
+
+                // Non-aktifkan penugasan aktif sebelumnya dan batasi tanggal akhirnya
+                EmployeeEmployment::where('employee_id', $this->employee->id)
+                    ->where('is_active', true)
+                    ->update([
+                        'is_active' => false,
+                        'end_date' => $prevEndDate,
+                    ]);
+
+                // Buat record riwayat penugasan baru
+                EmployeeEmployment::create([
+                    'employee_id' => $this->employee->id,
+                    'unit_id' => $this->employmentUnitId,
+                    'position_id' => $this->employmentPositionId,
+                    'contract_type' => $this->employmentContractType,
+                    'contract_number' => $this->employmentContractNumber,
+                    'start_date' => $this->employmentStartDate,
+                    'end_date' => $this->employmentEndDate ?: null,
+                    'notes' => $this->employmentNotes ?: null,
+                    'document_id' => $uploadedDocId,
+                    'is_active' => true,
+                ]);
+
+                // Otomatis mutasikan / perbarui unit & jabatan aktif di profil pegawai
+                $this->employee->update([
+                    'unit_id' => $this->employmentUnitId,
+                    'position_id' => $this->employmentPositionId,
+                ]);
+
+                // Sinkronkan remunerasi standar jika opsi aktif dan user berwenang
+                if ($this->syncSalaryWithSk && $canUpdateSalary) {
+                    $this->applyRemunerationFromSk();
+                }
+            });
+
+            $auditService->log(
+                action: 'employee.assignment_recorded',
+                auditable: $this->employee,
+                oldValues: [
+                    'unit_id' => $oldUnitId,
+                    'position_id' => $oldPositionId,
+                    'contract_type' => $oldContractType,
+                ],
+                newValues: [
+                    'unit_id' => $this->employmentUnitId,
+                    'position_id' => $this->employmentPositionId,
+                    'contract_type' => $this->employmentContractType,
+                    'contract_number' => $this->employmentContractNumber,
+                    'start_date' => $this->employmentStartDate,
+                    'notes' => $this->employmentNotes,
+                    'has_document' => (bool) $uploadedDocId,
+                    'sync_salary' => $this->syncSalaryWithSk && $canUpdateSalary,
+                ]
+            );
+
+            $this->employmentFeedback = 'Riwayat penugasan/SK baru berhasil dicatat dan status pegawai telah diperbarui.';
+        }
 
         $this->showEmploymentModal = false;
-        $this->employmentFeedback = 'Riwayat penugasan/SK baru berhasil dicatat dan status pegawai telah diperbarui.';
+        $this->editingEmploymentId = null;
+        $this->employmentDocumentFile = null;
+
+        $this->employee->refresh();
+        $this->employee->load([
+            'unit',
+            'position',
+            'employments.unit',
+            'employments.position',
+            'employments.document',
+            'currentEmployment',
+            'currentSalary',
+            'salaries',
+            'salaryComponents.component',
+            'activeSalaryComponents.component',
+        ]);
+    }
+
+    protected function applyRemunerationFromSk(): void
+    {
+        $pos = Position::find($this->employmentPositionId);
+        $posTitle = $pos?->title ?? 'Jabatan';
+
+        // 1. Gaji Pokok
+        if ($this->employmentBasicSalary !== '' && $this->employmentBasicSalary !== null && (float) $this->employmentBasicSalary > 0) {
+            $previous = $this->employee->currentSalary;
+            if ($previous) {
+                $previousEffectiveTo = Carbon::parse($this->employmentStartDate)->subDay()->toDateString();
+                if ($previous->effective_from <= $previousEffectiveTo) {
+                    $previous->update(['effective_to' => $previousEffectiveTo]);
+                }
+            }
+
+            EmployeeSalary::create([
+                'employee_id' => $this->employee->id,
+                'basic_salary' => $this->employmentBasicSalary,
+                'effective_from' => $this->employmentStartDate,
+                'effective_to' => null,
+                'revision_reason' => "SK Penetapan Jabatan {$posTitle} (No. {$this->employmentContractNumber})",
+                'created_by' => Auth::id() ?? 1,
+            ]);
+        }
+
+        // 2. Tunjangan Jabatan (TUNJ_JABATAN)
+        if ($this->employmentPositionalAllowance !== '' && $this->employmentPositionalAllowance !== null) {
+            $tunjJabatanComp = SalaryComponent::where('code', 'TUNJ_JABATAN')->first()
+                ?? SalaryComponent::where('type', 'allowance')->where('name', 'like', '%Jabatan%')->first();
+
+            if ($tunjJabatanComp) {
+                EmployeeSalaryComponent::where('employee_id', $this->employee->id)
+                    ->where('salary_component_id', $tunjJabatanComp->id)
+                    ->where('is_active', true)
+                    ->update([
+                        'is_active' => false,
+                        'effective_to' => Carbon::parse($this->employmentStartDate)->subDay()->toDateString(),
+                    ]);
+
+                if ((float) $this->employmentPositionalAllowance > 0) {
+                    EmployeeSalaryComponent::create([
+                        'employee_id' => $this->employee->id,
+                        'salary_component_id' => $tunjJabatanComp->id,
+                        'amount' => $this->employmentPositionalAllowance,
+                        'effective_from' => $this->employmentStartDate,
+                        'effective_to' => null,
+                        'notes' => "SK Penetapan Jabatan (No. {$this->employmentContractNumber})",
+                        'is_active' => true,
+                        'created_by' => Auth::id() ?? 1,
+                    ]);
+                }
+            }
+        }
     }
 
     // =========================================================
@@ -977,6 +1189,233 @@ class EmployeeShow extends Component
         $this->enrollStatusMessage = 'Data biometrik wajah pegawai berhasil dihapus.';
     }
 
+    // =========================================================
+    // SANKSI & SURAT PERINGATAN (DISCIPLINARY / SP)
+    // =========================================================
+
+    public function openCreateWarningLetter(): void
+    {
+        $this->authorize('manageDisciplinary', $this->employee);
+        $this->resetMessages();
+
+        $this->reset([
+            'editingWarningLetterId',
+            'spViolationReason',
+            'spNotes',
+            'spDocumentFile',
+        ]);
+
+        $defaultType = WarningLetterType::active()->orderBy('level')->first();
+        $this->spTypeId = $defaultType?->id;
+        $this->spIssuedDate = Carbon::today()->toDateString();
+        $this->spValidFrom = Carbon::today()->toDateString();
+
+        $validityMonths = $defaultType?->validity_months ?? 6;
+        $this->spValidUntil = Carbon::parse($this->spValidFrom)->addMonths($validityMonths)->toDateString();
+
+        $count = $this->employee->warningLetters()->count() + 1;
+        $this->spLetterNumber = sprintf('%03d/SP/HRD-RSJ/%s/%s', $count, date('m'), date('Y'));
+        $this->spAuthorizedBy = Auth::user()?->name ?? 'HRD RS Juwita';
+
+        $this->showWarningLetterModal = true;
+    }
+
+    public function updatedSpTypeId(?int $typeId): void
+    {
+        if ($typeId && $this->spValidFrom) {
+            $type = WarningLetterType::find($typeId);
+            $months = $type?->validity_months ?? 6;
+            $this->spValidUntil = Carbon::parse($this->spValidFrom)->addMonths($months)->toDateString();
+        }
+    }
+
+    public function updatedSpValidFrom(string $date): void
+    {
+        if ($date && $this->spTypeId) {
+            $type = WarningLetterType::find($this->spTypeId);
+            $months = $type?->validity_months ?? 6;
+            $this->spValidUntil = Carbon::parse($date)->addMonths($months)->toDateString();
+        }
+    }
+
+    public function editWarningLetter(int $id): void
+    {
+        $this->authorize('manageDisciplinary', $this->employee);
+        $this->resetMessages();
+
+        $sp = EmployeeWarningLetter::where('employee_id', $this->employee->id)->findOrFail($id);
+        $this->editingWarningLetterId = $sp->id;
+        $this->spTypeId = $sp->warning_letter_type_id;
+        $this->spLetterNumber = $sp->letter_number;
+        $this->spIssuedDate = $sp->issued_date ? $sp->issued_date->toDateString() : '';
+        $this->spValidFrom = $sp->valid_from ? $sp->valid_from->toDateString() : '';
+        $this->spValidUntil = $sp->valid_until ? $sp->valid_until->toDateString() : '';
+        $this->spViolationReason = $sp->violation_reason;
+        $this->spAuthorizedBy = $sp->authorized_by;
+        $this->spNotes = $sp->notes ?? '';
+        $this->spDocumentFile = null;
+
+        $this->showWarningLetterModal = true;
+    }
+
+    public function saveWarningLetter(AuditService $auditService): void
+    {
+        $this->authorize('manageDisciplinary', $this->employee);
+        $this->resetMessages();
+
+        $this->validate([
+            'spTypeId' => 'required|exists:warning_letter_types,id',
+            'spLetterNumber' => 'required|string|max:100',
+            'spIssuedDate' => 'required|date',
+            'spValidFrom' => 'required|date',
+            'spValidUntil' => 'required|date|after_or_equal:spValidFrom',
+            'spViolationReason' => 'required|string|max:2000',
+            'spAuthorizedBy' => 'required|string|max:150',
+            'spNotes' => 'nullable|string|max:1000',
+            'spDocumentFile' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+        ]);
+
+        $filePath = null;
+        if ($this->spDocumentFile) {
+            $fileName = 'SP_' . $this->employee->nip . '_' . time() . '.' . $this->spDocumentFile->getClientOriginalExtension();
+            $filePath = $this->spDocumentFile->storeAs('warning_letters', $fileName, 'public');
+        }
+
+        if ($this->editingWarningLetterId) {
+            $sp = EmployeeWarningLetter::where('employee_id', $this->employee->id)->findOrFail($this->editingWarningLetterId);
+            $oldValues = $sp->toArray();
+
+            $data = [
+                'warning_letter_type_id' => $this->spTypeId,
+                'letter_number' => trim($this->spLetterNumber),
+                'issued_date' => $this->spIssuedDate,
+                'valid_from' => $this->spValidFrom,
+                'valid_until' => $this->spValidUntil,
+                'violation_reason' => trim($this->spViolationReason),
+                'authorized_by' => trim($this->spAuthorizedBy),
+                'notes' => trim($this->spNotes) ?: null,
+            ];
+
+            if ($filePath) {
+                $data['document_path'] = $filePath;
+            }
+
+            $sp->update($data);
+
+            $auditService->log(
+                action: 'employee.warning_letter_updated',
+                auditable: $sp,
+                oldValues: $oldValues,
+                newValues: $sp->toArray()
+            );
+
+            $this->spFeedback = "Surat Peringatan {$sp->letter_number} berhasil diperbarui.";
+        } else {
+            $sp = EmployeeWarningLetter::create([
+                'employee_id' => $this->employee->id,
+                'warning_letter_type_id' => $this->spTypeId,
+                'letter_number' => trim($this->spLetterNumber),
+                'issued_date' => $this->spIssuedDate,
+                'valid_from' => $this->spValidFrom,
+                'valid_until' => $this->spValidUntil,
+                'violation_reason' => trim($this->spViolationReason),
+                'authorized_by' => trim($this->spAuthorizedBy),
+                'status' => 'active',
+                'document_path' => $filePath,
+                'notes' => trim($this->spNotes) ?: null,
+                'created_by' => Auth::id(),
+            ]);
+
+            $auditService->log(
+                action: 'employee.warning_letter_issued',
+                auditable: $sp,
+                newValues: [
+                    'employee_id' => $this->employee->id,
+                    'letter_number' => $sp->letter_number,
+                    'type_id' => $sp->warning_letter_type_id,
+                    'valid_until' => $sp->valid_until->toDateString(),
+                ]
+            );
+
+            $this->spFeedback = "Surat Peringatan {$sp->letter_number} berhasil diterbitkan untuk pegawai {$this->employee->full_name}.";
+        }
+
+        $this->showWarningLetterModal = false;
+        $this->employee->refresh();
+    }
+
+    public function openRevokeModal(int $id): void
+    {
+        $this->authorize('manageDisciplinary', $this->employee);
+        $this->resetMessages();
+
+        $this->revokingWarningLetterId = $id;
+        $this->revocationReason = '';
+        $this->showRevokeModal = true;
+    }
+
+    public function revokeWarningLetter(AuditService $auditService): void
+    {
+        $this->authorize('manageDisciplinary', $this->employee);
+        $this->validate([
+            'revocationReason' => 'required|string|min:5|max:1000',
+        ]);
+
+        $sp = EmployeeWarningLetter::where('employee_id', $this->employee->id)->findOrFail($this->revokingWarningLetterId);
+        $oldStatus = $sp->status;
+
+        $sp->update([
+            'status' => 'revoked',
+            'revocation_reason' => trim($this->revocationReason),
+            'revoked_at' => now(),
+            'revoked_by' => Auth::id(),
+        ]);
+
+        $auditService->log(
+            action: 'employee.warning_letter_revoked',
+            auditable: $sp,
+            oldValues: ['status' => $oldStatus],
+            newValues: ['status' => 'revoked', 'reason' => $this->revocationReason]
+        );
+
+        $this->showRevokeModal = false;
+        $this->spFeedback = "Surat Peringatan {$sp->letter_number} berhasil dicabut.";
+        $this->employee->refresh();
+    }
+
+    public function downloadWarningLetter(int $id)
+    {
+        $this->authorize('viewDisciplinary', $this->employee);
+
+        $sp = EmployeeWarningLetter::where('employee_id', $this->employee->id)->findOrFail($id);
+
+        if (! $sp->document_path || ! Storage::disk('public')->exists($sp->document_path)) {
+            $this->spError = 'Berkas fisik surat peringatan tidak ditemukan di penyimpanan server.';
+            return null;
+        }
+
+        return Storage::disk('public')->download($sp->document_path, basename($sp->document_path));
+    }
+
+    public function deleteWarningLetter(int $id, AuditService $auditService): void
+    {
+        $this->authorize('manageDisciplinary', $this->employee);
+        $this->resetMessages();
+
+        $sp = EmployeeWarningLetter::where('employee_id', $this->employee->id)->findOrFail($id);
+        $letterNumber = $sp->letter_number;
+        $sp->delete();
+
+        $auditService->log(
+            action: 'employee.warning_letter_deleted',
+            auditable: $sp,
+            oldValues: ['letter_number' => $letterNumber]
+        );
+
+        $this->spFeedback = "Surat Peringatan {$letterNumber} berhasil dihapus dari arsip.";
+        $this->employee->refresh();
+    }
+
     public function render()
     {
         $user = Auth::user();
@@ -991,10 +1430,16 @@ class EmployeeShow extends Component
             'canUpdateEmployment' => $user?->can('updateEmployment', $this->employee),
             'canManageBank' => $user?->can('manageBank', $this->employee),
             'canUploadDoc' => $user?->can('uploadDocument', $this->employee),
+            'canManageDisciplinary' => $user?->can('manageDisciplinary', $this->employee),
+            'canViewDisciplinary' => $user?->can('viewDisciplinary', $this->employee),
             'availableUnits' => Unit::orderBy('name')->get(),
             'availablePositions' => Position::orderBy('title')->get(),
             'availableComponents' => SalaryComponent::where('is_active', true)->orderBy('type')->orderBy('name')->get(),
             'assignedComponents' => $this->employee->salaryComponents()->with('component')->latest('effective_from')->get(),
+            'availableWarningLetterTypes' => WarningLetterType::active()->orderBy('level')->get(),
+            'warningLetters' => $this->employee->warningLetters()->with(['warningLetterType', 'revoker'])->get(),
+            'hasActiveSp' => $this->employee->hasActiveWarningLetter(),
         ]);
     }
 }
+

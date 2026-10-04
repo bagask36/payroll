@@ -24,6 +24,8 @@ class Position extends Model
         'grade_level',
         'default_basic_salary',
         'default_positional_allowance',
+        'default_contract_number',
+        'document_id',
     ];
 
     /**
@@ -75,5 +77,15 @@ class Position extends Model
     public function subordinatePositions(): HasMany
     {
         return $this->hasMany(self::class, 'reports_to_id');
+    }
+
+    /**
+     * Master SK reference document establishing this position.
+     *
+     * @return BelongsTo<Document, $this>
+     */
+    public function document(): BelongsTo
+    {
+        return $this->belongsTo(Document::class, 'document_id');
     }
 }

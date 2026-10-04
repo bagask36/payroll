@@ -23,6 +23,8 @@
                 <flux:button variant="primary" icon="plus" wire:click="openCreateGeofence">Tambah Titik Geofence</flux:button>
             @elseif($activeTab === 'payroll_periods')
                 <flux:button variant="primary" icon="plus" wire:click="openCreatePeriod">Buka Periode Payroll</flux:button>
+            @elseif($activeTab === 'warning_letter_types')
+                <flux:button variant="primary" icon="plus" wire:click="openCreateWarningLetterType">Tambah Jenis SP</flux:button>
             @endif
         </div>
     </div>
@@ -70,6 +72,9 @@
         </flux:button>
         <flux:button size="sm" :variant="$activeTab === 'bpjs_rules' ? 'primary' : 'subtle'" wire:click="setTab('bpjs_rules')">
             Regulasi Tarif BPJS
+        </flux:button>
+        <flux:button size="sm" :variant="$activeTab === 'warning_letter_types' ? 'primary' : 'subtle'" wire:click="setTab('warning_letter_types')">
+            Tingkat &amp; Jenis SP
         </flux:button>
     </div>
 
@@ -501,6 +506,110 @@
             </flux:table>
         </flux:card>
     @endif
+
+    {{-- Tab 8: Master Tingkat & Jenis Surat Peringatan (SP) --}}
+    @if($activeTab === 'warning_letter_types')
+        <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+            <flux:table>
+                <flux:table.columns>
+                    <flux:table.column>Tingkat (Level)</flux:table.column>
+                    <flux:table.column>Kode Sanksi</flux:table.column>
+                    <flux:table.column>Nama Jenis SP</flux:table.column>
+                    <flux:table.column>Masa Berlaku Default</flux:table.column>
+                    <flux:table.column>Deskripsi / Konsekuensi</flux:table.column>
+                    <flux:table.column align="center">Status</flux:table.column>
+                    <flux:table.column align="end">Aksi</flux:table.column>
+                </flux:table.columns>
+                <flux:table.rows>
+                    @forelse($warningLetterTypes as $wlt)
+                        <flux:table.row :key="$wlt->id">
+                            <flux:table.cell>
+                                @if($wlt->level === 0)
+                                    <flux:badge size="sm" color="zinc">Level 0 (Teguran)</flux:badge>
+                                @elseif($wlt->level === 1)
+                                    <flux:badge size="sm" color="amber">Level 1 (SP I)</flux:badge>
+                                @elseif($wlt->level === 2)
+                                    <flux:badge size="sm" color="orange">Level 2 (SP II)</flux:badge>
+                                @elseif($wlt->level === 3)
+                                    <flux:badge size="sm" color="rose">Level 3 (SP III/Terakhir)</flux:badge>
+                                @else
+                                    <flux:badge size="sm" color="red">Level {{ $wlt->level }} (Berat)</flux:badge>
+                                @endif
+                            </flux:table.cell>
+                            <flux:table.cell class="font-mono font-semibold text-xs">
+                                {{ $wlt->code }}
+                            </flux:table.cell>
+                            <flux:table.cell class="font-medium text-zinc-900 dark:text-zinc-100">
+                                {{ $wlt->name }}
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <span class="font-semibold">{{ $wlt->validity_months }}</span> Bulan
+                            </flux:table.cell>
+                            <flux:table.cell class="text-xs text-zinc-500 max-w-xs truncate" title="{{ $wlt->description }}">
+                                {{ $wlt->description ?: '-' }}
+                            </flux:table.cell>
+                            <flux:table.cell align="center">
+                                <button 
+                                    wire:click="toggleWarningLetterTypeStatus({{ $wlt->id }})" 
+                                    class="cursor-pointer inline-flex items-center"
+                                    title="Klik untuk ubah status"
+                                >
+                                    <flux:badge size="sm" :color="$wlt->is_active ? 'emerald' : 'zinc'">
+                                        {{ $wlt->is_active ? 'Aktif' : 'Nonaktif' }}
+                                    </flux:badge>
+                                </button>
+                            </flux:table.cell>
+                            <flux:table.cell align="end">
+                                <flux:button size="xs" variant="subtle" icon="pencil-square" wire:click="editWarningLetterType({{ $wlt->id }})">
+                                    Edit
+                                </flux:button>
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @empty
+                        <flux:table.row>
+                            <flux:table.cell colspan="7" class="text-center py-8 text-zinc-400 italic">
+                                Belum ada jenis surat peringatan terdaftar.
+                            </flux:table.cell>
+                        </flux:table.row>
+                    @endforelse
+                </flux:table.rows>
+            </flux:table>
+        </flux:card>
+    @endif
+
+    {{-- MODAL WARNING LETTER TYPE --}}
+    <flux:modal wire:model="showWarningLetterTypeModal" class="md:w-[500px] space-y-4">
+        <div>
+            <flux:heading size="lg">{{ $editingWarningLetterTypeId ? 'Edit Jenis SP' : 'Tambah Jenis SP Baru' }}</flux:heading>
+            <flux:subheading class="text-xs text-zinc-500">Konfigurasi standar tingkatan sanksi disiplin dan masa berlaku.</flux:subheading>
+        </div>
+
+        <form wire:submit="saveWarningLetterType" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <flux:input wire:model="wltCode" label="Kode Sanksi" placeholder="Misal: SP-1, TEGURAN" required />
+                <flux:input wire:model="wltLevel" type="number" min="0" max="10" label="Tingkat (Level)" placeholder="0 - 4" required />
+            </div>
+
+            <flux:input wire:model="wltName" label="Nama Jenis Surat Peringatan" placeholder="Misal: Surat Peringatan Pertama (SP I)" required />
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <flux:input wire:model="wltValidityMonths" type="number" min="1" max="60" label="Masa Berlaku Standar (Bulan)" placeholder="6" required />
+                <div class="flex items-center pt-7">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" wire:model="wltIsActive" class="rounded text-emerald-600 focus:ring-emerald-500">
+                        <span class="text-sm font-medium text-zinc-800 dark:text-zinc-200">Status Aktif</span>
+                    </label>
+                </div>
+            </div>
+
+            <flux:textarea wire:model="wltDescription" label="Deskripsi / Konsekuensi Sanksi" placeholder="Keterangan pelanggaran atau dampak administratif sanksi ini..." rows="3" />
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <flux:modal.close><flux:button variant="subtle">Batal</flux:button></flux:modal.close>
+                <flux:button type="submit" variant="primary">Simpan Master SP</flux:button>
+            </div>
+        </form>
+    </flux:modal>
 
     {{-- MODAL UNIT --}}
     <flux:modal wire:model="showUnitModal" class="md:w-96 space-y-4">

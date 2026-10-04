@@ -17,7 +17,14 @@
             </div>
         </div>
 
-        <div>
+        <div class="flex items-center gap-2">
+            @if($hasActiveSp)
+                <button type="button" wire:click="setTab('disciplinary')" class="cursor-pointer" title="Klik untuk lihat rincian sanksi SP">
+                    <flux:badge size="lg" color="rose" icon="exclamation-triangle" class="hover:opacity-80 transition-opacity">
+                        Dalam Sanksi SP
+                    </flux:badge>
+                </button>
+            @endif
             @if($employee->status === 'ACTIVE')
                 <flux:badge size="lg" color="emerald">Pegawai Aktif</flux:badge>
             @else
@@ -114,6 +121,20 @@
             wire:click="setTab('biometrics')"
         >
             Biometrik Wajah
+        </flux:button>
+
+        <flux:button 
+            size="sm" 
+            :variant="$activeTab === 'disciplinary' ? 'primary' : 'subtle'" 
+            wire:click="setTab('disciplinary')"
+            class="relative inline-flex items-center gap-1.5"
+        >
+            <span>Sanksi &amp; SP</span>
+            @if($hasActiveSp)
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white animate-pulse">
+                    Aktif
+                </span>
+            @endif
         </flux:button>
     </div>
 
@@ -257,6 +278,8 @@
                                 <th class="px-4 py-3">Mulai Tugas</th>
                                 <th class="px-4 py-3">Akhir Kontrak</th>
                                 <th class="px-4 py-3">Status</th>
+                                <th class="px-4 py-3">Berkas SK</th>
+                                <th class="px-4 py-3 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -290,15 +313,59 @@
                                             <flux:badge size="sm" color="zinc">Selesai</flux:badge>
                                         @endif
                                     </td>
+                                    <td class="px-4 py-3 text-xs">
+                                        @if($empRec->document)
+                                            <flux:button size="xs" variant="ghost" icon="arrow-down-tray" wire:click="downloadEmploymentDocument({{ $empRec->id }})">
+                                                Unduh SK
+                                            </flux:button>
+                                        @else
+                                            <span class="text-zinc-400 italic">Belum ada</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-right text-xs">
+                                        @if($canUpdateEmployment)
+                                            <flux:button size="xs" variant="subtle" icon="pencil-square" wire:click="editEmployment({{ $empRec->id }})">
+                                                Edit / Lengkapi
+                                            </flux:button>
+                                        @endif
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-4 py-6 text-center text-zinc-400 italic">Belum ada riwayat penugasan tercatat.</td>
+                                    <td colspan="9" class="px-4 py-6 text-center text-zinc-400 italic">Belum ada riwayat penugasan tercatat.</td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
+            </flux:card>
+
+            {{-- Catatan Kedisiplinan & Riwayat Sanksi (Cross-reference) --}}
+            <flux:card class="space-y-3 border-dashed">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <flux:icon name="exclamation-triangle" class="size-4 text-amber-500" />
+                        <h4 class="text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
+                            Catatan Kedisiplinan &amp; Sanksi Disiplin Pegawai
+                        </h4>
+                    </div>
+                    <flux:button size="xs" variant="subtle" icon="arrow-right" wire:click="setTab('disciplinary')">
+                        Buka Tab Sanksi &amp; SP
+                    </flux:button>
+                </div>
+                @if($hasActiveSp)
+                    <div class="p-3 rounded-lg bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-800 dark:text-rose-300 flex items-center justify-between">
+                        <div>
+                            <strong>Perhatian SDM:</strong> Pegawai memiliki sanksi Surat Peringatan (SP) yang <strong>Berlaku Aktif</strong>. Harap jadikan pertimbangan utama dalam evaluasi masa kerja, kenaikan jabatan, rotasi, atau perpanjangan ikatan dinas.
+                        </div>
+                        <flux:badge size="sm" color="rose">Ada SP Aktif</flux:badge>
+                    </div>
+                @else
+                    <div class="text-xs text-zinc-500 flex items-center justify-between">
+                        <span>Pegawai memiliki rekam kedisiplinan tertib (tidak ada sanksi Surat Peringatan yang sedang berlaku aktif).</span>
+                        <flux:badge size="sm" color="emerald">Disiplin Tertib</flux:badge>
+                    </div>
+                @endif
             </flux:card>
         </div>
     @endif
@@ -965,11 +1032,274 @@
         </div>
     @endif
 
+    {{-- Tab 7: Sanksi & Surat Peringatan (SP) --}}
+    @if($activeTab === 'disciplinary')
+        <div class="space-y-6">
+            {{-- Feedback & Error Banners --}}
+            @if($spFeedback)
+                <div class="p-4 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <flux:icon name="check-circle" class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span class="text-sm font-medium">{{ $spFeedback }}</span>
+                    </div>
+                    <flux:button size="sm" variant="subtle" wire:click="$set('spFeedback', null)">Tutup</flux:button>
+                </div>
+            @endif
+
+            @if($spError)
+                <div class="p-4 rounded-xl border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-200 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <flux:icon name="exclamation-circle" class="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
+                        <span class="text-sm font-medium">{{ $spError }}</span>
+                    </div>
+                    <flux:button size="sm" variant="subtle" wire:click="$set('spError', null)">Tutup</flux:button>
+                </div>
+            @endif
+
+            {{-- Active Warning Alert Banner --}}
+            @if($hasActiveSp)
+                <div class="p-4 rounded-xl border border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div class="flex items-start gap-3">
+                        <flux:icon name="exclamation-triangle" class="w-6 h-6 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                        <div>
+                            <h4 class="font-semibold text-sm">Pegawai Sedang Dalam Masa Sanksi Disiplin Aktif</h4>
+                            <p class="text-xs text-amber-800/80 dark:text-amber-300/80 mt-0.5">
+                                Karyawan ini memiliki surat peringatan yang masih dalam masa berlaku. Harap diperhatikan dalam evaluasi kinerja, pengajuan kenaikan jenjang, dan perpanjangan kontrak kerja.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            {{-- Card Table Sanksi & SP --}}
+            <flux:card class="p-0 overflow-hidden shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+                <div class="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                            Riwayat Surat Peringatan &amp; Sanksi Disiplin
+                        </h3>
+                        <p class="text-xs text-zinc-500 mt-0.5">
+                            Dokumentasi resmi surat teguran, SP I, SP II, SP III, dan riwayat sanksi kerja lainnya.
+                        </p>
+                    </div>
+
+                    @if($canManageDisciplinary)
+                        <flux:button variant="primary" icon="plus" wire:click="openCreateWarningLetter">
+                            Terbitkan Surat Peringatan (SP)
+                        </flux:button>
+                    @endif
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-zinc-50 dark:bg-zinc-800/60 border-b border-zinc-200 dark:border-zinc-700/80 text-zinc-600 dark:text-zinc-300 uppercase text-xs tracking-wider">
+                            <tr>
+                                <th class="px-4 py-3.5 font-semibold">Tingkat / Jenis Sanksi</th>
+                                <th class="px-4 py-3.5 font-semibold">Nomor Surat</th>
+                                <th class="px-4 py-3.5 font-semibold">Tanggal Terbit</th>
+                                <th class="px-4 py-3.5 font-semibold">Masa Berlaku</th>
+                                <th class="px-4 py-3.5 font-semibold">Uraian Pelanggaran</th>
+                                <th class="px-4 py-3.5 font-semibold">Penandatangan</th>
+                                <th class="px-4 py-3.5 font-semibold text-center">Berkas</th>
+                                <th class="px-4 py-3.5 font-semibold text-center">Status</th>
+                                @if($canManageDisciplinary)
+                                    <th class="px-4 py-3.5 font-semibold text-right">Aksi</th>
+                                @endif
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 text-zinc-800 dark:text-zinc-200">
+                            @forelse($warningLetters as $sp)
+                                <tr class="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors">
+                                    <td class="px-4 py-3">
+                                        @php $lvl = $sp->warningLetterType?->level ?? 1; @endphp
+                                        @if($lvl === 0)
+                                            <flux:badge size="sm" color="zinc">{{ $sp->warningLetterType?->name ?? 'Teguran' }}</flux:badge>
+                                        @elseif($lvl === 1)
+                                            <flux:badge size="sm" color="amber">{{ $sp->warningLetterType?->name ?? 'SP I' }}</flux:badge>
+                                        @elseif($lvl === 2)
+                                            <flux:badge size="sm" color="orange">{{ $sp->warningLetterType?->name ?? 'SP II' }}</flux:badge>
+                                        @elseif($lvl === 3)
+                                            <flux:badge size="sm" color="rose">{{ $sp->warningLetterType?->name ?? 'SP III' }}</flux:badge>
+                                        @else
+                                            <flux:badge size="sm" color="red">{{ $sp->warningLetterType?->name ?? 'Sanksi Berat' }}</flux:badge>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 font-mono text-xs font-semibold text-zinc-900 dark:text-zinc-100">
+                                        {{ $sp->letter_number }}
+                                    </td>
+                                    <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-400">
+                                        {{ $sp->issued_date ? $sp->issued_date->format('d M Y') : '-' }}
+                                    </td>
+                                    <td class="px-4 py-3 text-xs">
+                                        <div class="font-medium text-zinc-900 dark:text-zinc-100">
+                                            {{ $sp->valid_from ? $sp->valid_from->format('d M Y') : '-' }} s/d {{ $sp->valid_until ? $sp->valid_until->format('d M Y') : '-' }}
+                                        </div>
+                                        @if($sp->effective_status === 'active')
+                                            <span class="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+                                                (Sisa: {{ (int) now()->diffInDays($sp->valid_until, false) }} hari)
+                                            </span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-300 max-w-xs">
+                                        <div class="line-clamp-2" title="{{ $sp->violation_reason }}">
+                                            {{ $sp->violation_reason }}
+                                        </div>
+                                        @if($sp->notes)
+                                            <div class="mt-1 text-[11px] text-zinc-400 italic">
+                                                Catatan: {{ $sp->notes }}
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-xs text-zinc-600 dark:text-zinc-400">
+                                        {{ $sp->authorized_by }}
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        @if($sp->document_path)
+                                            <flux:button size="xs" variant="ghost" icon="arrow-down-tray" wire:click="downloadWarningLetter({{ $sp->id }})">
+                                                Unduh Berkas
+                                            </flux:button>
+                                        @else
+                                            <span class="text-xs text-zinc-400 italic">Tidak ada</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        @if($sp->status === 'revoked')
+                                            <flux:badge size="sm" color="purple" title="Dicabut pada: {{ $sp->revoked_at ? $sp->revoked_at->format('d M Y H:i') : '' }} | Alasan: {{ $sp->revocation_reason }}">
+                                                Dicabut
+                                            </flux:badge>
+                                        @elseif($sp->effective_status === 'expired')
+                                            <flux:badge size="sm" color="zinc">Selesai (Kedaluwarsa)</flux:badge>
+                                        @else
+                                            <flux:badge size="sm" color="rose">Berlaku Aktif</flux:badge>
+                                        @endif
+                                    </td>
+                                    @if($canManageDisciplinary)
+                                        <td class="px-4 py-3 text-right">
+                                            <div class="flex items-center justify-end gap-1.5">
+                                                @if($sp->status === 'active' && $sp->effective_status === 'active')
+                                                    <flux:button size="xs" variant="subtle" icon="x-circle" wire:click="openRevokeModal({{ $sp->id }})" title="Cabut sanksi SP lebih awal">
+                                                        Cabut SP
+                                                    </flux:button>
+                                                @endif
+
+                                                <flux:button size="xs" variant="subtle" icon="pencil-square" wire:click="editWarningLetter({{ $sp->id }})" title="Edit data SP">
+                                                    Edit
+                                                </flux:button>
+
+                                                <flux:button size="xs" variant="danger" icon="trash" wire:confirm="Apakah Anda yakin ingin menghapus arsip surat peringatan ini?" wire:click="deleteWarningLetter({{ $sp->id }})" title="Hapus arsip">
+                                                </flux:button>
+                                            </div>
+                                        </td>
+                                    @endif
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="{{ $canManageDisciplinary ? 9 : 8 }}" class="px-4 py-8 text-center text-zinc-500">
+                                        <div class="flex flex-col items-center justify-center space-y-1">
+                                            <flux:icon name="check-badge" class="w-8 h-8 text-emerald-500/70" />
+                                            <span class="font-medium text-zinc-700 dark:text-zinc-300">Tidak ada catatan sanksi / SP.</span>
+                                            <span class="text-xs text-zinc-400">Pegawai memiliki catatan kedisiplinan yang bersih.</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </flux:card>
+        </div>
+    @endif
+
+    {{-- MODAL TERBITKAN / EDIT SURAT PERINGATAN (SP) --}}
+    <flux:modal wire:model="showWarningLetterModal" class="md:w-2xl space-y-4">
+        <div>
+            <flux:heading size="lg">
+                {{ $editingWarningLetterId ? 'Edit Surat Peringatan (SP)' : 'Terbitkan Surat Peringatan (SP) Baru' }}
+            </flux:heading>
+            <flux:subheading class="text-xs text-zinc-500">
+                Penerbitan sanksi kedisiplinan resmi untuk pegawai {{ $employee->full_name }} (NIP: {{ $employee->nip }}).
+            </flux:subheading>
+        </div>
+
+        <form wire:submit="saveWarningLetter" class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <flux:select wire:model.live="spTypeId" label="Tingkat / Jenis Surat Peringatan" required>
+                    <option value="">-- Pilih Jenis Sanksi SP --</option>
+                    @foreach($availableWarningLetterTypes as $type)
+                        <option value="{{ $type->id }}">
+                            {{ $type->name }} (Masa Berlaku: {{ $type->validity_months }} Bulan)
+                        </option>
+                    @endforeach
+                </flux:select>
+
+                <flux:input wire:model="spLetterNumber" label="Nomor Surat Resmi" placeholder="Misal: 015/SP-I/SDM-RSJ/X/2026" required />
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <flux:input wire:model="spIssuedDate" type="date" label="Tanggal Penetapan Surat" required />
+                <flux:input wire:model.live="spValidFrom" type="date" label="Mulai Berlaku" required />
+                <flux:input wire:model="spValidUntil" type="date" label="Berlaku Sampai Dengan" required />
+            </div>
+
+            <flux:textarea wire:model="spViolationReason" label="Uraian Pelanggaran Tata Tertib" placeholder="Jelaskan tindakan pelanggaran, kronologi kejadian, atau klausul peraturan rumah sakit yang dilanggar..." rows="3" required />
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <flux:input wire:model="spAuthorizedBy" label="Pejabat Penandatangan / Pengesah" placeholder="Misal: Direktur Utama / Kepala Bagian SDM" required />
+                <flux:input wire:model="spNotes" label="Catatan Pembinaan / Komitmen (Opsional)" placeholder="Komitmen perbaikan sikap atau evaluasi mingguan" />
+            </div>
+
+            <flux:field>
+                <flux:label>Upload Berkas Scan Surat SP (PDF / JPG / PNG, Max 5MB)</flux:label>
+                <input 
+                    type="file" 
+                    wire:model="spDocumentFile" 
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    class="block w-full text-xs text-zinc-500 file:mr-4 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300"
+                />
+                <flux:error name="spDocumentFile" />
+            </flux:field>
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <flux:modal.close><flux:button variant="subtle">Batal</flux:button></flux:modal.close>
+                <flux:button type="submit" variant="primary">Simpan &amp; Terbitkan SP</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    {{-- MODAL PENCABUTAN SURAT PERINGATAN (REVOKE SP) --}}
+    <flux:modal wire:model="showRevokeModal" class="md:w-lg space-y-4">
+        <div>
+            <flux:heading size="lg">Cabut Surat Peringatan (Rehabilitasi)</flux:heading>
+            <flux:subheading class="text-xs text-zinc-500">
+                Pencabutan sanksi disiplin lebih awal sebelum masa berlaku berakhir atas dasar pembinaan atau perbaikan kinerja.
+            </flux:subheading>
+        </div>
+
+        <form wire:submit="revokeWarningLetter" class="space-y-4">
+            <flux:textarea 
+                wire:model="revocationReason" 
+                label="Alasan &amp; Pertimbangan Pencabutan Sanksi" 
+                placeholder="Tuliskan dasar pertimbangan pencabutan SP (misal: perbaikan absensi dan kepatuhan SOP selama 3 bulan pemantauan)..." 
+                rows="4" 
+                required 
+            />
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <flux:modal.close><flux:button variant="subtle">Batal</flux:button></flux:modal.close>
+                <flux:button type="submit" variant="danger">Konfirmasi Cabut SP</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
     {{-- Modal: Catat Penugasan / SK Baru --}}
     <flux:modal wire:model="showEmploymentModal" class="md:w-2xl space-y-4">
         <div>
-            <flux:heading size="lg">Catat Penugasan / SK Baru</flux:heading>
-            <flux:subheading>Mencatat mutasi unit, kenaikan jabatan, atau pembaharuan ikatan kerja. Unit dan jabatan profil pegawai akan otomatis diperbarui.</flux:subheading>
+            <flux:heading size="lg">
+                {{ $editingEmploymentId ? 'Koreksi / Lengkapi Riwayat SK Penugasan' : 'Catat Penugasan / SK Baru' }}
+            </flux:heading>
+            <flux:subheading>
+                {{ $editingEmploymentId ? 'Perbarui nomor SK, masa penugasan, atau lengkapi berkas scan fisik SK resmi.' : 'Mencatat penugasan, kenaikan jabatan, atau rotasi kerja. Mendukung penetapan tanggal berlaku surut (retroactive).' }}
+            </flux:subheading>
         </div>
 
         <form wire:submit.prevent="saveEmployment" class="space-y-4">
@@ -1015,6 +1345,25 @@
                     wire:model="employmentEndDate" 
                     placeholder="Kosongkan jika tetap" 
                 />
+            </div>
+
+            {{-- Upload Berkas Fisik SK --}}
+            <div class="space-y-2 p-3.5 rounded-xl border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50/60 dark:bg-zinc-800/40">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Lampiran Berkas Fisik SK (Scan PDF, JPG, PNG)</span>
+                    <span class="text-[11px] text-zinc-400">Maks. 10 MB (Opsional)</span>
+                </div>
+                @if($employmentExistingDocumentName)
+                    <div class="flex items-center justify-between gap-2 p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300">
+                        <div class="flex items-center gap-1.5 truncate">
+                            <flux:icon name="document-check" class="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                            <span class="truncate">Berkas terlampir: <strong>{{ $employmentExistingDocumentName }}</strong></span>
+                        </div>
+                        <span class="text-[10px] text-zinc-400 shrink-0">Pilih file baru bila ingin mengganti</span>
+                    </div>
+                @endif
+                <flux:input type="file" wire:model="employmentDocumentFile" accept=".pdf,.jpg,.jpeg,.png" />
+                <div wire:loading wire:target="employmentDocumentFile" class="text-xs text-sky-600 dark:text-sky-400">Mengunggah berkas SK…</div>
             </div>
 
             @if($canUpdateSalary)
@@ -1066,12 +1415,18 @@
 
             <div class="p-3 rounded-lg bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700 text-xs text-zinc-500">
                 <span class="font-medium text-zinc-700 dark:text-zinc-300">Catatan Sistem:</span>
-                Menyimpan penugasan ini akan otomatis menandai penugasan aktif sebelumnya sebagai selesai dan memperbarui unit serta jabatan aktif pegawai saat ini.
+                @if($editingEmploymentId)
+                    Menyimpan perubahan akan mengoreksi data arsip penugasan ini. Jika catatan ini berstatus penugasan aktif, profil jabatan dan unit pegawai akan turut disinkronkan.
+                @else
+                    Mendukung penetapan tanggal berlaku surut (retroactive). Jika tanggal mulai berada di masa lampau, sistem akan secara otomatis menyesuaikan batas akhir penugasan dan riwayat gaji sebelumnya agar linimasa tetap tertib dan tidak tumpang tindih.
+                @endif
             </div>
 
             <div class="flex justify-end gap-2 pt-2">
                 <flux:button variant="ghost" wire:click="$set('showEmploymentModal', false)">Batal</flux:button>
-                <flux:button type="submit" variant="primary">Simpan &amp; Terapkan Penugasan</flux:button>
+                <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="employmentDocumentFile">
+                    {{ $editingEmploymentId ? 'Simpan Perubahan SK' : 'Simpan & Terapkan Penugasan' }}
+                </flux:button>
             </div>
         </form>
     </flux:modal>

@@ -65,6 +65,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/master/deductions', \App\Livewire\Master\DeductionComponentIndex::class)->name('master.deductions');
     Route::get('/master/bpjs', \App\Livewire\Master\BpjsIndex::class)->name('master.bpjs');
     Route::get('/master/pph21', \App\Livewire\Master\Pph21ParameterIndex::class)->name('master.pph21');
+    Route::get('/master/warning-letter-types', \App\Livewire\Master\WarningLetterTypeIndex::class)->name('master.warning-letter-types');
 
     // Organization Structure
     Route::get('/org/structure', \App\Livewire\Organization\OrgStructureIndex::class)->name('org.structure');

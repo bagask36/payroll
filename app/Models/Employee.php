@@ -349,4 +349,31 @@ class Employee extends Model
             })
             ->get();
     }
+
+    /**
+     * Warning letters / disciplinary sanctions received by this employee.
+     *
+     * @return HasMany<EmployeeWarningLetter, $this>
+     */
+    public function warningLetters(): HasMany
+    {
+        return $this->hasMany(EmployeeWarningLetter::class)->orderByDesc('issued_date');
+    }
+
+    /**
+     * Currently active warning letters.
+     */
+    public function activeWarningLetters(): HasMany
+    {
+        return $this->warningLetters()->active();
+    }
+
+    /**
+     * Check if employee has an active warning letter.
+     */
+    public function hasActiveWarningLetter(): bool
+    {
+        return $this->activeWarningLetters()->exists();
+    }
 }
+

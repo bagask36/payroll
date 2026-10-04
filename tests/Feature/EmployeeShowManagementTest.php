@@ -497,4 +497,179 @@ class EmployeeShowManagementTest extends TestCase
             ->assertSet('basicSalary', '8500000')
             ->assertSet('revisionReason', 'Standar SK Jabatan Dokter Jaga IGD');
     }
+
+    public function test_hr_admin_can_record_assignment_with_physical_sk_document_upload(): void
+    {
+        Storage::fake('local');
+        $employee = Employee::factory()->create();
+        $unit = Unit::factory()->create();
+        $pos = Position::factory()->create();
+
+        $this->actingAs($this->userWithRole('hr_admin'));
+
+        $file = UploadedFile::fake()->create('sk_pengangkatan.pdf', 500, 'application/pdf');
+
+        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
+            ->call('openEmploymentModal')
+            ->set('employmentUnitId', $unit->id)
+            ->set('employmentPositionId', $pos->id)
+            ->set('employmentContractType', 'permanent')
+            ->set('employmentContractNumber', 'SK/DIR/2026/055')
+            ->set('employmentStartDate', '2026-03-01')
+            ->set('employmentDocumentFile', $file)
+            ->call('saveEmployment')
+            ->assertHasNoErrors()
+            ->assertSet('showEmploymentModal', false);
+
+        $employment = EmployeeEmployment::where('employee_id', $employee->id)
+            ->where('contract_number', 'SK/DIR/2026/055')
+            ->firstOrFail();
+
+        $this->assertNotNull($employment->document_id);
+        $this->assertNotNull($employment->document);
+        $this->assertSame('sk_pengangkatan.pdf', $employment->document->original_name);
+        $this->assertSame('contract', $employment->document->document_type);
+        $this->assertTrue(Storage::disk('local')->exists($employment->document->storage_path));
+    }
+
+    public function test_backdated_assignment_retroactively_adjusts_previous_employment_and_salary(): void
+    {
+        $manager = $this->userWithRole('hr_manager');
+        $this->actingAs($manager);
+
+        $oldUnit = Unit::factory()->create();
+        $newUnit = Unit::factory()->create();
+        $oldPos = Position::factory()->create(['title' => 'Staf Awal']);
+        $newPos = Position::factory()->create(['title' => 'Kepala Unit Baru', 'default_basic_salary' => 8000000]);
+
+        $employee = Employee::factory()->create([
+            'unit_id' => $oldUnit->id,
+            'position_id' => $oldPos->id,
+        ]);
+
+        $prevEmployment = EmployeeEmployment::create([
+            'employee_id' => $employee->id,
+            'unit_id' => $oldUnit->id,
+            'position_id' => $oldPos->id,
+            'contract_type' => 'permanent',
+            'contract_number' => 'SK/LAMA/2024',
+            'start_date' => '2024-01-01',
+            'is_active' => true,
+        ]);
+
+        $prevSalary = EmployeeSalary::create([
+            'employee_id' => $employee->id,
+            'basic_salary' => 5000000,
+            'effective_from' => '2024-01-01',
+            'revision_reason' => 'Gaji Lama',
+            'created_by' => $manager->id,
+        ]);
+
+        // Input retroactive SK dated '2025-06-01'
+        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
+            ->call('openEmploymentModal')
+            ->set('employmentUnitId', $newUnit->id)
+            ->set('employmentPositionId', $newPos->id)
+            ->set('employmentContractType', 'permanent')
+            ->set('employmentContractNumber', 'SK/RETRO/2025/001')
+            ->set('employmentStartDate', '2025-06-01')
+            ->call('saveEmployment')
+            ->assertHasNoErrors();
+
+        // Prev employment should be closed at 2025-05-31
+        $prevEmployment->refresh();
+        $this->assertFalse((bool) $prevEmployment->is_active);
+        $this->assertEquals('2025-05-31', $prevEmployment->end_date?->toDateString());
+
+        // Prev salary should have effective_to closed at 2025-05-31
+        $prevSalary->refresh();
+        $this->assertEquals('2025-05-31', $prevSalary->effective_to?->toDateString());
+
+        // New employment is active and starts at 2025-06-01
+        $newEmp = EmployeeEmployment::where('contract_number', 'SK/RETRO/2025/001')->firstOrFail();
+        $this->assertTrue((bool) $newEmp->is_active);
+        $this->assertEquals('2025-06-01', $newEmp->start_date?->toDateString());
+    }
+
+    public function test_hr_admin_can_edit_past_employment_sk_and_upload_missing_document(): void
+    {
+        Storage::fake('local');
+        $employee = Employee::factory()->create();
+        $unit = Unit::factory()->create();
+        $pos = Position::factory()->create();
+
+        $pastEmployment = EmployeeEmployment::create([
+            'employee_id' => $employee->id,
+            'unit_id' => $unit->id,
+            'position_id' => $pos->id,
+            'contract_type' => 'permanent',
+            'contract_number' => 'SK/DRAFT/001',
+            'start_date' => '2023-01-01',
+            'end_date' => '2024-12-31',
+            'is_active' => false,
+            'notes' => 'Catatan lama',
+        ]);
+
+        $this->actingAs($this->userWithRole('hr_admin'));
+
+        $file = UploadedFile::fake()->create('sk_lampau.pdf', 300, 'application/pdf');
+
+        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
+            ->call('editEmployment', $pastEmployment->id)
+            ->assertSet('editingEmploymentId', $pastEmployment->id)
+            ->assertSet('employmentContractNumber', 'SK/DRAFT/001')
+            ->set('employmentContractNumber', 'SK/DEFINITIF/2023/001')
+            ->set('employmentNotes', 'Catatan diperbarui dengan fisik SK')
+            ->set('employmentDocumentFile', $file)
+            ->call('saveEmployment')
+            ->assertHasNoErrors()
+            ->assertSet('showEmploymentModal', false);
+
+        $pastEmployment->refresh();
+        $this->assertEquals('SK/DEFINITIF/2023/001', $pastEmployment->contract_number);
+        $this->assertEquals('Catatan diperbarui dengan fisik SK', $pastEmployment->notes);
+        $this->assertNotNull($pastEmployment->document_id);
+        $this->assertSame('sk_lampau.pdf', $pastEmployment->document->original_name);
+    }
+
+    public function test_authorized_user_can_download_employment_sk_document(): void
+    {
+        Storage::fake('local');
+        $employee = Employee::factory()->create();
+        $user = $this->userWithRole('hr_admin');
+        $this->actingAs($user);
+
+        // Upload fake storage file
+        $storagePath = 'documents/compliance/contract/test_sk.pdf';
+        Storage::disk('local')->put($storagePath, 'PDF_CONTENT_TEST');
+
+        $document = Document::create([
+            'documentable_type' => Employee::class,
+            'documentable_id' => $employee->id,
+            'uploaded_by' => $user->id,
+            'document_type' => 'contract',
+            'original_name' => 'sk_asli.pdf',
+            'mime_type' => 'application/pdf',
+            'file_size' => 16,
+            'storage_path' => $storagePath,
+            'storage_provider' => 'local',
+        ]);
+
+        $employment = EmployeeEmployment::create([
+            'employee_id' => $employee->id,
+            'unit_id' => $employee->unit_id,
+            'position_id' => $employee->position_id,
+            'contract_type' => 'permanent',
+            'contract_number' => 'SK/RESMI/001',
+            'start_date' => '2024-01-01',
+            'is_active' => true,
+            'document_id' => $document->id,
+        ]);
+
+        $response = Livewire::test(EmployeeShow::class, ['id' => $employee->id])
+            ->call('downloadEmploymentDocument', $employment->id);
+
+        $response->assertFileDownloaded('sk_asli.pdf');
+    }
 }
+

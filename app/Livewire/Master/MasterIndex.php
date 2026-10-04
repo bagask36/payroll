@@ -134,6 +134,23 @@ class MasterIndex extends Component
 
     public bool $bpjsIsActive = true;
 
+    // Warning Letter Type Form State
+    public bool $showWarningLetterTypeModal = false;
+
+    public ?int $editingWarningLetterTypeId = null;
+
+    public string $wltCode = '';
+
+    public string $wltName = '';
+
+    public int $wltLevel = 1;
+
+    public int $wltValidityMonths = 6;
+
+    public string $wltDescription = '';
+
+    public bool $wltIsActive = true;
+
     public ?string $feedbackMessage = null;
 
     public ?string $errorMessage = null;
@@ -543,6 +560,83 @@ class MasterIndex extends Component
         $this->feedbackMessage = "Tarif BPJS {$rule->program_name} berhasil diperbarui!";
     }
 
+    // --- WARNING LETTER TYPE ACTIONS ---
+    public function openCreateWarningLetterType(): void
+    {
+        $this->reset(['editingWarningLetterTypeId', 'wltCode', 'wltName', 'wltDescription']);
+        $this->wltLevel = 1;
+        $this->wltValidityMonths = 6;
+        $this->wltIsActive = true;
+        $this->showWarningLetterTypeModal = true;
+    }
+
+    public function editWarningLetterType(int $id): void
+    {
+        $wlt = \App\Models\WarningLetterType::findOrFail($id);
+        $this->editingWarningLetterTypeId = $wlt->id;
+        $this->wltCode = $wlt->code;
+        $this->wltName = $wlt->name;
+        $this->wltLevel = $wlt->level;
+        $this->wltValidityMonths = $wlt->validity_months;
+        $this->wltDescription = $wlt->description ?? '';
+        $this->wltIsActive = $wlt->is_active;
+        $this->showWarningLetterTypeModal = true;
+    }
+
+    public function saveWarningLetterType(AuditService $auditService): void
+    {
+        $this->validate([
+            'wltCode' => 'required|string|max:50|unique:warning_letter_types,code,'.$this->editingWarningLetterTypeId,
+            'wltName' => 'required|string|max:150',
+            'wltLevel' => 'required|integer|min:0|max:10',
+            'wltValidityMonths' => 'required|integer|min:1|max:60',
+            'wltDescription' => 'nullable|string|max:1000',
+        ]);
+
+        if ($this->editingWarningLetterTypeId) {
+            $wlt = \App\Models\WarningLetterType::findOrFail($this->editingWarningLetterTypeId);
+            $oldValues = $wlt->toArray();
+            $wlt->update([
+                'code' => strtoupper(trim($this->wltCode)),
+                'name' => trim($this->wltName),
+                'level' => $this->wltLevel,
+                'validity_months' => $this->wltValidityMonths,
+                'description' => trim($this->wltDescription) ?: null,
+                'is_active' => $this->wltIsActive,
+            ]);
+            $auditService->log(action: 'warning_letter_type.updated', auditable: $wlt, oldValues: $oldValues, newValues: $wlt->toArray());
+            $this->feedbackMessage = "Jenis SP \"{$wlt->name}\" berhasil diperbarui!";
+        } else {
+            $wlt = \App\Models\WarningLetterType::create([
+                'code' => strtoupper(trim($this->wltCode)),
+                'name' => trim($this->wltName),
+                'level' => $this->wltLevel,
+                'validity_months' => $this->wltValidityMonths,
+                'description' => trim($this->wltDescription) ?: null,
+                'is_active' => $this->wltIsActive,
+            ]);
+            $auditService->log(action: 'warning_letter_type.created', auditable: $wlt, newValues: $wlt->toArray());
+            $this->feedbackMessage = "Jenis SP baru \"{$wlt->name}\" berhasil didaftarkan!";
+        }
+
+        $this->showWarningLetterTypeModal = false;
+    }
+
+    public function toggleWarningLetterTypeStatus(int $id, AuditService $auditService): void
+    {
+        $wlt = \App\Models\WarningLetterType::findOrFail($id);
+        $wlt->is_active = ! $wlt->is_active;
+        $wlt->save();
+
+        $auditService->log(
+            action: 'warning_letter_type.status_toggled',
+            auditable: $wlt,
+            newValues: ['is_active' => $wlt->is_active]
+        );
+
+        $this->feedbackMessage = "Status jenis SP \"{$wlt->name}\" berhasil diubah.";
+    }
+
     public function render()
     {
         $departments = Department::orderBy('name')->get();
@@ -575,6 +669,15 @@ class MasterIndex extends Component
 
         $allActiveGeofences = GeofenceLocation::where('is_active', true)->get();
 
+        $warningLetterTypes = \App\Models\WarningLetterType::when($this->search, function ($q) {
+            $q->where('name', 'like', "%{$this->search}%")
+                ->orWhere('code', 'like', "%{$this->search}%")
+                ->orWhere('description', 'like', "%{$this->search}%");
+        })
+            ->orderBy('level')
+            ->orderBy('name')
+            ->paginate(15);
+
         return view('livewire.master.master-index', [
             'departments' => $departments,
             'units' => $units,
@@ -585,6 +688,7 @@ class MasterIndex extends Component
             'allActiveGeofences' => $allActiveGeofences,
             'periods' => $periods,
             'bpjsRules' => $bpjsRules,
+            'warningLetterTypes' => $warningLetterTypes,
         ]);
     }
 }

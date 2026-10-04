@@ -77,6 +77,12 @@
                             </flux:sidebar.item>
                         @endif
 
+                        @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('hr_manager'))
+                            <flux:sidebar.item icon="exclamation-triangle" href="{{ route('master.warning-letter-types') }}" :current="request()->routeIs('master.warning-letter-types')">
+                                Tingkat &amp; Jenis SP
+                            </flux:sidebar.item>
+                        @endif
+
                         @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->can('system.config_view'))
                             <flux:sidebar.item icon="map-pin" href="{{ route('master.geofences') }}" :current="request()->routeIs('master.geofences')">
                                 Titik Geofence

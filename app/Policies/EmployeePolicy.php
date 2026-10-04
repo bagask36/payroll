@@ -142,4 +142,28 @@ class EmployeePolicy
     {
         return $user->hasPermission('employee.deactivate');
     }
+
+    /**
+     * Determine whether the user can manage (issue, update, revoke) disciplinary warning letters.
+     */
+    public function manageDisciplinary(User $user, Employee $employee): bool
+    {
+        return $user->hasRole('super_admin') 
+            || $user->hasRole('hr_admin') 
+            || $user->hasRole('hr_manager') 
+            || $user->hasPermission('employee.update_employment');
+    }
+
+    /**
+     * Determine whether the user can view disciplinary warning letters.
+     */
+    public function viewDisciplinary(User $user, Employee $employee): bool
+    {
+        if ($employee->user_id === $user->id) {
+            return true;
+        }
+
+        return $user->hasPermission('employee.view');
+    }
 }
+
