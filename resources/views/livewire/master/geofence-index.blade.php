@@ -94,8 +94,8 @@
                 </div>
 
                 {{-- Interactive Map Viewport --}}
-                <div class="relative w-full h-72 rounded-xl overflow-hidden border border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 shadow-inner">
-                    <div wire:ignore x-ref="pickerMapContainer" class="w-full h-full z-0"></div>
+                <div class="relative w-full rounded-xl overflow-hidden border border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 shadow-inner" style="min-height: 300px;">
+                    <div wire:ignore x-ref="pickerMapContainer" class="w-full z-0" style="height: 300px; min-height: 300px; width: 100%;"></div>
                     <div class="absolute bottom-2 left-2 z-10 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xs px-2.5 py-1 rounded-md text-[11px] font-mono text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 shadow-xs pointer-events-none">
                         Lat: <span x-text="lat?.toFixed(6) ?? '-'"></span> | Lng: <span x-text="lng?.toFixed(6) ?? '-'"></span> | Radius: <span x-text="radius"></span>m
                     </div>
@@ -278,6 +278,7 @@
                 marker: null,
                 circle: null,
                 resizeObserver: null,
+                renderTimeout: null,
 
                 initPicker() {
                     window.addEventListener('init-geofence-map', (e) => {
@@ -287,107 +288,145 @@
                             this.lng = parseFloat(detail.lng) || 106.8456;
                             this.radius = parseInt(detail.radius) || 150;
                         }
-                        this.setupOrUpdateMap();
+                        this.scheduleRender();
                     });
 
                     this.$watch('$wire.showGeofenceModal', (val) => {
                         if (val) {
-                            this.lat = parseFloat(this.$wire.get('geofenceLat')) || -6.2088;
-                            this.lng = parseFloat(this.$wire.get('geofenceLng')) || 106.8456;
-                            this.radius = parseInt(this.$wire.get('geofenceRadius')) || 150;
-                            this.setupOrUpdateMap();
+                            const wireLat = parseFloat(this.$wire.get('geofenceLat'));
+                            const wireLng = parseFloat(this.$wire.get('geofenceLng'));
+                            const wireRadius = parseInt(this.$wire.get('geofenceRadius'));
+                            if (!isNaN(wireLat)) this.lat = wireLat;
+                            if (!isNaN(wireLng)) this.lng = wireLng;
+                            if (!isNaN(wireRadius) && wireRadius > 0) this.radius = wireRadius;
+                            this.scheduleRender();
+                        } else {
+                            this.destroyMap();
                         }
                     });
+                },
+
+                scheduleRender() {
+                    if (this.renderTimeout) {
+                        clearTimeout(this.renderTimeout);
+                    }
+                    this.renderTimeout = setTimeout(() => {
+                        this.setupOrUpdateMap();
+                    }, 50);
+                },
+
+                destroyMap() {
+                    if (this.map) {
+                        try { this.map.remove(); } catch (e) {}
+                        this.map = null;
+                        this.marker = null;
+                        this.circle = null;
+                    }
+                    const container = this.$refs.pickerMapContainer;
+                    if (container) {
+                        delete container._leaflet_id;
+                        container.innerHTML = '';
+                    }
                 },
 
                 setupOrUpdateMap() {
                     const container = this.$refs.pickerMapContainer;
                     if (!container) return;
 
-                    const initLeaflet = () => {
+                    let attempts = 0;
+                    const maxAttempts = 30;
+
+                    const tryInit = () => {
+                        attempts++;
+
                         if (!window.L) {
-                            setTimeout(initLeaflet, 50);
+                            if (attempts < maxAttempts) setTimeout(tryInit, 50);
                             return;
                         }
 
-                        if (this.map && this.map._container !== container) {
+                        // Tunggu hingga container memiliki dimensi width & height valid (> 0)
+                        if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+                            if (attempts < maxAttempts) {
+                                setTimeout(tryInit, 50);
+                            }
+                            return;
+                        }
+
+                        // Bersihkan map lama agar tidak ada memory leak / state rusak
+                        if (this.map) {
                             try { this.map.remove(); } catch (e) {}
                             this.map = null;
                         }
-
-                        if (container._leaflet_id && !this.map) {
+                        if (container._leaflet_id) {
                             delete container._leaflet_id;
                             container.innerHTML = '';
                         }
 
-                        if (!this.map) {
-                            this.map = L.map(container).setView([this.lat, this.lng], 16);
+                        // Inisialisasi peta Leaflet fresh
+                        this.map = L.map(container, {
+                            zoomControl: true,
+                            scrollWheelZoom: true
+                        }).setView([this.lat, this.lng], 16);
 
-                            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                                maxZoom: 19,
-                                attribution: '&copy; OpenStreetMap'
-                            }).addTo(this.map);
+                        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19,
+                            attribution: '&copy; OpenStreetMap'
+                        }).addTo(this.map);
 
-                            this.marker = L.marker([this.lat, this.lng], {
-                                draggable: true,
-                                title: 'Titik Pusat Geofence'
-                            }).addTo(this.map);
+                        this.marker = L.marker([this.lat, this.lng], {
+                            draggable: true,
+                            title: 'Titik Pusat Geofence'
+                        }).addTo(this.map);
 
-                            this.circle = L.circle([this.lat, this.lng], {
-                                radius: this.radius,
-                                color: '#059669',
-                                fillColor: '#10b981',
-                                fillOpacity: 0.25,
-                                weight: 2
-                            }).addTo(this.map);
+                        this.circle = L.circle([this.lat, this.lng], {
+                            radius: this.radius,
+                            color: '#059669',
+                            fillColor: '#10b981',
+                            fillOpacity: 0.25,
+                            weight: 2
+                        }).addTo(this.map);
 
-                            // Map click updates pinpoint
-                            this.map.on('click', (e) => {
-                                this.setPosition(e.latlng.lat, e.latlng.lng);
-                            });
+                        // Klik pada peta untuk pindahkan pin
+                        this.map.on('click', (e) => {
+                            this.setPosition(e.latlng.lat, e.latlng.lng);
+                        });
 
-                            // Marker drag updates pinpoint & circle live
-                            this.marker.on('drag', (e) => {
-                                const pos = e.target.getLatLng();
-                                if (this.circle) {
-                                    this.circle.setLatLng(pos);
+                        // Geser pin (drag) untuk perbarui lingkaran dan koordinat
+                        this.marker.on('drag', (e) => {
+                            const pos = e.target.getLatLng();
+                            if (this.circle) {
+                                this.circle.setLatLng(pos);
+                            }
+                        });
+
+                        this.marker.on('dragend', (e) => {
+                            const pos = e.target.getLatLng();
+                            this.setPosition(pos.lat, pos.lng);
+                        });
+
+                        // ResizeObserver untuk menjaga ukuran jika window/dialog berubah
+                        if (window.ResizeObserver && !this.resizeObserver) {
+                            this.resizeObserver = new ResizeObserver(() => {
+                                if (this.map && container.clientHeight > 0) {
+                                    this.map.invalidateSize();
                                 }
                             });
-
-                            this.marker.on('dragend', (e) => {
-                                const pos = e.target.getLatLng();
-                                this.setPosition(pos.lat, pos.lng);
-                            });
-
-                            if (window.ResizeObserver && !this.resizeObserver) {
-                                this.resizeObserver = new ResizeObserver(() => {
-                                    if (this.map && container.clientHeight > 0) {
-                                        this.map.invalidateSize();
-                                    }
-                                });
-                                this.resizeObserver.observe(container);
-                            }
-                        } else {
-                            this.map.setView([this.lat, this.lng], 16);
-                            if (this.marker) this.marker.setLatLng([this.lat, this.lng]);
-                            if (this.circle) {
-                                this.circle.setLatLng([this.lat, this.lng]);
-                                this.circle.setRadius(this.radius);
-                            }
+                            this.resizeObserver.observe(container);
                         }
 
+                        // Invalidate size beberapa kali untuk memastikan animasi transisi modal selesai
                         const invalidate = () => {
                             if (this.map && container.clientHeight > 0) {
                                 this.map.invalidateSize();
                             }
                         };
-                        invalidate();
+                        requestAnimationFrame(invalidate);
                         setTimeout(invalidate, 100);
-                        setTimeout(invalidate, 300);
-                        setTimeout(invalidate, 600);
+                        setTimeout(invalidate, 250);
+                        setTimeout(invalidate, 500);
                     };
 
-                    setTimeout(initLeaflet, 50);
+                    tryInit();
                 },
 
                 setPosition(newLat, newLng) {
