@@ -49,7 +49,7 @@ RUN npm run build
 # ==============================================================================
 # Stage 3: PHP-FPM Production Runtime (App Container)
 # ==============================================================================
-FROM php:8.3-fpm-alpine AS app
+FROM php:8.4-fpm-alpine AS app
 
 LABEL maintainer="RS Juwita IT Team"
 LABEL description="SIM SDM RS Juwita Production Container"

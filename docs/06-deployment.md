@@ -14,7 +14,7 @@ Sesuai arsitektur sistem (`/docs/02-architecture.md` Section 17), sistem dipecah
    - Mengatur header keamanan, gzip kompresi, dan batasan ukuran upload (64MB).
    - Port eksternal default: `80` (dapat diarahkan ke `443` menggunakan reverse proxy SSL seperti Certbot/Nginx host/Cloudflare).
 
-2. **`app` (PHP-FPM 8.3 Alpine)**:
+2. **`app` (PHP-FPM 8.4 Alpine)**:
    - Monolith Laravel 13, Livewire 4, Flux UI.
    - Menjalankan core logika aplikasi, kalkulasi payroll, absensi, dan otorisasi.
    - Terkoneksi ke PostgreSQL dan Redis melalui internal bridge network (`payroll_network`).
