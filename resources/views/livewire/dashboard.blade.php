@@ -69,32 +69,119 @@
             </div>
 
             {{-- Quick Action Deck for Staff --}}
-            <div class="mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3">
-                <div class="flex flex-wrap items-center gap-2">
-                    <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider me-1">Pintasan Saya:</span>
-                    <a href="{{ route('attendance.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/50 border border-emerald-200/70 dark:border-emerald-800/60 transition-colors">
-                        <flux:icon name="clock" class="size-3.5 text-emerald-600" />
-                        <span>Presensi Mandiri</span>
-                    </a>
-                    <a href="{{ route('leaves.apply') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-purple-950/50 dark:text-purple-300 dark:hover:bg-purple-900/50 border border-purple-200/70 dark:border-purple-800/60 transition-colors">
-                        <flux:icon name="document-text" class="size-3.5 text-purple-600" />
-                        <span>Ajukan Cuti / Izin</span>
-                    </a>
-                    <a href="{{ route('schedules.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:bg-blue-900/50 border border-blue-200/70 dark:border-blue-800/60 transition-colors">
-                        <flux:icon name="calendar" class="size-3.5 text-blue-600" />
-                        <span>Jadwal &amp; Roster</span>
-                    </a>
-                    @if(auth()->user()?->employee)
-                        <a href="{{ route('payroll.my-payslips') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/50 dark:text-amber-300 dark:hover:bg-amber-900/50 border border-amber-200/70 dark:border-amber-800/60 transition-colors">
-                            <flux:icon name="receipt-percent" class="size-3.5 text-amber-600" />
-                            <span>Slip Gaji Saya</span>
-                        </a>
-                    @endif
+            <div class="mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-800">
+                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                        <flux:icon name="bolt" class="size-3.5 text-emerald-500" />
+                        <span>Pintasan Layanan Mandiri</span>
+                    </div>
+
+                    <div class="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+                        <span class="relative flex size-2">
+                            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
+                        </span>
+                        <span>Portal Mandiri Aktif</span>
+                    </div>
                 </div>
 
-                <div class="hidden sm:flex items-center gap-2 text-xs text-zinc-400 font-medium">
-                    <span class="size-2 rounded-full bg-emerald-500"></span>
-                    <span>Layanan Mandiri Pegawai Aktif</span>
+                {{-- Responsive Grid: 2 columns on mobile, 4 columns on sm+ --}}
+                <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+                    {{-- 1. Presensi Mandiri --}}
+                    <a href="{{ route('attendance.index') }}" 
+                        class="group relative flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 sm:p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500/50 hover:bg-white hover:shadow-md dark:border-zinc-800 dark:bg-zinc-850/60 dark:hover:border-emerald-500/40 dark:hover:bg-zinc-800 active:scale-98">
+                        <div class="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 transition-all duration-200 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950/60 dark:text-emerald-400 shadow-2xs">
+                            <flux:icon name="clock" class="size-4.5 sm:size-5" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="truncate text-xs font-bold text-zinc-900 group-hover:text-emerald-700 dark:text-zinc-100 dark:group-hover:text-emerald-400 transition-colors">
+                                    Presensi
+                                </span>
+                                <flux:icon name="chevron-right" class="size-3 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                            </div>
+                            <p class="truncate text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
+                                Check-in / out
+                            </p>
+                        </div>
+                    </a>
+
+                    {{-- 2. Ajukan Cuti / Izin --}}
+                    <a href="{{ route('leaves.apply') }}" 
+                        class="group relative flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 sm:p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-purple-500/50 hover:bg-white hover:shadow-md dark:border-zinc-800 dark:bg-zinc-850/60 dark:hover:border-purple-500/40 dark:hover:bg-zinc-800 active:scale-98">
+                        <div class="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 transition-all duration-200 group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white dark:bg-purple-950/60 dark:text-purple-400 shadow-2xs">
+                            <flux:icon name="document-text" class="size-4.5 sm:size-5" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="truncate text-xs font-bold text-zinc-900 group-hover:text-purple-700 dark:text-zinc-100 dark:group-hover:text-purple-400 transition-colors">
+                                    Ajukan Cuti
+                                </span>
+                                <flux:icon name="chevron-right" class="size-3 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                            </div>
+                            <p class="truncate text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
+                                Permohonan izin
+                            </p>
+                        </div>
+                    </a>
+
+                    {{-- 3. Jadwal & Roster --}}
+                    <a href="{{ route('schedules.index') }}" 
+                        class="group relative flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 sm:p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500/50 hover:bg-white hover:shadow-md dark:border-zinc-800 dark:bg-zinc-850/60 dark:hover:border-blue-500/40 dark:hover:bg-zinc-800 active:scale-98">
+                        <div class="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 transition-all duration-200 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-950/60 dark:text-blue-400 shadow-2xs">
+                            <flux:icon name="calendar" class="size-4.5 sm:size-5" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="truncate text-xs font-bold text-zinc-900 group-hover:text-blue-700 dark:text-zinc-100 dark:group-hover:text-blue-400 transition-colors">
+                                    Jadwal Shift
+                                </span>
+                                <flux:icon name="chevron-right" class="size-3 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                            </div>
+                            <p class="truncate text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
+                                Roster penugasan
+                            </p>
+                        </div>
+                    </a>
+
+                    {{-- 4. Slip Gaji / Dokumen --}}
+                    @if(auth()->user()?->employee)
+                        <a href="{{ route('payroll.my-payslips') }}" 
+                            class="group relative flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 sm:p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500/50 hover:bg-white hover:shadow-md dark:border-zinc-800 dark:bg-zinc-850/60 dark:hover:border-amber-500/40 dark:hover:bg-zinc-800 active:scale-98">
+                            <div class="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 transition-all duration-200 group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white dark:bg-amber-950/60 dark:text-amber-400 shadow-2xs">
+                                <flux:icon name="receipt-percent" class="size-4.5 sm:size-5" />
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center justify-between gap-1">
+                                    <span class="truncate text-xs font-bold text-zinc-900 group-hover:text-amber-700 dark:text-zinc-100 dark:group-hover:text-amber-400 transition-colors">
+                                        Slip Gaji
+                                    </span>
+                                    <flux:icon name="chevron-right" class="size-3 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                                </div>
+                                <p class="truncate text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
+                                    Unduh rincian gaji
+                                </p>
+                            </div>
+                        </a>
+                    @else
+                        <a href="{{ route('documents.index') }}" 
+                            class="group relative flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 sm:p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-teal-500/50 hover:bg-white hover:shadow-md dark:border-zinc-800 dark:bg-zinc-850/60 dark:hover:border-teal-500/40 dark:hover:bg-zinc-800 active:scale-98">
+                            <div class="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-teal-500/10 text-teal-600 transition-all duration-200 group-hover:scale-110 group-hover:bg-teal-600 group-hover:text-white dark:bg-teal-950/60 dark:text-teal-400 shadow-2xs">
+                                <flux:icon name="folder" class="size-4.5 sm:size-5" />
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center justify-between gap-1">
+                                    <span class="truncate text-xs font-bold text-zinc-900 group-hover:text-teal-700 dark:text-zinc-100 dark:group-hover:text-teal-400 transition-colors">
+                                        Dokumen
+                                    </span>
+                                    <flux:icon name="chevron-right" class="size-3 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                                </div>
+                                <p class="truncate text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
+                                    Arsip berkas STR/SIP
+                                </p>
+                            </div>
+                        </a>
+                    @endif
                 </div>
             </div>
         </div>
@@ -865,35 +952,104 @@
             </div>
 
             {{-- Executive Quick Action Deck inside Hero --}}
-            <div class="mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3">
-                <div class="flex flex-wrap items-center gap-2">
-                    <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider me-1">Pintasan Cepat:</span>
-                    <a href="{{ route('attendance.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/50 border border-emerald-200/70 dark:border-emerald-800/60 transition-colors">
-                        <flux:icon name="clock" class="size-3.5 text-emerald-600" />
-                        <span>Live Presensi</span>
-                    </a>
-                    <a href="{{ route('schedules.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:bg-blue-900/50 border border-blue-200/70 dark:border-blue-800/60 transition-colors">
-                        <flux:icon name="calendar" class="size-3.5 text-blue-600" />
-                        <span>Roster Shift</span>
-                    </a>
-                    <a href="{{ route('leaves.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-purple-950/50 dark:text-purple-300 dark:hover:bg-purple-900/50 border border-purple-200/70 dark:border-purple-800/60 transition-colors">
-                        <flux:icon name="document-text" class="size-3.5 text-purple-600" />
-                        <span>Approval Cuti</span>
-                        @if($pendingLeavesCount > 0)
-                            <span class="ms-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white">
-                                {{ $pendingLeavesCount }}
-                            </span>
-                        @endif
-                    </a>
-                    <a href="{{ route('payroll.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/50 dark:text-amber-300 dark:hover:bg-amber-900/50 border border-amber-200/70 dark:border-amber-800/60 transition-colors">
-                        <flux:icon name="banknotes" class="size-3.5 text-amber-600" />
-                        <span>Manajemen Payroll</span>
-                    </a>
+            <div class="mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-800">
+                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                        <flux:icon name="bolt" class="size-3.5 text-amber-500" />
+                        <span>Pintasan Operasional</span>
+                    </div>
+
+                    <div class="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+                        <span class="relative flex size-2">
+                            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
+                        </span>
+                        <span>Sistem SDM &amp; Geofence Aktif</span>
+                    </div>
                 </div>
 
-                <div class="hidden sm:flex items-center gap-2 text-xs text-zinc-400 font-medium">
-                    <span class="size-2 rounded-full bg-emerald-500"></span>
-                    <span>Sistem SDM &amp; Presensi Geofence Aktif</span>
+                {{-- Responsive Grid: 2 columns on mobile, 4 columns on sm+ --}}
+                <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+                    {{-- 1. Live Presensi --}}
+                    <a href="{{ route('attendance.index') }}" 
+                        class="group relative flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 sm:p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500/50 hover:bg-white hover:shadow-md dark:border-zinc-800 dark:bg-zinc-850/60 dark:hover:border-emerald-500/40 dark:hover:bg-zinc-800 active:scale-98">
+                        <div class="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 transition-all duration-200 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950/60 dark:text-emerald-400 shadow-2xs">
+                            <flux:icon name="clock" class="size-4.5 sm:size-5" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="truncate text-xs font-bold text-zinc-900 group-hover:text-emerald-700 dark:text-zinc-100 dark:group-hover:text-emerald-400 transition-colors">
+                                    Live Presensi
+                                </span>
+                                <flux:icon name="chevron-right" class="size-3 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                            </div>
+                            <p class="truncate text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
+                                Pantau absensi
+                            </p>
+                        </div>
+                    </a>
+
+                    {{-- 2. Roster Shift --}}
+                    <a href="{{ route('schedules.index') }}" 
+                        class="group relative flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 sm:p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500/50 hover:bg-white hover:shadow-md dark:border-zinc-800 dark:bg-zinc-850/60 dark:hover:border-blue-500/40 dark:hover:bg-zinc-800 active:scale-98">
+                        <div class="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 transition-all duration-200 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-950/60 dark:text-blue-400 shadow-2xs">
+                            <flux:icon name="calendar" class="size-4.5 sm:size-5" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="truncate text-xs font-bold text-zinc-900 group-hover:text-blue-700 dark:text-zinc-100 dark:group-hover:text-blue-400 transition-colors">
+                                    Roster Shift
+                                </span>
+                                <flux:icon name="chevron-right" class="size-3 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                            </div>
+                            <p class="truncate text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
+                                Jadwal kerja tim
+                            </p>
+                        </div>
+                    </a>
+
+                    {{-- 3. Approval Cuti --}}
+                    <a href="{{ route('leaves.index') }}" 
+                        class="group relative flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 sm:p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-purple-500/50 hover:bg-white hover:shadow-md dark:border-zinc-800 dark:bg-zinc-850/60 dark:hover:border-purple-500/40 dark:hover:bg-zinc-800 active:scale-98">
+                        <div class="relative flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 transition-all duration-200 group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white dark:bg-purple-950/60 dark:text-purple-400 shadow-2xs">
+                            <flux:icon name="document-text" class="size-4.5 sm:size-5" />
+                            @if($pendingLeavesCount > 0)
+                                <span class="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-amber-500 text-[9px] font-extrabold text-white ring-2 ring-white dark:ring-zinc-900">
+                                    {{ $pendingLeavesCount }}
+                                </span>
+                            @endif
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="truncate text-xs font-bold text-zinc-900 group-hover:text-purple-700 dark:text-zinc-100 dark:group-hover:text-purple-400 transition-colors">
+                                    Approval Cuti
+                                </span>
+                                <flux:icon name="chevron-right" class="size-3 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                            </div>
+                            <p class="truncate text-[10px] font-medium {{ $pendingLeavesCount > 0 ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-zinc-500 dark:text-zinc-400' }}">
+                                {{ $pendingLeavesCount > 0 ? $pendingLeavesCount . ' antrean permohonan' : 'Persetujuan cuti' }}
+                            </p>
+                        </div>
+                    </a>
+
+                    {{-- 4. Manajemen Payroll --}}
+                    <a href="{{ route('payroll.index') }}" 
+                        class="group relative flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 sm:p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500/50 hover:bg-white hover:shadow-md dark:border-zinc-800 dark:bg-zinc-850/60 dark:hover:border-amber-500/40 dark:hover:bg-zinc-800 active:scale-98">
+                        <div class="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 transition-all duration-200 group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white dark:bg-amber-950/60 dark:text-amber-400 shadow-2xs">
+                            <flux:icon name="banknotes" class="size-4.5 sm:size-5" />
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="truncate text-xs font-bold text-zinc-900 group-hover:text-amber-700 dark:text-zinc-100 dark:group-hover:text-amber-400 transition-colors">
+                                    Payroll
+                                </span>
+                                <flux:icon name="chevron-right" class="size-3 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                            </div>
+                            <p class="truncate text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
+                                Proses gaji &amp; slip
+                            </p>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>
