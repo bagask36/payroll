@@ -41,7 +41,7 @@ class MobilePwaTest extends TestCase
 
     public function test_authenticated_layout_renders_pwa_and_mobile_app_elements(): void
     {
-        $user = User::where('email', 'admin@rsjuwita.co.id')->firstOrFail();
+        $user = User::first() ?? User::factory()->create();
 
         $response = $this->actingAs($user)->get(route('dashboard'));
 
