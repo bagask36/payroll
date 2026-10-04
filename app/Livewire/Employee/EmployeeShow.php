@@ -701,6 +701,7 @@ class EmployeeShow extends Component
         $this->bioMaritalStatus = (string) ($e->marital_status ?: 'single');
         $this->bioReligion = (string) ($e->religion ?: 'islam');
         $this->bioTaxDependents = (int) $e->tax_dependents;
+        $this->bioEducationLevel = (string) ($e->education_level ?? 'S1');
         $this->bioScheduleType = (string) ($e->schedule_type ?? 'non_shift');
         // Sensitive PII only pre-filled for users allowed to see it
         $this->bioNpwp = $canSensitive ? $e->npwp_number : null;
@@ -721,6 +722,7 @@ class EmployeeShow extends Component
             'bioEmail' => ['nullable', 'email', 'max:150', Rule::unique('employees', 'email')->ignore($this->employee->id)],
             'bioPhone' => ['required', 'string', 'max:30'],
             'bioGender' => ['required', 'in:male,female'],
+            'bioEducationLevel' => ['nullable', 'string', 'max:50'],
             'bioBirthPlace' => ['required', 'string', 'max:100'],
             'bioBirthDate' => ['required', 'date', 'before:today'],
             'bioMaritalStatus' => ['required', 'in:single,married,divorced,widowed'],
@@ -745,7 +747,7 @@ class EmployeeShow extends Component
             'bioKtp.digits' => 'NIK KTP harus 16 digit angka.',
         ]);
 
-        $tracked = ['full_name', 'email', 'phone_number', 'residential_address', 'gender', 'birth_place', 'birth_date', 'marital_status', 'religion', 'tax_dependents', 'npwp_number', 'schedule_type'];
+        $tracked = ['full_name', 'email', 'phone_number', 'residential_address', 'gender', 'education_level', 'birth_place', 'birth_date', 'marital_status', 'religion', 'tax_dependents', 'npwp_number', 'schedule_type'];
         $old = collect($this->employee->only($tracked))
             ->map(fn ($v) => $v instanceof \DateTimeInterface ? $v->format('Y-m-d') : $v)
             ->all();
@@ -755,6 +757,7 @@ class EmployeeShow extends Component
             'email' => $this->bioEmail ?: null,
             'phone_number' => $this->bioPhone,
             'gender' => $this->bioGender,
+            'education_level' => $this->bioEducationLevel ?: null,
             'birth_place' => $this->bioBirthPlace,
             'birth_date' => $this->bioBirthDate,
             'marital_status' => $this->bioMaritalStatus,

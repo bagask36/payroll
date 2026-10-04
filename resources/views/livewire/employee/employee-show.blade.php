@@ -262,6 +262,12 @@
                         </p>
                     </div>
                     <div>
+                        <span class="text-xs text-zinc-500">Pendidikan Terakhir</span>
+                        <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">
+                            {{ $employee->education_level ?: '-' }}
+                        </p>
+                    </div>
+                    <div>
                         <span class="text-xs text-zinc-500">Tempat, Tanggal Lahir</span>
                         <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">
                             {{ $employee->birth_place ?: '-' }}, {{ $employee->birth_date ? $employee->birth_date->format('d F Y') : '-' }}
@@ -1593,6 +1599,16 @@
                 <flux:select label="Jenis Kelamin" wire:model="bioGender">
                     <option value="male">Laki-laki</option>
                     <option value="female">Perempuan</option>
+                </flux:select>
+                <flux:select label="Pendidikan Terakhir" wire:model="bioEducationLevel">
+                    <option value="SMA/SMK">SMA / SMK Sederajat</option>
+                    <option value="D3">Diploma III (D3)</option>
+                    <option value="D4/S1">Sarjana (S1 / D4)</option>
+                    <option value="S1">Sarjana (S1)</option>
+                    <option value="S2">Magister (S2)</option>
+                    <option value="S3">Doktor (S3)</option>
+                    <option value="Profesi">Profesi / Ners / Apoteker</option>
+                    <option value="Spesialis">Dokter Spesialis</option>
                 </flux:select>
                 <flux:input label="Tempat Lahir" wire:model="bioBirthPlace" required />
                 <flux:input label="Tanggal Lahir" type="date" wire:model="bioBirthDate" required />
