@@ -29,3 +29,67 @@
     --color-pg-primary-900: var(--color-zinc-900);
     --color-pg-primary-950: var(--color-zinc-950);
 }
+
+/* ==========================================================================
+   Mobile & Standalone PWA Optimizations
+   ========================================================================== */
+
+:root {
+    --sat: env(safe-area-inset-top, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+}
+
+/* Remove touch tap highlight on mobile devices */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent iOS input zoom by ensuring minimum 16px text on mobile */
+@media screen and (max-width: 768px) {
+    input:not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* Smooth touch scrolling and native momentum */
+html, body {
+    touch-action: manipulation;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+}
+
+/* Standalone / Add to Home Screen Mode Feel */
+@media all and (display-mode: standalone) {
+    body {
+        user-select: none;
+        -webkit-user-select: none;
+        overscroll-behavior-y: none;
+    }
+    
+    /* Allow text selection inside content areas, tables, forms, and cards */
+    main, article, form, input, textarea, [contenteditable="true"] {
+        user-select: auto;
+        -webkit-user-select: auto;
+    }
+}
+
+/* Safe area utilities */
+.pt-safe {
+    padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+}
+
+.pb-safe {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+}
+
+.pl-safe {
+    padding-left: max(0.5rem, env(safe-area-inset-left, 0px));
+}
+
+.pr-safe {
+    padding-right: max(0.5rem, env(safe-area-inset-right, 0px));
+}

@@ -102,8 +102,8 @@
             </div>
         @endif
 
-        {{-- 4 Primary Metric Cards for Employee / Doctor --}}
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {{-- 3 Primary Metric Cards for Employee / Doctor --}}
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {{-- Card 1: Shift Hari Ini --}}
             <div class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
                 <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
@@ -210,34 +210,6 @@
                 <div class="mt-4 flex items-center justify-between border-t border-zinc-100 pt-3 text-[11px] text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
                     <span class="text-zinc-400">Hak Cuti Tahunan</span>
                     <a href="{{ route('leaves.apply') }}" class="font-semibold text-purple-600 hover:text-purple-700 dark:text-purple-400">Ajukan &rarr;</a>
-                </div>
-            </div>
-
-            {{-- Card 4: Slip Gaji Terakhir --}}
-            <div class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-500 to-yellow-500"></div>
-                <div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Gaji Bersih (Slip Terakhir)</span>
-                        <div class="flex size-9 items-center justify-center rounded-xl bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
-                            <flux:icon name="receipt-percent" class="size-4" />
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        @if($myLatestPayslip)
-                            <div class="font-mono text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                                Rp {{ number_format((float) $myLatestPayslip['net_salary'], 0, ',', '.') }}
-                            </div>
-                            <span class="mt-1 block text-xs text-zinc-500 dark:text-zinc-400">{{ $myLatestPayslip['period_name'] }}</span>
-                        @else
-                            <div class="text-sm font-semibold text-zinc-500">Belum Ada Slip</div>
-                            <span class="mt-1 block text-xs text-zinc-400">Periode aktif berjalan</span>
-                        @endif
-                    </div>
-                </div>
-                <div class="mt-4 flex items-center justify-between border-t border-zinc-100 pt-3 text-[11px] text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
-                    <span class="font-medium text-emerald-600 dark:text-emerald-400">{{ $myLatestPayslip ? 'Finalized' : '-' }}</span>
-                    <a href="{{ route('payroll.my-payslips') }}" class="font-semibold text-amber-600 hover:text-amber-700 dark:text-amber-400">Slip Saya &rarr;</a>
                 </div>
             </div>
         </div>

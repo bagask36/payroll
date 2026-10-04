@@ -6,7 +6,6 @@ use App\Models\Attendance;
 use App\Models\Employee;
 use App\Models\LeaveBalance;
 use App\Models\LeaveRequest;
-use App\Models\PayrollItem;
 use App\Models\ScheduleAssignment;
 use App\Services\Reporting\HospitalDashboardService;
 use Carbon\Carbon;
@@ -52,8 +51,6 @@ class Dashboard extends Component
     public ?array $myAttendanceToday = null;
 
     public ?array $myLeaveQuota = null;
-
-    public ?array $myLatestPayslip = null;
 
     public array $myRecentLeaves = [];
 
@@ -173,20 +170,7 @@ class Dashboard extends Component
             'allocated_days' => $balances->sum('assigned_days'),
         ];
 
-        // 4. Latest Payslip Snapshot
-        $latestItem = PayrollItem::where('employee_id', $employee->id)
-            ->with('run.period')
-            ->latest('id')
-            ->first();
-
-        $this->myLatestPayslip = $latestItem ? [
-            'period_name' => $latestItem->run?->period?->name ?? 'Periode Terakhir',
-            'net_salary' => $latestItem->net_salary,
-            'status' => $latestItem->run?->status ?? 'finalized',
-            'payment_status' => $latestItem->payment_status,
-        ] : null;
-
-        // 5. Recent Leaves
+        // 4. Recent Leaves
         $this->myRecentLeaves = LeaveRequest::where('employee_id', $employee->id)
             ->with('leaveType')
             ->latest('id')

@@ -8,41 +8,110 @@
             <flux:subheading class="mt-1 text-zinc-500 dark:text-zinc-400">
                 Transparansi kompensasi bulanan, rincian potongan iuran BPJS, dan bukti transfer gaji.
             </flux:subheading>
-        </div>
+        @if($isUnlocked)
+            <div class="flex items-center gap-2">
+                <flux:badge size="sm" color="emerald" class="flex items-center gap-1">
+                    <flux:icon name="lock-open" class="size-3.5" />
+                    <span>Terverifikasi</span>
+                </flux:badge>
+                <flux:button wire:click="lock" variant="subtle" size="sm" icon="lock-closed" class="cursor-pointer">
+                    Kunci Kembali
+                </flux:button>
+            </div>
+        @endif
     </div>
 
-    {{-- Employee Identity Card --}}
-    @if($employee)
-        <flux:card class="bg-gradient-to-r from-emerald-500/10 via-transparent to-transparent border border-emerald-500/20">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div class="flex items-center gap-3">
-                    <div class="size-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg">
-                        {{ strtoupper(substr($employee->full_name, 0, 2)) }}
-                    </div>
-                    <div>
-                        <div class="font-bold text-zinc-900 dark:text-zinc-100 text-base">{{ $employee->full_name }}</div>
-                        <div class="text-xs text-zinc-500 font-mono">NIP: {{ $employee->nip }} • Unit: {{ $employee->unit?->name ?? '-' }}</div>
-                    </div>
-                </div>
+    @if(! $isUnlocked)
+        {{-- Password Verification Lock Card --}}
+        <div class="mx-auto max-w-md py-6">
+            <div class="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-8">
+                <div class="absolute -right-8 -top-8 size-40 rounded-full bg-emerald-500/10 blur-2xl dark:bg-emerald-500/20"></div>
 
-                <div class="text-xs text-zinc-500 sm:text-right">
-                    <div>Rekening Payroll: <span class="font-semibold text-zinc-800 dark:text-zinc-200">{{ $employee->primaryBankAccount?->bank_name ?? '-' }}</span></div>
-                    <div class="font-mono text-zinc-400">
-                        @if($employee->primaryBankAccount?->account_number)
-                            **** {{ substr($employee->primaryBankAccount->account_number, -4) }}
-                        @else
-                            Belum terdaftar
-                        @endif
+                <div class="relative space-y-6">
+                    <div class="flex items-center gap-4">
+                        <div class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
+                            <flux:icon name="shield-check" class="size-6" />
+                        </div>
+                        <div>
+                            <flux:heading size="lg" class="font-bold text-zinc-900 dark:text-zinc-100">
+                                Verifikasi Keamanan
+                            </flux:heading>
+                            <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                                Perlindungan privasi data finansial pegawai
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="rounded-xl border border-amber-200/80 bg-amber-50/60 p-3.5 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300">
+                        <div class="flex gap-2">
+                            <flux:icon name="exclamation-triangle" class="size-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                            <span>Untuk melihat riwayat dan rincian slip gaji, silakan masukkan <strong>kata sandi akun login</strong> Anda terlebih dahulu.</span>
+                        </div>
+                    </div>
+
+                    <form wire:submit.prevent="unlock" class="space-y-4">
+                        <flux:field>
+                            <flux:label>Kata Sandi Akun</flux:label>
+                            <flux:input
+                                wire:model="password"
+                                type="password"
+                                placeholder="Masukkan kata sandi login Anda"
+                                autofocus
+                            />
+                            <flux:error name="password" />
+                        </flux:field>
+
+                        <flux:button type="submit" variant="primary" class="w-full justify-center cursor-pointer">
+                            <span wire:loading.remove wire:target="unlock" class="flex items-center gap-2">
+                                <flux:icon name="lock-open" class="size-4" />
+                                <span>Verifikasi &amp; Buka Slip Gaji</span>
+                            </span>
+                            <span wire:loading wire:target="unlock" class="flex items-center gap-2">
+                                <flux:icon name="arrow-path" class="size-4 animate-spin" />
+                                <span>Memverifikasi...</span>
+                            </span>
+                        </flux:button>
+                    </form>
+
+                    <div class="border-t border-zinc-100 pt-3 text-center text-[11px] text-zinc-400 dark:border-zinc-800">
+                        Sesi akses slip gaji akan aktif selama 15 menit.
                     </div>
                 </div>
             </div>
-        </flux:card>
-    @endif
+        </div>
+    @else
+        {{-- Employee Identity Card --}}
+        @if($employee)
+            <flux:card class="bg-gradient-to-r from-emerald-500/10 via-transparent to-transparent border border-emerald-500/20">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="size-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold text-lg">
+                            {{ strtoupper(substr($employee->full_name, 0, 2)) }}
+                        </div>
+                        <div>
+                            <div class="font-bold text-zinc-900 dark:text-zinc-100 text-base">{{ $employee->full_name }}</div>
+                            <div class="text-xs text-zinc-500 font-mono">NIP: {{ $employee->nip }} • Unit: {{ $employee->unit?->name ?? '-' }}</div>
+                        </div>
+                    </div>
 
-    {{-- Payslips PowerGrid Table --}}
-    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800 overflow-x-auto">
-        <livewire:tables.my-payslip-table />
-    </flux:card>
+                    <div class="text-xs text-zinc-500 sm:text-right">
+                        <div>Rekening Payroll: <span class="font-semibold text-zinc-800 dark:text-zinc-200">{{ $employee->primaryBankAccount?->bank_name ?? '-' }}</span></div>
+                        <div class="font-mono text-zinc-400">
+                            @if($employee->primaryBankAccount?->account_number)
+                                **** {{ substr($employee->primaryBankAccount->account_number, -4) }}
+                            @else
+                                Belum terdaftar
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </flux:card>
+        @endif
+
+        {{-- Payslips PowerGrid Table --}}
+        <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800 overflow-x-auto">
+            <livewire:tables.my-payslip-table />
+        </flux:card>
 
     {{-- Payslip Modal View --}}
     @if($selectedItem)
@@ -149,5 +218,6 @@
                 </flux:modal.close>
             </div>
         </flux:modal>
+    @endif
     @endif
 </div>

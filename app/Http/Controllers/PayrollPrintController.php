@@ -22,6 +22,17 @@ class PayrollPrintController extends Controller
         // Authorize view via PayrollItemPolicy
         Gate::authorize('view', $item);
 
+        $user = $request->user();
+        $isPrivileged = $user && ($user->hasRole('super_admin') || $user->hasRole('hr_admin') || $user->hasRole('hr_manager') || $user->hasRole('payroll') || $user->hasRole('finance'));
+
+        if (! $isPrivileged) {
+            $unlockedUntil = session('payslip_unlocked_until');
+            if (! $unlockedUntil || $unlockedUntil < now()->timestamp) {
+                return redirect()->route('payroll.my-payslips')
+                    ->with('error', 'Silakan masukkan kata sandi akun login Anda terlebih dahulu untuk mengakses slip gaji.');
+            }
+        }
+
         $auditService->log(
             action: 'payroll.payslip_printed',
             auditable: $item,

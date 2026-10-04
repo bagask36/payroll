@@ -62,7 +62,7 @@ class DashboardUiTest extends TestCase
             ->assertSee('Jadwal Tugas Hari Ini')
             ->assertSee('Presensi Hari Ini')
             ->assertSee('Sisa Saldo Cuti')
-            ->assertSee('Gaji Bersih')
+            ->assertDontSee('Gaji Bersih')
             // Should NOT see hospital-wide executive metrics
             ->assertDontSee('Distribusi Ketenagaan Rumah Sakit')
             ->assertDontSee('Peringatan Kepatuhan Izin Praktik Medis')

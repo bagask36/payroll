@@ -2,23 +2,33 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
         <title>{{ $title ?? config('app.name', 'SIM SDM RS Juwita') }}</title>
+
+        <!-- Web App Manifest & Mobile Capabilities -->
+        <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="default">
+        <meta name="apple-mobile-web-app-title" content="RS Juwita">
+        <link rel="apple-touch-icon" href="{{ asset('assets/icons/apple-touch-icon.png') }}">
+        <meta name="theme-color" content="#059669" media="(prefers-color-scheme: light)">
+        <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700&display=swap" rel="stylesheet" />
 
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
 
-        <link rel="icon" type="image/png" href="{{ asset('assets/logo-rs-juwita.png') }}">
+        <link rel="icon" type="image/png" href="{{ asset('assets/icons/icon-192.png') }}">
 
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @fluxAppearance
     </head>
-    <body class="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 antialiased">
+    <body class="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 antialiased selection:bg-emerald-500/20">
         {{-- Collapsible Sidebar according to Flux UI official demos --}}
-        <flux:sidebar sticky collapsible class="border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 w-72 sm:w-80 max-w-[85vw] lg:w-64 max-lg:shadow-2xl">
+        <flux:sidebar sticky collapsible class="border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 w-72 sm:w-80 max-w-[85vw] lg:w-64 max-lg:shadow-2xl pt-safe">
             <flux:sidebar.header>
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 px-1 min-w-0">
                     <img 
@@ -309,7 +319,7 @@
         </flux:sidebar>
 
         {{-- Top App Header --}}
-        <flux:header sticky class="border-b border-zinc-200 bg-white/90 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/90">
+        <flux:header sticky class="border-b border-zinc-200 bg-white/95 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/95 pt-safe">
             <flux:sidebar.toggle class="me-3 lg:hidden" icon="bars-2" inset="left" />
 
             <a href="{{ route('dashboard') }}" class="flex items-center gap-2 lg:hidden me-3">
@@ -358,10 +368,165 @@
             </flux:dropdown>
         </flux:header>
 
-        {{-- Main Content (full width) --}}
-        <flux:main class="p-4! sm:p-6! lg:px-8!">
+        {{-- Main Content (full width with mobile bottom clearance) --}}
+        <flux:main class="p-4! sm:p-6! lg:px-8! pb-24! md:pb-6!">
             {{ $slot }}
         </flux:main>
+
+        {{-- Mobile Bottom App Navigation Bar (Phone Only: hidden on md/lg tablet and desktop) --}}
+        <nav class="fixed bottom-0 inset-x-0 z-40 md:hidden bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200/80 dark:border-zinc-800 pb-safe select-none shadow-[0_-4px_20px_rgba(0,0,0,0.06)]">
+            <div class="grid grid-cols-5 h-16 items-center px-1">
+                {{-- 1. Beranda --}}
+                <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center gap-1 py-1 transition-colors {{ request()->routeIs('dashboard') ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200' }}">
+                    <flux:icon name="home" class="size-5.5 {{ request()->routeIs('dashboard') ? 'stroke-2' : '' }}" />
+                    <span class="text-[10px] tracking-tight leading-none">Beranda</span>
+                </a>
+
+                {{-- 2. Presensi --}}
+                @if(auth()->user()?->can('attendance.view_summary') || auth()->user()?->can('attendance.check_in_out') || auth()->user()?->can('attendance.view_own') || auth()->user()?->can('attendance.view_all'))
+                    <a href="{{ route('attendance.index') }}" class="flex flex-col items-center justify-center gap-1 py-1 transition-colors {{ request()->routeIs('attendance.*') ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200' }}">
+                        <flux:icon name="clock" class="size-5.5 {{ request()->routeIs('attendance.*') ? 'stroke-2' : '' }}" />
+                        <span class="text-[10px] tracking-tight leading-none">Presensi</span>
+                    </a>
+                @else
+                    <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center gap-1 py-1 opacity-40 pointer-events-none">
+                        <flux:icon name="clock" class="size-5.5" />
+                        <span class="text-[10px] tracking-tight leading-none">Presensi</span>
+                    </a>
+                @endif
+
+                {{-- 3. Cuti & Izin --}}
+                @if(auth()->user()?->can('leave.view_own') || auth()->user()?->can('leave.create_own') || auth()->user()?->can('leave.view_all'))
+                    <a href="{{ route('leaves.index') }}" class="flex flex-col items-center justify-center gap-1 py-1 transition-colors {{ request()->routeIs('leaves.*') ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200' }}">
+                        <flux:icon name="calendar-days" class="size-5.5 {{ request()->routeIs('leaves.*') ? 'stroke-2' : '' }}" />
+                        <span class="text-[10px] tracking-tight leading-none">Cuti</span>
+                    </a>
+                @else
+                    <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center gap-1 py-1 opacity-40 pointer-events-none">
+                        <flux:icon name="calendar-days" class="size-5.5" />
+                        <span class="text-[10px] tracking-tight leading-none">Cuti</span>
+                    </a>
+                @endif
+
+                {{-- 4. Slip Gaji / Payroll / Jadwal --}}
+                @if(auth()->user()?->employee)
+                    <a href="{{ route('payroll.my-payslips') }}" class="flex flex-col items-center justify-center gap-1 py-1 transition-colors {{ request()->routeIs('payroll.my-payslips') ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200' }}">
+                        <flux:icon name="receipt-percent" class="size-5.5 {{ request()->routeIs('payroll.my-payslips') ? 'stroke-2' : '' }}" />
+                        <span class="text-[10px] tracking-tight leading-none">Slip Gaji</span>
+                    </a>
+                @elseif(auth()->user()?->can('payroll.view_all'))
+                    <a href="{{ route('payroll.index') }}" class="flex flex-col items-center justify-center gap-1 py-1 transition-colors {{ request()->routeIs('payroll.*') ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200' }}">
+                        <flux:icon name="banknotes" class="size-5.5 {{ request()->routeIs('payroll.*') ? 'stroke-2' : '' }}" />
+                        <span class="text-[10px] tracking-tight leading-none">Payroll</span>
+                    </a>
+                @elseif(auth()->user()?->can('schedule.view'))
+                    <a href="{{ route('schedules.index') }}" class="flex flex-col items-center justify-center gap-1 py-1 transition-colors {{ request()->routeIs('schedules.*') ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200' }}">
+                        <flux:icon name="calendar" class="size-5.5 {{ request()->routeIs('schedules.*') ? 'stroke-2' : '' }}" />
+                        <span class="text-[10px] tracking-tight leading-none">Jadwal</span>
+                    </a>
+                @else
+                    <a href="{{ route('employees.index') }}" class="flex flex-col items-center justify-center gap-1 py-1 transition-colors {{ request()->routeIs('employees.*') ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200' }}">
+                        <flux:icon name="users" class="size-5.5 {{ request()->routeIs('employees.*') ? 'stroke-2' : '' }}" />
+                        <span class="text-[10px] tracking-tight leading-none">Pegawai</span>
+                    </a>
+                @endif
+
+                {{-- 5. Menu drawer toggle --}}
+                <button 
+                    type="button" 
+                    x-data 
+                    x-on:click="$dispatch('flux-sidebar-toggle')" 
+                    class="flex flex-col items-center justify-center gap-1 py-1 text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors cursor-pointer"
+                    aria-label="Buka Menu Lengkap"
+                >
+                    <flux:icon name="squares-2x2" class="size-5.5" />
+                    <span class="text-[10px] tracking-tight leading-none">Menu</span>
+                </button>
+            </div>
+        </nav>
+
+        {{-- Add to Home Screen (A2HS) Banner Helper for Mobile & iPad browsers --}}
+        <div 
+            x-data="{
+                showA2HS: false,
+                isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream,
+                showInstructions: false,
+                init() {
+                    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+                    const dismissed = localStorage.getItem('juwita_a2hs_dismissed');
+                    if (!isStandalone && !dismissed && (window.innerWidth < 1024)) {
+                        setTimeout(() => { this.showA2HS = true; }, 1500);
+                    }
+                },
+                dismiss() {
+                    this.showA2HS = false;
+                    localStorage.setItem('juwita_a2hs_dismissed', '1');
+                }
+            }"
+            x-show="showA2HS"
+            x-transition:enter="transition ease-out duration-300 transform"
+            x-transition:enter-start="translate-y-full opacity-0"
+            x-transition:enter-end="translate-y-0 opacity-100"
+            x-transition:leave="transition ease-in duration-200 transform"
+            x-transition:leave-start="translate-y-0 opacity-100"
+            x-transition:leave-end="translate-y-full opacity-0"
+            class="fixed bottom-20 md:bottom-6 left-4 right-4 max-w-md mx-auto z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-emerald-500/30 dark:border-emerald-500/20 rounded-2xl shadow-xl p-4 text-xs select-none"
+            style="display: none;"
+        >
+            <div class="flex items-start gap-3">
+                <div class="size-10 rounded-xl overflow-hidden shrink-0 border border-zinc-200 dark:border-zinc-700 bg-white p-1 shadow-2xs">
+                    <img src="{{ asset('assets/icons/icon-192.png') }}" alt="SIM SDM" class="size-full object-contain">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">Pasang SIM SDM di Layar Utama</p>
+                    <p class="text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">
+                        Akses cepat &amp; tampilan layar penuh seperti aplikasi mobile tanpa bilah browser.
+                    </p>
+                    
+                    <div x-show="showInstructions" x-cloak class="mt-2.5 pt-2.5 border-t border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 space-y-1.5 bg-zinc-50 dark:bg-zinc-800/60 p-2.5 rounded-lg">
+                        <template x-if="isIOS">
+                            <div class="space-y-1 text-[11px]">
+                                <p class="font-medium text-emerald-700 dark:text-emerald-400">Cara pasang di iPhone / iPad (Safari):</p>
+                                <p>1. Tekan tombol <strong>Share</strong> (ikon kotak dengan panah ke atas <flux:icon name="arrow-up-tray" class="inline size-3.5 text-zinc-600 dark:text-zinc-300" />) di bilah Safari.</p>
+                                <p>2. Gulir ke bawah lalu pilih <strong>Add to Home Screen / Tambah ke Layar Utama</strong>.</p>
+                            </div>
+                        </template>
+                        <template x-if="!isIOS">
+                            <div class="space-y-1 text-[11px]">
+                                <p class="font-medium text-emerald-700 dark:text-emerald-400">Cara pasang di Android (Chrome):</p>
+                                <p>1. Tekan menu titik tiga (<flux:icon name="ellipsis-vertical" class="inline size-3.5 text-zinc-600 dark:text-zinc-300" />) di sudut kanan atas.</p>
+                                <p>2. Pilih <strong>Instal aplikasi / Tambahkan ke Layar Utama</strong>.</p>
+                            </div>
+                        </template>
+                    </div>
+
+                    <div class="flex items-center gap-2 mt-3">
+                        <button 
+                            type="button" 
+                            x-on:click="showInstructions = !showInstructions"
+                            class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs shadow-xs transition-colors cursor-pointer"
+                        >
+                            <span x-text="showInstructions ? 'Tutup Petunjuk' : 'Lihat Cara Pasang'"></span>
+                        </button>
+                        <button 
+                            type="button" 
+                            x-on:click="dismiss()"
+                            class="px-2.5 py-1.5 rounded-lg text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors cursor-pointer"
+                        >
+                            Nanti saja
+                        </button>
+                    </div>
+                </div>
+                <button 
+                    type="button" 
+                    x-on:click="dismiss()"
+                    class="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 -mr-1 -mt-1 cursor-pointer"
+                    aria-label="Tutup"
+                >
+                    <flux:icon name="x-mark" class="size-4" />
+                </button>
+            </div>
+        </div>
 
         @fluxScripts
     </body>
