@@ -149,6 +149,7 @@ class PayrollUiTest extends TestCase
         $nurseUser = $nurse->user;
 
         $this->actingAs($nurseUser);
+        session(['payslip_unlocked_until' => now()->addMinutes(15)->timestamp]);
 
         $run = PayrollRun::firstOrFail();
         $item = PayrollItem::where('employee_id', $nurse->id)->firstOrFail();
@@ -215,7 +216,13 @@ class PayrollUiTest extends TestCase
 
         $this->actingAs($nurse->user);
 
-        $response = $this->get(route('payroll.payslips.print', $item->id));
+        // Without password confirmation session, redirected to my-payslips
+        $redirectResponse = $this->get(route('payroll.payslips.print', $item->id));
+        $redirectResponse->assertRedirect(route('payroll.my-payslips'));
+
+        // With active session, view is rendered
+        $response = $this->withSession(['payslip_unlocked_until' => now()->addMinutes(15)->timestamp])
+            ->get(route('payroll.payslips.print', $item->id));
         $response->assertStatus(200);
         $response->assertSee('RUMAH SAKIT JUWITA');
         $response->assertSee('KODE REGISTRASI FASKES KEMENKES');
@@ -318,5 +325,53 @@ class PayrollUiTest extends TestCase
             ->assertSee('Komponen Hak Tunjangan Hari Raya')
             ->assertSee('Bebas Iuran THR')
             ->assertSee('Total THR Bersih Diterima');
+    }
+
+    public function test_employee_must_input_password_to_unlock_and_view_payslip(): void
+    {
+        $nurse = Employee::where('nip', 'PEG-2025042')->firstOrFail();
+        $item = PayrollItem::where('employee_id', $nurse->id)->firstOrFail();
+
+        // Ensure user password is known
+        $nurse->user->update(['password' => bcrypt('password123')]);
+
+        $this->actingAs($nurse->user);
+
+        // 1. Initial access is locked
+        $test = Livewire::test(MyPayslips::class)
+            ->assertSet('isUnlocked', false)
+            ->assertSee('Verifikasi Keamanan')
+            ->assertSee('kata sandi akun login')
+            ->assertDontSee('Rekening Payroll:');
+
+        // 2. Cannot view slip detail while locked
+        Livewire::test(MyPayslips::class)
+            ->call('viewSlip', $item->id)
+            ->assertStatus(403);
+
+        // 3. Entering wrong password fails
+        $test = Livewire::test(MyPayslips::class);
+        $test->set('password', 'wrong-pass')
+            ->call('unlock')
+            ->assertHasErrors(['password'])
+            ->assertSet('isUnlocked', false);
+
+        // 4. Entering correct password unlocks
+        $test->set('password', 'password123')
+            ->call('unlock')
+            ->assertHasNoErrors()
+            ->assertSet('isUnlocked', true)
+            ->assertSee('Rekening Payroll:');
+
+        // 5. Can view slip detail when unlocked
+        $test->call('viewSlip', $item->id)
+            ->assertSet('showDetailModal', true)
+            ->assertSet('selectedItemId', $item->id)
+            ->assertSee('SLIP GAJI ELEKTRONIK');
+
+        // 6. Calling lock relocks the component
+        $test->call('lock')
+            ->assertSet('isUnlocked', false)
+            ->assertSee('Verifikasi Keamanan');
     }
 }
