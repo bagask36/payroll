@@ -49,6 +49,10 @@ class MasterIndex extends Component
 
     public string $positionGradeLevel = 'III/a';
 
+    public ?string $positionDefaultBasicSalary = '';
+
+    public ?string $positionDefaultPositionalAllowance = '';
+
     // Shift Form State
     public bool $showShiftModal = false;
 
@@ -203,7 +207,7 @@ class MasterIndex extends Component
     // --- POSITION ACTIONS ---
     public function openCreatePosition(): void
     {
-        $this->reset(['editingPositionId', 'positionTitle', 'positionUnitId']);
+        $this->reset(['editingPositionId', 'positionTitle', 'positionUnitId', 'positionDefaultBasicSalary', 'positionDefaultPositionalAllowance']);
         $this->positionGradeLevel = 'III/a';
         $this->showPositionModal = true;
     }
@@ -215,6 +219,8 @@ class MasterIndex extends Component
         $this->positionTitle = $pos->title;
         $this->positionUnitId = $pos->unit_id;
         $this->positionGradeLevel = $pos->grade_level ?? 'III/a';
+        $this->positionDefaultBasicSalary = $pos->default_basic_salary !== null ? (string) (float) $pos->default_basic_salary : '';
+        $this->positionDefaultPositionalAllowance = $pos->default_positional_allowance !== null ? (string) (float) $pos->default_positional_allowance : '';
         $this->showPositionModal = true;
     }
 
@@ -224,22 +230,24 @@ class MasterIndex extends Component
             'positionTitle' => 'required|string|max:100',
             'positionUnitId' => 'nullable|exists:units,id',
             'positionGradeLevel' => 'nullable|string|max:20',
+            'positionDefaultBasicSalary' => 'nullable|numeric|min:0',
+            'positionDefaultPositionalAllowance' => 'nullable|numeric|min:0',
         ]);
+
+        $payload = [
+            'title' => $this->positionTitle,
+            'unit_id' => $this->positionUnitId,
+            'grade_level' => $this->positionGradeLevel,
+            'default_basic_salary' => $this->positionDefaultBasicSalary !== '' && $this->positionDefaultBasicSalary !== null ? $this->positionDefaultBasicSalary : null,
+            'default_positional_allowance' => $this->positionDefaultPositionalAllowance !== '' && $this->positionDefaultPositionalAllowance !== null ? $this->positionDefaultPositionalAllowance : null,
+        ];
 
         if ($this->editingPositionId) {
             $pos = Position::findOrFail($this->editingPositionId);
-            $pos->update([
-                'title' => $this->positionTitle,
-                'unit_id' => $this->positionUnitId,
-                'grade_level' => $this->positionGradeLevel,
-            ]);
+            $pos->update($payload);
             $action = 'position.updated';
         } else {
-            $pos = Position::create([
-                'title' => $this->positionTitle,
-                'unit_id' => $this->positionUnitId,
-                'grade_level' => $this->positionGradeLevel,
-            ]);
+            $pos = Position::create($payload);
             $action = 'position.created';
         }
 

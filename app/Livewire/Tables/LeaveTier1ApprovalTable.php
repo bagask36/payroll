@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Tables;
 
 use App\Models\LeaveRequest;
+use App\Models\Position;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use PowerComponents\LivewirePowerGrid\Button;
@@ -37,7 +38,7 @@ final class LeaveTier1ApprovalTable extends PowerGridComponent
             return LeaveRequest::query()->whereRaw('1 = 0');
         }
 
-        return LeaveRequest::query()
+        $query = LeaveRequest::query()
             ->leftJoin('employees', 'leave_requests.employee_id', '=', 'employees.id')
             ->leftJoin('doctors', 'leave_requests.doctor_id', '=', 'doctors.id')
             ->leftJoin('leave_types', 'leave_requests.leave_type_id', '=', 'leave_types.id')
@@ -49,9 +50,38 @@ final class LeaveTier1ApprovalTable extends PowerGridComponent
                 'doctors.specialization as doctor_spec',
                 'leave_types.name as leave_type_name',
             ])
-            ->with(['employee', 'doctor', 'leaveType'])
+            ->with(['employee.position', 'doctor', 'leaveType'])
             ->where('leave_requests.status', 'pending_tier1')
             ->latest('leave_requests.created_at');
+
+        // Scope to subordinates if the supervisor is linked to an employee profile (excluding Super Admin / HR Manager override)
+        if ($user->employee && ! $user->isSuperAdmin() && ! $user->hasRole('hr_manager')) {
+            $subordinatePositionIds = Position::where('reports_to_id', $user->employee->position_id)->pluck('id');
+            $supervisorUnitId = $user->employee->unit_id;
+            $isUnitHead = in_array(strtolower($user->employee->position?->grade_level ?? ''), ['supervisor', 'manager', 'head']);
+
+            $query->where(function ($q) use ($subordinatePositionIds, $supervisorUnitId, $isUnitHead) {
+                $hasCriteria = false;
+                if ($subordinatePositionIds->isNotEmpty()) {
+                    $q->whereIn('employees.position_id', $subordinatePositionIds);
+                    $hasCriteria = true;
+                }
+                if ($isUnitHead && $supervisorUnitId) {
+                    if ($hasCriteria) {
+                        $q->orWhere('employees.unit_id', $supervisorUnitId);
+                    } else {
+                        $q->where('employees.unit_id', $supervisorUnitId);
+                    }
+                    $hasCriteria = true;
+                }
+
+                if (! $hasCriteria) {
+                    $q->whereRaw('1 = 1');
+                }
+            });
+        }
+
+        return $query;
     }
 
     public function fields(): PowerGridFields

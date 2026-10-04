@@ -531,10 +531,10 @@
     </flux:modal>
 
     {{-- MODAL POSITION --}}
-    <flux:modal wire:model="showPositionModal" class="md:w-96 space-y-4">
+    <flux:modal wire:model="showPositionModal" class="md:w-lg space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingPositionId ? 'Edit Standar Jabatan' : 'Tambah Jabatan Baru' }}</flux:heading>
-            <flux:subheading class="text-xs text-zinc-500">Standar formasi jabatan fungsional atau struktural.</flux:subheading>
+            <flux:subheading class="text-xs text-zinc-500">Standar formasi jabatan fungsional atau struktural dan remunerasi.</flux:subheading>
         </div>
 
         <form wire:submit="savePosition" class="space-y-4">
@@ -546,6 +546,30 @@
                 @endforeach
             </flux:select>
             <flux:input wire:model="positionGradeLevel" label="Grade / Golongan (Misal: II/c, III/a, IV/a)" />
+
+            <div class="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 space-y-3">
+                <div class="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                    Standar Remunerasi Jabatan
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <flux:input 
+                        wire:model="positionDefaultBasicSalary" 
+                        label="Standar Gaji Pokok (Rp)" 
+                        type="number" 
+                        step="0.01" 
+                        min="0" 
+                        placeholder="misal: 6500000" 
+                    />
+                    <flux:input 
+                        wire:model="positionDefaultPositionalAllowance" 
+                        label="Standar Tunjangan Jabatan (Rp)" 
+                        type="number" 
+                        step="0.01" 
+                        min="0" 
+                        placeholder="misal: 1500000" 
+                    />
+                </div>
+            </div>
 
             <div class="flex items-center justify-end gap-2 pt-2">
                 <flux:modal.close><flux:button variant="subtle">Batal</flux:button></flux:modal.close>

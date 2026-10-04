@@ -105,6 +105,8 @@ class MasterUiTest extends TestCase
             ->call('openCreatePosition')
             ->set('positionTitle', 'Perawat Mahir Dialisis')
             ->set('positionGradeLevel', 'III/b')
+            ->set('positionDefaultBasicSalary', '6500000')
+            ->set('positionDefaultPositionalAllowance', '1200000')
             ->call('savePosition')
             ->assertHasNoErrors()
             ->assertSee('Perawat Mahir Dialisis berhasil disimpan');
@@ -112,6 +114,8 @@ class MasterUiTest extends TestCase
         $this->assertDatabaseHas('positions', [
             'title' => 'Perawat Mahir Dialisis',
             'grade_level' => 'III/b',
+            'default_basic_salary' => 6500000,
+            'default_positional_allowance' => 1200000,
         ]);
     }
 

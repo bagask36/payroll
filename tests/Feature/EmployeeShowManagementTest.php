@@ -8,7 +8,10 @@ use App\Models\Document;
 use App\Models\Employee;
 use App\Models\EmployeeBankAccount;
 use App\Models\EmployeeEmployment;
+use App\Models\EmployeeSalary;
+use App\Models\EmployeeSalaryComponent;
 use App\Models\Position;
+use App\Models\SalaryComponent;
 use App\Models\Unit;
 use App\Models\User;
 use Database\Seeders\RoleAndPermissionSeeder;
@@ -382,5 +385,116 @@ class EmployeeShowManagementTest extends TestCase
             ->set('employmentStartDate', '2026-02-01')
             ->call('saveEmployment')
             ->assertForbidden();
+    }
+
+    public function test_recording_new_sk_assignment_syncs_standard_salary_and_positional_allowance_from_master_position(): void
+    {
+        $manager = $this->userWithRole('hr_manager');
+        $this->actingAs($manager);
+
+        // Setup master salary component for tunjangan jabatan
+        $tunjJabatan = SalaryComponent::create([
+            'code' => 'TUNJ_JABATAN',
+            'name' => 'Tunjangan Jabatan Struktural',
+            'type' => 'allowance',
+            'is_taxable' => true,
+            'is_fixed' => true,
+            'default_amount' => 1500000,
+            'is_active' => true,
+        ]);
+
+        $unit = Unit::factory()->create();
+        $pos = Position::factory()->create([
+            'unit_id' => $unit->id,
+            'title' => 'Kepala Ruang ICU',
+            'default_basic_salary' => 7800000,
+            'default_positional_allowance' => 2000000,
+        ]);
+
+        $employee = Employee::factory()->create([
+            'unit_id' => $unit->id,
+            'position_id' => $pos->id,
+        ]);
+
+        // Initial base salary
+        EmployeeSalary::create([
+            'employee_id' => $employee->id,
+            'basic_salary' => 5000000,
+            'effective_from' => '2025-01-01',
+            'revision_reason' => 'Gaji Awal',
+            'created_by' => $manager->id,
+        ]);
+
+        $targetUnit = Unit::factory()->create();
+        $targetPos = Position::factory()->create([
+            'unit_id' => $targetUnit->id,
+            'title' => 'Kepala Instalasi Rawat Inap',
+            'default_basic_salary' => 9500000,
+            'default_positional_allowance' => 3000000,
+        ]);
+
+        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
+            ->call('openEmploymentModal')
+            ->assertSet('showEmploymentModal', true)
+            ->set('employmentPositionId', $targetPos->id)
+            ->assertSet('employmentBasicSalary', '9500000')
+            ->assertSet('employmentPositionalAllowance', '3000000')
+            ->set('employmentUnitId', $targetUnit->id)
+            ->set('employmentContractType', 'permanent')
+            ->set('employmentContractNumber', 'SK/RSJ/2026/088')
+            ->set('employmentStartDate', '2026-03-01')
+            ->call('saveEmployment')
+            ->assertHasNoErrors()
+            ->assertSet('showEmploymentModal', false);
+
+        // Check new employment
+        $this->assertDatabaseHas('employee_employments', [
+            'employee_id' => $employee->id,
+            'position_id' => $targetPos->id,
+            'unit_id' => $targetUnit->id,
+            'contract_number' => 'SK/RSJ/2026/088',
+            'is_active' => true,
+        ]);
+
+        // Check salary synchronized
+        $this->assertDatabaseHas('employee_salaries', [
+            'employee_id' => $employee->id,
+            'basic_salary' => 9500000,
+            'revision_reason' => 'SK Penetapan Jabatan Kepala Instalasi Rawat Inap (No. SK/RSJ/2026/088)',
+        ]);
+
+        $latestSalary = $employee->fresh()->currentSalary;
+        $this->assertEquals(9500000.00, (float) $latestSalary->basic_salary);
+        $this->assertEquals('2026-03-01', $latestSalary->effective_from?->toDateString());
+
+        // Check positional allowance synchronized
+        $this->assertDatabaseHas('employee_salary_components', [
+            'employee_id' => $employee->id,
+            'salary_component_id' => $tunjJabatan->id,
+            'amount' => 3000000,
+            'is_active' => true,
+        ]);
+    }
+
+    public function test_can_apply_position_default_salary_in_salary_modal(): void
+    {
+        $manager = $this->userWithRole('hr_manager');
+        $this->actingAs($manager);
+
+        $pos = Position::factory()->create([
+            'title' => 'Dokter Jaga IGD',
+            'default_basic_salary' => 8500000,
+        ]);
+
+        $employee = Employee::factory()->create([
+            'position_id' => $pos->id,
+        ]);
+
+        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
+            ->call('openSalaryModal')
+            ->assertSet('showSalaryModal', true)
+            ->call('applyPositionDefaultSalary')
+            ->assertSet('basicSalary', '8500000')
+            ->assertSet('revisionReason', 'Standar SK Jabatan Dokter Jaga IGD');
     }
 }

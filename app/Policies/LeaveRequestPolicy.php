@@ -55,11 +55,36 @@ class LeaveRequestPolicy
      */
     public function approveTier1(User $user, LeaveRequest $request): bool
     {
+        // 1. Anti-self-approval: applicant cannot approve their own request
         if ($request->isApplicant($user) && ! $user->isSuperAdmin()) {
             return false;
         }
 
-        return $user->hasPermission('leave.approve_tier1');
+        // 2. Must have permission leave.approve_tier1
+        if (! $user->hasPermission('leave.approve_tier1')) {
+            return false;
+        }
+
+        // 3. Super Admin & HR Manager have full break-glass / hospital-wide override
+        if ($user->isSuperAdmin() || $user->hasRole('hr_manager')) {
+            return true;
+        }
+
+        // 4. Hierarchical approval verification for employee applicants
+        if ($user->employee && $request->employee) {
+            // Check if user's employee profile supervises the applicant
+            if ($user->employee->isSupervisorOf($request->employee)) {
+                return true;
+            }
+
+            // If the applicant's unit/position has active direct supervisor(s) assigned,
+            // non-supervisors are strictly denied:
+            if ($request->employee->getDirectSupervisors()->isNotEmpty()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

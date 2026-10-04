@@ -26,6 +26,7 @@ class EmployeeEmployment extends Model
         'end_date',
         'is_active',
         'notes',
+        'document_id',
     ];
 
     /**
@@ -68,6 +69,16 @@ class EmployeeEmployment extends Model
     public function position(): BelongsTo
     {
         return $this->belongsTo(Position::class);
+    }
+
+    /**
+     * Attached official SK / contract document.
+     *
+     * @return BelongsTo<Document, $this>
+     */
+    public function document(): BelongsTo
+    {
+        return $this->belongsTo(Document::class);
     }
 
     /**

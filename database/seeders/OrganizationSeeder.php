@@ -104,36 +104,62 @@ class OrganizationSeeder extends Seeder
 
         // 3. Positions
         $positions = [
-            ['unit_id' => $igd->id, 'title' => 'Kepala Instalasi Gawat Darurat', 'grade_level' => 'manager'],
-            ['unit_id' => $igd->id, 'title' => 'Dokter Jaga IGD', 'grade_level' => 'specialist'],
-            ['unit_id' => $igd->id, 'title' => 'Perawat Pelaksana IGD', 'grade_level' => 'staff'],
+            ['unit_id' => $igd->id, 'title' => 'Kepala Instalasi Gawat Darurat', 'grade_level' => 'manager', 'default_basic_salary' => 9500000.00, 'default_positional_allowance' => 3000000.00],
+            ['unit_id' => $igd->id, 'title' => 'Dokter Jaga IGD', 'grade_level' => 'specialist', 'default_basic_salary' => 8500000.00, 'default_positional_allowance' => 2000000.00],
+            ['unit_id' => $igd->id, 'title' => 'Perawat Pelaksana IGD', 'grade_level' => 'staff', 'default_basic_salary' => 5200000.00, 'default_positional_allowance' => 500000.00],
 
-            ['unit_id' => $icu->id, 'title' => 'Kepala Ruang ICU', 'grade_level' => 'supervisor'],
-            ['unit_id' => $icu->id, 'title' => 'Perawat Mahir ICU', 'grade_level' => 'staff'],
+            ['unit_id' => $icu->id, 'title' => 'Kepala Ruang ICU', 'grade_level' => 'supervisor', 'default_basic_salary' => 7800000.00, 'default_positional_allowance' => 2000000.00],
+            ['unit_id' => $icu->id, 'title' => 'Perawat Mahir ICU', 'grade_level' => 'staff', 'default_basic_salary' => 5500000.00, 'default_positional_allowance' => 600000.00],
 
-            ['unit_id' => $farmasi->id, 'title' => 'Apoteker Penanggung Jawab', 'grade_level' => 'supervisor'],
-            ['unit_id' => $farmasi->id, 'title' => 'Tenaga Teknis Kefarmasian', 'grade_level' => 'staff'],
+            ['unit_id' => $farmasi->id, 'title' => 'Apoteker Penanggung Jawab', 'grade_level' => 'supervisor', 'default_basic_salary' => 7500000.00, 'default_positional_allowance' => 1800000.00],
+            ['unit_id' => $farmasi->id, 'title' => 'Tenaga Teknis Kefarmasian', 'grade_level' => 'staff', 'default_basic_salary' => 5000000.00, 'default_positional_allowance' => 400000.00],
 
-            ['unit_id' => $lab->id, 'title' => 'Kepala Laboratorium', 'grade_level' => 'supervisor'],
-            ['unit_id' => $lab->id, 'title' => 'Pranata Laboratorium Kesehatan', 'grade_level' => 'staff'],
+            ['unit_id' => $lab->id, 'title' => 'Kepala Laboratorium', 'grade_level' => 'supervisor', 'default_basic_salary' => 7500000.00, 'default_positional_allowance' => 1800000.00],
+            ['unit_id' => $lab->id, 'title' => 'Pranata Laboratorium Kesehatan', 'grade_level' => 'staff', 'default_basic_salary' => 5000000.00, 'default_positional_allowance' => 400000.00],
 
-            ['unit_id' => $rad->id, 'title' => 'Radiografer', 'grade_level' => 'staff'],
+            ['unit_id' => $rad->id, 'title' => 'Radiografer', 'grade_level' => 'staff', 'default_basic_salary' => 5200000.00, 'default_positional_allowance' => 450000.00],
 
-            ['unit_id' => $sdm->id, 'title' => 'Kepala Bagian SDM', 'grade_level' => 'manager'],
-            ['unit_id' => $sdm->id, 'title' => 'Staff Penggajian & HRIS', 'grade_level' => 'staff'],
-            ['unit_id' => $sdm->id, 'title' => 'Staff Rekrutmen & Diklat', 'grade_level' => 'staff'],
+            ['unit_id' => $sdm->id, 'title' => 'Kepala Bagian SDM', 'grade_level' => 'manager', 'default_basic_salary' => 9500000.00, 'default_positional_allowance' => 2500000.00],
+            ['unit_id' => $sdm->id, 'title' => 'Staff Penggajian & HRIS', 'grade_level' => 'staff', 'default_basic_salary' => 5500000.00, 'default_positional_allowance' => 500000.00],
+            ['unit_id' => $sdm->id, 'title' => 'Staff Rekrutmen & Diklat', 'grade_level' => 'staff', 'default_basic_salary' => 5200000.00, 'default_positional_allowance' => 400000.00],
 
-            ['unit_id' => $it->id, 'title' => 'Kepala Unit SIMRS & TI', 'grade_level' => 'supervisor'],
-            ['unit_id' => $it->id, 'title' => 'Staff Programmer SIMRS', 'grade_level' => 'staff'],
+            ['unit_id' => $it->id, 'title' => 'Kepala Unit SIMRS & TI', 'grade_level' => 'supervisor', 'default_basic_salary' => 8000000.00, 'default_positional_allowance' => 2000000.00],
+            ['unit_id' => $it->id, 'title' => 'Staff Programmer SIMRS', 'grade_level' => 'staff', 'default_basic_salary' => 6000000.00, 'default_positional_allowance' => 500000.00],
 
-            ['unit_id' => $kasir->id, 'title' => 'Staff Kasir Rumah Sakit', 'grade_level' => 'staff'],
+            ['unit_id' => $kasir->id, 'title' => 'Staff Kasir Rumah Sakit', 'grade_level' => 'staff', 'default_basic_salary' => 4800000.00, 'default_positional_allowance' => 300000.00],
         ];
 
         foreach ($positions as $pos) {
             Position::updateOrCreate(
                 ['unit_id' => $pos['unit_id'], 'title' => $pos['title']],
-                ['grade_level' => $pos['grade_level']]
+                [
+                    'grade_level' => $pos['grade_level'],
+                    'default_basic_salary' => $pos['default_basic_salary'],
+                    'default_positional_allowance' => $pos['default_positional_allowance'],
+                ]
             );
+        }
+
+        // Link Hierarchical Reporting Lines (reports_to_id)
+        $reportingLines = [
+            'Perawat Mahir ICU' => 'Kepala Ruang ICU',
+            'Perawat Pelaksana IGD' => 'Kepala Instalasi Gawat Darurat',
+            'Dokter Jaga IGD' => 'Kepala Instalasi Gawat Darurat',
+            'Tenaga Teknis Kefarmasian' => 'Apoteker Penanggung Jawab',
+            'Pranata Laboratorium Kesehatan' => 'Kepala Laboratorium',
+            'Staff Penggajian & HRIS' => 'Kepala Bagian SDM',
+            'Staff Rekrutmen & Diklat' => 'Kepala Bagian SDM',
+            'Staff Programmer SIMRS' => 'Kepala Unit SIMRS & TI',
+            'Staff Kasir Rumah Sakit' => 'Kepala Bagian SDM',
+        ];
+
+        foreach ($reportingLines as $subordinateTitle => $supervisorTitle) {
+            $supervisorPos = Position::where('title', $supervisorTitle)->first();
+            $subordinatePos = Position::where('title', $subordinateTitle)->first();
+
+            if ($supervisorPos && $subordinatePos) {
+                $subordinatePos->update(['reports_to_id' => $supervisorPos->id]);
+            }
         }
 
         // 4. Public Holidays 2026

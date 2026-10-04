@@ -140,6 +140,12 @@ class EmployeeShow extends Component
 
     public string $employmentNotes = '';
 
+    public bool $syncSalaryWithSk = true;
+
+    public ?string $employmentBasicSalary = '';
+
+    public ?string $employmentPositionalAllowance = '';
+
     public ?string $employmentFeedback = null;
 
     public ?string $employmentError = null;
@@ -187,6 +193,33 @@ class EmployeeShow extends Component
     // RIWAYAT PENUGASAN & IKATAN KERJA (EMPLOYMENT)
     // =========================================================
 
+    public function updatedEmploymentPositionId(?int $positionId): void
+    {
+        if ($positionId) {
+            $pos = Position::find($positionId);
+            if ($pos) {
+                if ($pos->unit_id && empty($this->employmentUnitId)) {
+                    $this->employmentUnitId = $pos->unit_id;
+                }
+                if ($pos->default_basic_salary !== null) {
+                    $this->employmentBasicSalary = (string) (float) $pos->default_basic_salary;
+                }
+                if ($pos->default_positional_allowance !== null) {
+                    $this->employmentPositionalAllowance = (string) (float) $pos->default_positional_allowance;
+                }
+            }
+        }
+    }
+
+    public function applyPositionDefaultSalary(): void
+    {
+        $this->employee->load('position');
+        if ($this->employee->position?->default_basic_salary !== null) {
+            $this->basicSalary = (string) (float) $this->employee->position->default_basic_salary;
+            $this->revisionReason = 'Standar SK Jabatan '.$this->employee->position->title;
+        }
+    }
+
     public function openEmploymentModal(): void
     {
         $this->authorize('updateEmployment', $this->employee);
@@ -202,6 +235,18 @@ class EmployeeShow extends Component
         $this->employmentStartDate = Carbon::today()->toDateString();
         $this->employmentEndDate = null;
         $this->employmentNotes = '';
+        $this->syncSalaryWithSk = true;
+
+        $currentPos = $this->employee->position;
+        $activeSalary = $this->employee->currentSalary;
+
+        $this->employmentBasicSalary = $currentPos?->default_basic_salary !== null
+            ? (string) (float) $currentPos->default_basic_salary
+            : ($activeSalary ? (string) (float) $activeSalary->basic_salary : '');
+
+        $this->employmentPositionalAllowance = $currentPos?->default_positional_allowance !== null
+            ? (string) (float) $currentPos->default_positional_allowance
+            : '';
 
         $this->showEmploymentModal = true;
     }
@@ -211,7 +256,9 @@ class EmployeeShow extends Component
         $this->authorize('updateEmployment', $this->employee);
         $this->resetMessages();
 
-        $this->validate([
+        $canUpdateSalary = Auth::user()?->can('updateSalary', $this->employee);
+
+        $rules = [
             'employmentUnitId' => ['required', 'exists:units,id'],
             'employmentPositionId' => ['required', 'exists:positions,id'],
             'employmentContractType' => ['required', 'in:permanent,contract,probation,internship'],
@@ -219,20 +266,29 @@ class EmployeeShow extends Component
             'employmentStartDate' => ['required', 'date'],
             'employmentEndDate' => ['nullable', 'date', 'after_or_equal:employmentStartDate'],
             'employmentNotes' => ['nullable', 'string', 'max:500'],
-        ], [
+        ];
+
+        if ($this->syncSalaryWithSk && $canUpdateSalary) {
+            $rules['employmentBasicSalary'] = ['nullable', 'numeric', 'min:0'];
+            $rules['employmentPositionalAllowance'] = ['nullable', 'numeric', 'min:0'];
+        }
+
+        $this->validate($rules, [
             'employmentUnitId.required' => 'Unit penempatan wajib dipilih.',
             'employmentPositionId.required' => 'Jabatan wajib dipilih.',
             'employmentContractType.required' => 'Jenis ikatan kerja wajib dipilih.',
             'employmentContractNumber.required' => 'Nomor SK / Kontrak wajib diisi.',
             'employmentStartDate.required' => 'Tanggal mulai tugas wajib diisi.',
             'employmentEndDate.after_or_equal' => 'Tanggal akhir kontrak harus sama atau setelah tanggal mulai.',
+            'employmentBasicSalary.numeric' => 'Nominal gaji pokok SK harus berupa angka.',
+            'employmentPositionalAllowance.numeric' => 'Nominal tunjangan jabatan SK harus berupa angka.',
         ]);
 
         $oldUnitId = $this->employee->unit_id;
         $oldPositionId = $this->employee->position_id;
         $oldContractType = $this->employee->currentEmployment?->contract_type;
 
-        DB::transaction(function () {
+        DB::transaction(function () use ($canUpdateSalary) {
             // Non-aktifkan ikatan kerja aktif sebelumnya
             EmployeeEmployment::where('employee_id', $this->employee->id)
                 ->where('is_active', true)
@@ -256,10 +312,65 @@ class EmployeeShow extends Component
                 'unit_id' => $this->employmentUnitId,
                 'position_id' => $this->employmentPositionId,
             ]);
+
+            // Sinkronkan remunerasi standar jika opsi aktif dan user berwenang
+            if ($this->syncSalaryWithSk && $canUpdateSalary) {
+                $pos = Position::find($this->employmentPositionId);
+                $posTitle = $pos?->title ?? 'Jabatan';
+
+                // 1. Gaji Pokok
+                if ($this->employmentBasicSalary !== '' && $this->employmentBasicSalary !== null && (float) $this->employmentBasicSalary > 0) {
+                    $previous = $this->employee->currentSalary;
+                    if ($previous) {
+                        $previousEffectiveTo = Carbon::parse($this->employmentStartDate)->subDay()->toDateString();
+                        if ($previous->effective_from <= $previousEffectiveTo) {
+                            $previous->update(['effective_to' => $previousEffectiveTo]);
+                        }
+                    }
+
+                    EmployeeSalary::create([
+                        'employee_id' => $this->employee->id,
+                        'basic_salary' => $this->employmentBasicSalary,
+                        'effective_from' => $this->employmentStartDate,
+                        'effective_to' => null,
+                        'revision_reason' => "SK Penetapan Jabatan {$posTitle} (No. {$this->employmentContractNumber})",
+                        'created_by' => Auth::id() ?? 1,
+                    ]);
+                }
+
+                // 2. Tunjangan Jabatan (TUNJ_JABATAN)
+                if ($this->employmentPositionalAllowance !== '' && $this->employmentPositionalAllowance !== null) {
+                    $tunjJabatanComp = SalaryComponent::where('code', 'TUNJ_JABATAN')->first()
+                        ?? SalaryComponent::where('type', 'allowance')->where('name', 'like', '%Jabatan%')->first();
+
+                    if ($tunjJabatanComp) {
+                        EmployeeSalaryComponent::where('employee_id', $this->employee->id)
+                            ->where('salary_component_id', $tunjJabatanComp->id)
+                            ->where('is_active', true)
+                            ->update([
+                                'is_active' => false,
+                                'effective_to' => Carbon::parse($this->employmentStartDate)->subDay()->toDateString(),
+                            ]);
+
+                        if ((float) $this->employmentPositionalAllowance > 0) {
+                            EmployeeSalaryComponent::create([
+                                'employee_id' => $this->employee->id,
+                                'salary_component_id' => $tunjJabatanComp->id,
+                                'amount' => $this->employmentPositionalAllowance,
+                                'effective_from' => $this->employmentStartDate,
+                                'effective_to' => null,
+                                'notes' => "SK Penetapan Jabatan (No. {$this->employmentContractNumber})",
+                                'is_active' => true,
+                                'created_by' => Auth::id() ?? 1,
+                            ]);
+                        }
+                    }
+                }
+            }
         });
 
         $this->employee->refresh();
-        $this->employee->load(['unit', 'position', 'employments.unit', 'employments.position', 'currentEmployment']);
+        $this->employee->load(['unit', 'position', 'employments.unit', 'employments.position', 'currentEmployment', 'currentSalary', 'salaries', 'salaryComponents.component', 'activeSalaryComponents.component']);
 
         $auditService->log(
             action: 'employee.assignment_recorded',
@@ -276,11 +387,12 @@ class EmployeeShow extends Component
                 'contract_number' => $this->employmentContractNumber,
                 'start_date' => $this->employmentStartDate,
                 'notes' => $this->employmentNotes,
+                'sync_salary' => $this->syncSalaryWithSk && $canUpdateSalary,
             ]
         );
 
         $this->showEmploymentModal = false;
-        $this->employmentFeedback = 'Riwayat penugasan/kontrak baru berhasil dicatat dan status pegawai telah diperbarui.';
+        $this->employmentFeedback = 'Riwayat penugasan/SK baru berhasil dicatat dan status pegawai telah diperbarui.';
     }
 
     // =========================================================

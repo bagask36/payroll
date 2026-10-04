@@ -30,10 +30,10 @@
     </flux:card>
 
     {{-- MODAL POSITION --}}
-    <flux:modal wire:model="showPositionModal" class="md:w-96 space-y-4">
+    <flux:modal wire:model="showPositionModal" class="md:w-lg space-y-4">
         <div>
             <flux:heading size="lg">{{ $editingPositionId ? 'Edit Standar Jabatan' : 'Tambah Jabatan Baru' }}</flux:heading>
-            <flux:subheading class="text-xs text-zinc-500">Penetapan gelar posisi dan rentang jenjang karir.</flux:subheading>
+            <flux:subheading class="text-xs text-zinc-500">Penetapan gelar posisi, jenjang karir, dan standar remunerasi.</flux:subheading>
         </div>
 
         <form wire:submit="savePosition" class="space-y-4">
@@ -44,7 +44,40 @@
                     <flux:select.option value="{{ $u->id }}">{{ $u->name }}</flux:select.option>
                 @endforeach
             </flux:select>
+            <flux:select wire:model="positionReportsToId" label="Atasan Langsung / Supervisor (Reports To)">
+                <flux:select.option value="">-- Tidak Memiliki Atasan Langsung (Level Puncak / Mandiri) --</flux:select.option>
+                @foreach($allPositions as $pos)
+                    <flux:select.option value="{{ $pos->id }}">{{ $pos->title }} ({{ $pos->unit?->name ?? 'Lintas Unit' }})</flux:select.option>
+                @endforeach
+            </flux:select>
             <flux:input wire:model="positionGradeLevel" label="Golongan / Grade Level" placeholder="Misal: III/a, IV/b, Spesialis" />
+
+            <div class="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 space-y-3">
+                <div class="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                    Standar Remunerasi Jabatan
+                </div>
+                <p class="text-xs text-zinc-500">
+                    Nilai ini akan terisi otomatis saat membuat SK Penetapan / Penugasan pegawai baru pada jabatan ini.
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <flux:input 
+                        wire:model="positionDefaultBasicSalary" 
+                        label="Standar Gaji Pokok (Rp)" 
+                        type="number" 
+                        step="0.01" 
+                        min="0" 
+                        placeholder="misal: 6500000" 
+                    />
+                    <flux:input 
+                        wire:model="positionDefaultPositionalAllowance" 
+                        label="Standar Tunjangan Jabatan (Rp)" 
+                        type="number" 
+                        step="0.01" 
+                        min="0" 
+                        placeholder="misal: 1500000" 
+                    />
+                </div>
+            </div>
 
             <div class="flex items-center justify-end gap-2 pt-2">
                 <flux:modal.close><flux:button variant="subtle">Batal</flux:button></flux:modal.close>

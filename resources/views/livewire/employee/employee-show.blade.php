@@ -981,7 +981,7 @@
                     @endforeach
                 </flux:select>
 
-                <flux:select label="Jabatan" wire:model="employmentPositionId" required>
+                <flux:select label="Jabatan" wire:model.live="employmentPositionId" required>
                     <option value="">Pilih Jabatan...</option>
                     @foreach($availablePositions as $pos)
                         <option value="{{ $pos->id }}">{{ $pos->title }}</option>
@@ -1016,6 +1016,46 @@
                     placeholder="Kosongkan jika tetap" 
                 />
             </div>
+
+            @if($canUpdateSalary)
+                <div class="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                        <flux:checkbox wire:model.live="syncSalaryWithSk" label="Sesuaikan Gaji & Tunjangan Berdasarkan SK Jabatan" />
+                        @php
+                            $selectedPos = $availablePositions->firstWhere('id', (int) $employmentPositionId);
+                        @endphp
+                        @if($selectedPos)
+                            <span class="text-xs text-sky-600 dark:text-sky-400 font-medium">
+                                Standar Master: {{ $selectedPos->title }} ({{ $selectedPos->grade_level ?? '-' }})
+                            </span>
+                        @endif
+                    </div>
+
+                    @if($syncSalaryWithSk)
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-zinc-200/60 dark:border-zinc-700/60">
+                            <flux:input 
+                                label="Gaji Pokok SK (Rp)" 
+                                type="number" 
+                                step="0.01" 
+                                min="0" 
+                                wire:model="employmentBasicSalary" 
+                                placeholder="Terisi otomatis dari master jabatan" 
+                            />
+                            <flux:input 
+                                label="Tunjangan Jabatan SK (Rp)" 
+                                type="number" 
+                                step="0.01" 
+                                min="0" 
+                                wire:model="employmentPositionalAllowance" 
+                                placeholder="Terisi otomatis dari master jabatan" 
+                            />
+                        </div>
+                        <p class="text-[11px] text-zinc-500">
+                            * Standar remunerasi otomatis ditarik dari Master Data Jabatan. Nilai di atas dapat disesuaikan bila SK memiliki klausul khusus.
+                        </p>
+                    @endif
+                </div>
+            @endif
 
             <flux:textarea 
                 label="Catatan / Keterangan Penugasan" 
@@ -1143,6 +1183,17 @@
         </div>
 
         <form wire:submit.prevent="saveSalary" class="space-y-4">
+            @if($employee->position?->default_basic_salary)
+                <div class="flex items-center justify-between p-2.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 text-xs">
+                    <span class="text-sky-800 dark:text-sky-300">
+                        Standar Jabatan ({{ $employee->position->title }}): <strong>Rp {{ number_format((float)$employee->position->default_basic_salary, 0, ',', '.') }}</strong>
+                    </span>
+                    <button type="button" wire:click="applyPositionDefaultSalary" class="text-sky-600 hover:text-sky-800 dark:text-sky-400 font-semibold underline cursor-pointer">
+                        Gunakan Standar
+                    </button>
+                </div>
+            @endif
+
             <flux:input 
                 label="Nominal Gaji Pokok Baru (Rp)" 
                 type="number" 
