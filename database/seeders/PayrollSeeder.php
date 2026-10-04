@@ -87,18 +87,25 @@ class PayrollSeeder extends Seeder
         // 3. Payroll Run Simulation
         $payrollUser = User::where('email', 'admin@juwitahospital.com')->first() ?? User::factory()->create();
 
-        $run = PayrollRun::updateOrCreate(
-            ['payroll_period_id' => $period->id, 'run_date' => '2026-10-26'],
-            [
+        $run = PayrollRun::where('payroll_period_id', $period->id)
+            ->where('run_date', '2026-10-26')
+            ->first();
+
+        if (! $run) {
+            $run = PayrollRun::create([
+                'payroll_period_id' => $period->id,
+                'run_date' => '2026-10-26',
                 'status' => 'draft',
                 'processed_by' => $payrollUser->id,
-            ]
-        );
+            ]);
+        }
 
-        // Execute deterministic calculation for all active hospital employees
-        $employees = Employee::active()->with(['currentSalary', 'primaryBankAccount'])->get();
-        if ($employees->isNotEmpty()) {
-            app(PayrollCalculationService::class)->calculateRun($run, $employees);
+        // Execute deterministic calculation for all active hospital employees only when in draft
+        if ($run->status === 'draft') {
+            $employees = Employee::active()->with(['currentSalary', 'primaryBankAccount'])->get();
+            if ($employees->isNotEmpty()) {
+                app(PayrollCalculationService::class)->calculateRun($run, $employees);
+            }
         }
     }
 }
