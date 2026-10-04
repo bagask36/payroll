@@ -88,58 +88,42 @@
             </div>
 
             <form wire:submit="assignShift" class="space-y-4">
-                {{-- Target Type: Employee vs Doctor --}}
+                {{-- Target Type: Perawat/Dokter --}}
                 <div>
                     <label class="text-xs font-semibold text-zinc-500 uppercase tracking-wider block mb-2">Tipe Personil</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <label class="flex items-center gap-2 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                            <input type="radio" wire:model.live="assignTargetType" value="employee" class="text-emerald-600 focus:ring-emerald-500">
-                            <span class="text-sm font-medium">Pegawai / Perawat</span>
-                        </label>
-
-                        <label class="flex items-center gap-2 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                            <input type="radio" wire:model.live="assignTargetType" value="doctor" class="text-emerald-600 focus:ring-emerald-500">
-                            <span class="text-sm font-medium">Dokter Spesialis</span>
-                        </label>
+                    <div class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-200 text-sm font-semibold">
+                        <flux:icon name="user-group" class="size-4 text-emerald-600 dark:text-emerald-400" />
+                        <span>Perawat / Dokter</span>
                     </div>
                 </div>
 
                 {{-- Target Person Selection --}}
-                @if($assignTargetType === 'employee')
-                    <div class="space-y-1.5">
-                        <div class="flex items-center justify-between">
-                            <label class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Pilih Pegawai Shift</label>
-                            <label class="flex items-center gap-1.5 text-[11px] text-zinc-500 cursor-pointer">
-                                <input type="checkbox" wire:model.live="showAllEmployeesInAssign" class="rounded text-indigo-600 text-[10px]">
-                                <span>Tampilkan non-shift</span>
-                            </label>
-                        </div>
-
-                        <flux:select wire:model="selectedEmployeeId" required>
-                            <flux:select.option value="">Pilih Pegawai</flux:select.option>
-                            @foreach($employees as $emp)
-                                <flux:select.option value="{{ $emp->id }}">
-                                    {{ $emp->full_name }} ({{ $emp->nip }}) — {{ $emp->schedule_type === 'shift' ? 'Shift' : 'Non-Shift' }}
-                                </flux:select.option>
-                            @endforeach
-                        </flux:select>
-
-                        <p class="text-[11px] text-zinc-500">
-                            @if(! $showAllEmployeesInAssign)
-                                Menampilkan {{ $employees->count() }} pegawai berpola Shift. Pegawai Non-Shift otomatis mengikuti jam kantor reguler.
-                            @else
-                                Menampilkan seluruh pegawai (termasuk non-shift).
-                            @endif
-                        </p>
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Pilih Perawat / Dokter Shift</label>
+                        <label class="flex items-center gap-1.5 text-[11px] text-zinc-500 cursor-pointer">
+                            <input type="checkbox" wire:model.live="showAllEmployeesInAssign" class="rounded text-indigo-600 text-[10px]">
+                            <span>Tampilkan non-shift</span>
+                        </label>
                     </div>
-                @else
-                    <flux:select wire:model="selectedDoctorId" label="Pilih Dokter Spesialis" required>
-                        <flux:select.option value="">Pilih Dokter</flux:select.option>
-                        @foreach($doctors as $doc)
-                            <flux:select.option value="{{ $doc->id }}">{{ $doc->name }} ({{ $doc->specialization }})</flux:select.option>
+
+                    <flux:select wire:model="selectedEmployeeId" required>
+                        <flux:select.option value="">Pilih Perawat / Dokter</flux:select.option>
+                        @foreach($employees as $emp)
+                            <flux:select.option value="{{ $emp->id }}">
+                                {{ $emp->full_name }} ({{ $emp->nip }}) — {{ $emp->schedule_type === 'shift' ? 'Shift' : 'Non-Shift' }}
+                            </flux:select.option>
                         @endforeach
                     </flux:select>
-                @endif
+
+                    <p class="text-[11px] text-zinc-500">
+                        @if(! $showAllEmployeesInAssign)
+                            Menampilkan {{ $employees->count() }} personil berpola Shift. Personil Non-Shift otomatis mengikuti jam kantor reguler.
+                        @else
+                            Menampilkan seluruh personil perawat & dokter (termasuk non-shift).
+                        @endif
+                    </p>
+                </div>
 
                 {{-- Shift Selection --}}
                 <flux:select wire:model="selectedShiftId" label="Pilih Shift Kerja" required>
