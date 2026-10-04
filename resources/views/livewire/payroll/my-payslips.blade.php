@@ -1,85 +1,110 @@
 <div class="space-y-6">
-    {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                Riwayat Slip Gaji Saya
-            </flux:heading>
-            <flux:subheading class="mt-1 text-zinc-500 dark:text-zinc-400">
-                Transparansi kompensasi bulanan, rincian potongan iuran BPJS, dan bukti transfer gaji.
-            </flux:subheading>
-        @if($isUnlocked)
-            <div class="flex items-center gap-2">
-                <flux:badge size="sm" color="emerald" class="flex items-center gap-1">
-                    <flux:icon name="lock-open" class="size-3.5" />
-                    <span>Terverifikasi</span>
-                </flux:badge>
-                <flux:button wire:click="lock" variant="subtle" size="sm" icon="lock-closed" class="cursor-pointer">
-                    Kunci Kembali
-                </flux:button>
-            </div>
-        @endif
-    </div>
-
     @if(! $isUnlocked)
-        {{-- Password Verification Lock Card --}}
-        <div class="mx-auto max-w-md py-6">
-            <div class="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900 sm:p-8">
-                <div class="absolute -right-8 -top-8 size-40 rounded-full bg-emerald-500/10 blur-2xl dark:bg-emerald-500/20"></div>
+        {{-- Centered Lock Screen Layout --}}
+        <div class="flex min-h-[60vh] flex-col items-center justify-center py-6 sm:py-12">
+            <div class="w-full max-w-md">
+                <div class="relative overflow-hidden rounded-3xl border border-zinc-200/90 bg-white p-7 shadow-xl shadow-zinc-200/40 dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-none sm:p-9">
+                    {{-- Ambient background glows --}}
+                    <div class="absolute -right-10 -top-10 size-44 rounded-full bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-transparent blur-2xl"></div>
+                    <div class="absolute -left-10 -bottom-10 size-44 rounded-full bg-gradient-to-tr from-blue-500/10 via-emerald-500/5 to-transparent blur-2xl"></div>
 
-                <div class="relative space-y-6">
-                    <div class="flex items-center gap-4">
-                        <div class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
-                            <flux:icon name="shield-check" class="size-6" />
-                        </div>
-                        <div>
-                            <flux:heading size="lg" class="font-bold text-zinc-900 dark:text-zinc-100">
+                    <div class="relative space-y-6">
+                        {{-- Icon & Header --}}
+                        <div class="text-center space-y-2">
+                            <div class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-500/25">
+                                <flux:icon name="lock-closed" class="size-7" />
+                            </div>
+                            <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
                                 Verifikasi Keamanan
                             </flux:heading>
-                            <p class="text-xs text-zinc-500 dark:text-zinc-400">
-                                Perlindungan privasi data finansial pegawai
+                            <p class="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs mx-auto">
+                                Masukkan <strong>kata sandi akun login</strong> Anda untuk mengakses riwayat dan rincian slip gaji.
                             </p>
                         </div>
-                    </div>
 
-                    <div class="rounded-xl border border-amber-200/80 bg-amber-50/60 p-3.5 text-xs text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-300">
-                        <div class="flex gap-2">
-                            <flux:icon name="exclamation-triangle" class="size-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
-                            <span>Untuk melihat riwayat dan rincian slip gaji, silakan masukkan <strong>kata sandi akun login</strong> Anda terlebih dahulu.</span>
+                        {{-- Employee Profile Pill --}}
+                        @if($employee)
+                            <div class="flex items-center gap-3 rounded-2xl border border-zinc-100 bg-zinc-50/80 p-3.5 dark:border-zinc-800/80 dark:bg-zinc-800/50">
+                                <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 font-bold text-white text-sm shadow-xs">
+                                    {{ strtoupper(substr($employee->full_name, 0, 2)) }}
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="truncate text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                                        {{ $employee->full_name }}
+                                    </div>
+                                    <div class="truncate text-[11px] font-mono text-zinc-400">
+                                        NIP: {{ $employee->nip }} • {{ $employee->unit?->name ?? 'RS Juwita' }}
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+
+                        {{-- Unlock Form --}}
+                        <form wire:submit.prevent="unlock" class="space-y-4">
+                            <flux:field>
+                                <flux:label class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+                                    Kata Sandi Akun Login
+                                </flux:label>
+                                <flux:input
+                                    wire:model="password"
+                                    type="password"
+                                    placeholder="Masukkan kata sandi Anda"
+                                    autofocus
+                                />
+                                <flux:error name="password" />
+                            </flux:field>
+
+                            <flux:button type="submit" variant="primary" class="w-full justify-center py-2.5 font-semibold cursor-pointer shadow-sm shadow-emerald-600/20">
+                                <span wire:loading.remove wire:target="unlock" class="flex items-center gap-2">
+                                    <flux:icon name="lock-open" class="size-4" />
+                                    <span>Verifikasi &amp; Buka Slip Gaji</span>
+                                </span>
+                                <span wire:loading wire:target="unlock" class="flex items-center gap-2">
+                                    <flux:icon name="arrow-path" class="size-4 animate-spin" />
+                                    <span>Memverifikasi...</span>
+                                </span>
+                            </flux:button>
+                        </form>
+
+                        {{-- Footer links & info --}}
+                        <div class="space-y-2 pt-2 text-center">
+                            <div class="flex items-center justify-center gap-1.5 text-[11px] text-zinc-400">
+                                <flux:icon name="clock" class="size-3.5 text-zinc-400" />
+                                <span>Sesi akses aktif selama 15 menit setelah verifikasi</span>
+                            </div>
+                            <div class="pt-1">
+                                <a href="{{ route('dashboard') }}" class="text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400">
+                                    &larr; Kembali ke Dashboard
+                                </a>
+                            </div>
                         </div>
-                    </div>
-
-                    <form wire:submit.prevent="unlock" class="space-y-4">
-                        <flux:field>
-                            <flux:label>Kata Sandi Akun</flux:label>
-                            <flux:input
-                                wire:model="password"
-                                type="password"
-                                placeholder="Masukkan kata sandi login Anda"
-                                autofocus
-                            />
-                            <flux:error name="password" />
-                        </flux:field>
-
-                        <flux:button type="submit" variant="primary" class="w-full justify-center cursor-pointer">
-                            <span wire:loading.remove wire:target="unlock" class="flex items-center gap-2">
-                                <flux:icon name="lock-open" class="size-4" />
-                                <span>Verifikasi &amp; Buka Slip Gaji</span>
-                            </span>
-                            <span wire:loading wire:target="unlock" class="flex items-center gap-2">
-                                <flux:icon name="arrow-path" class="size-4 animate-spin" />
-                                <span>Memverifikasi...</span>
-                            </span>
-                        </flux:button>
-                    </form>
-
-                    <div class="border-t border-zinc-100 pt-3 text-center text-[11px] text-zinc-400 dark:border-zinc-800">
-                        Sesi akses slip gaji akan aktif selama 15 menit.
                     </div>
                 </div>
             </div>
         </div>
     @else
+        {{-- Header --}}
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+                <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                    Riwayat Slip Gaji Saya
+                </flux:heading>
+                <flux:subheading class="mt-1 text-zinc-500 dark:text-zinc-400">
+                    Transparansi kompensasi bulanan, rincian potongan iuran BPJS, dan bukti transfer gaji.
+                </flux:subheading>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <flux:badge size="sm" color="emerald" class="flex items-center gap-1.5">
+                    <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Terverifikasi (15 mnt)</span>
+                </flux:badge>
+                <flux:button wire:click="lock" variant="subtle" size="sm" icon="lock-closed" class="cursor-pointer">
+                    Kunci Kembali
+                </flux:button>
+            </div>
+        </div>
+
         {{-- Employee Identity Card --}}
         @if($employee)
             <flux:card class="bg-gradient-to-r from-emerald-500/10 via-transparent to-transparent border border-emerald-500/20">
