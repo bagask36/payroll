@@ -187,56 +187,83 @@
         @endif
     </button>
 
+    {{-- Mobile Backdrop Overlay (dims the screen nicely on phone) --}}
+    <div 
+        x-show="open" 
+        x-cloak
+        @click="open = false"
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        class="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 sm:hidden"
+        style="display: none;"
+    ></div>
+
     {{-- Dropdown Alert Popover Panel --}}
     <div 
         x-show="open" 
         x-cloak
         @click.outside="open = false"
         x-transition:enter="transition ease-out duration-200"
-        x-transition:enter-start="opacity-0 translate-y-1 scale-95"
+        x-transition:enter-start="opacity-0 translate-y-2 scale-95"
         x-transition:enter-end="opacity-100 translate-y-0 scale-100"
         x-transition:leave="transition ease-in duration-150"
         x-transition:leave-start="opacity-100 translate-y-0 scale-100"
-        x-transition:leave-end="opacity-0 translate-y-1 scale-95"
-        class="absolute right-0 top-full mt-2.5 w-[calc(100vw-2rem)] max-w-sm sm:max-w-md rounded-3xl border border-zinc-200/90 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 z-50 overflow-hidden"
+        x-transition:leave-end="opacity-0 translate-y-2 scale-95"
+        class="fixed inset-x-3.5 top-17 z-50 max-h-[82vh] sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2.5 sm:w-96 sm:max-w-md rounded-3xl border border-zinc-200/90 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-900 overflow-hidden flex flex-col"
         style="display: none;"
     >
         {{-- Popover Header --}}
-        <div class="relative overflow-hidden border-b border-zinc-100 p-4 sm:p-5 dark:border-zinc-800 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                    <div class="flex size-9 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 shadow-2xs">
+        <div class="relative shrink-0 overflow-hidden border-b border-zinc-100 p-4 sm:p-5 dark:border-zinc-800 bg-gradient-to-br from-emerald-500/5 via-transparent to-transparent">
+            <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="flex size-9 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 shadow-2xs">
                         <flux:icon name="bell" class="size-4.5" />
                     </div>
-                    <div>
-                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
+                    <div class="min-w-0">
+                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-zinc-900 dark:text-zinc-100 truncate">
                             Pemberitahuan &amp; Peringatan
                         </h4>
-                        <p class="text-[11px] text-zinc-400 mt-0.5">Aktivitas &amp; tugas penting SIM SDM</p>
+                        <p class="text-[11px] text-zinc-400 mt-0.5 truncate">Aktivitas &amp; tugas penting SIM SDM</p>
                     </div>
                 </div>
 
-                @if($urgentCount > 0)
-                    <span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/40">
-                        <span class="size-1.5 rounded-full bg-rose-500 animate-pulse"></span>
-                        {{ $urgentCount }} Tindakan
-                    </span>
-                @else
-                    <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
-                        <span class="size-1.5 rounded-full bg-emerald-500"></span>
-                        Semua Beres
-                    </span>
-                @endif
+                <div class="flex items-center gap-1.5 shrink-0">
+                    @if($urgentCount > 0)
+                        <span class="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-700 dark:bg-rose-950/60 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/40">
+                            <span class="size-1.5 rounded-full bg-rose-500 animate-pulse"></span>
+                            {{ $urgentCount }} Tindakan
+                        </span>
+                    @else
+                        <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
+                            <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                            Semua Beres
+                        </span>
+                    @endif
+
+                    {{-- Close Button on Mobile --}}
+                    <button 
+                        type="button" 
+                        @click="open = false" 
+                        class="flex sm:hidden size-8 items-center justify-center rounded-xl text-zinc-400 hover:text-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                        aria-label="Tutup"
+                    >
+                        <flux:icon name="x-mark" class="size-4.5" />
+                    </button>
+                </div>
             </div>
         </div>
 
         {{-- Alerts Scrollable List --}}
-        <div class="max-h-84 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800/80">
+        <div class="flex-1 overflow-y-auto overscroll-contain divide-y divide-zinc-100 dark:divide-zinc-800/80">
             @forelse($alerts as $alert)
                 <a 
                     href="{{ $alert['url'] }}" 
                     @click="open = false"
-                    class="group flex items-start gap-3.5 p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                    class="group flex items-start gap-3 p-3.5 sm:p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50 active:bg-zinc-100 dark:active:bg-zinc-800"
                 >
                     {{-- Alert Icon Pill --}}
                     @php
@@ -254,18 +281,18 @@
 
                     {{-- Alert Content --}}
                     <div class="min-w-0 flex-1">
-                        <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center justify-between gap-1.5">
                             <span class="truncate text-xs font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                 {{ $alert['title'] }}
                             </span>
-                            <flux:badge size="xs" :color="$alert['badge_color']" class="shrink-0 font-bold">
+                            <flux:badge size="xs" :color="$alert['badge_color']" class="shrink-0 font-bold text-[10px]">
                                 {{ $alert['badge'] }}
                             </flux:badge>
                         </div>
-                        <p class="mt-1 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed line-clamp-2">
+                        <p class="mt-1 text-[11px] sm:text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed line-clamp-2">
                             {{ $alert['message'] }}
                         </p>
-                        <div class="mt-2 flex items-center justify-between text-[11px] text-zinc-400">
+                        <div class="mt-2 flex items-center justify-between text-[10px] sm:text-[11px] text-zinc-400">
                             <span class="font-medium">{{ $alert['time'] }}</span>
                             <span class="font-semibold text-emerald-600 dark:text-emerald-400 group-hover:underline">Buka &rarr;</span>
                         </div>
@@ -281,7 +308,7 @@
         </div>
 
         {{-- Popover Footer --}}
-        <div class="border-t border-zinc-100 bg-zinc-50/80 p-3 text-center dark:border-zinc-800 dark:bg-zinc-850">
+        <div class="shrink-0 border-t border-zinc-100 bg-zinc-50/80 p-3 text-center dark:border-zinc-800 dark:bg-zinc-850">
             <a 
                 href="{{ route('leaves.index') }}" 
                 @click="open = false"
