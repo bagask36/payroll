@@ -239,6 +239,43 @@
                 </div>
             @endif
 
+            @php
+                $chain = $selectedRequest->getApprovalChain();
+                $currentStage = $selectedRequest->getCurrentPendingStage();
+            @endphp
+            @if(!empty($chain))
+                <div>
+                    <span class="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block mb-1.5">Alur Persetujuan Hierarkis:</span>
+                    <div class="space-y-1.5">
+                        @foreach($chain as $stage)
+                            @php
+                                $isCompleted = $selectedRequest->approvals->where('tier', $stage['tier'])->where('status', 'approved')->first();
+                                $isCurrent = $currentStage && $currentStage['tier'] === $stage['tier'];
+                            @endphp
+                            <div class="p-2 rounded-lg border text-xs flex items-center justify-between {{ $isCurrent ? 'border-amber-400 bg-amber-50/50 dark:bg-amber-950/20' : ($isCompleted ? 'border-emerald-200 bg-emerald-50/30 dark:bg-emerald-950/10' : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 text-zinc-400') }}">
+                                <div class="flex items-center gap-2">
+                                    <span class="size-5 rounded-full flex items-center justify-center font-bold text-[10px] {{ $isCompleted ? 'bg-emerald-600 text-white' : ($isCurrent ? 'bg-amber-500 text-white' : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-600') }}">
+                                        {{ $stage['tier'] }}
+                                    </span>
+                                    <span class="font-medium {{ $isCurrent ? 'text-amber-900 dark:text-amber-200 font-semibold' : ($isCompleted ? 'text-zinc-800 dark:text-zinc-200' : 'text-zinc-500') }}">
+                                        {{ $stage['title'] }}
+                                    </span>
+                                </div>
+                                <div>
+                                    @if($isCompleted)
+                                        <flux:badge color="emerald" size="xs">Disetujui</flux:badge>
+                                    @elseif($isCurrent)
+                                        <flux:badge color="amber" size="xs">Tahap Aktif</flux:badge>
+                                    @else
+                                        <flux:badge color="zinc" size="xs">Menunggu Antrian</flux:badge>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
             @if($selectedRequest->approvals && $selectedRequest->approvals->isNotEmpty())
                 <div>
                     <span class="text-xs font-semibold text-zinc-700 dark:text-zinc-300 block mb-1.5">Riwayat Verifikasi:</span>

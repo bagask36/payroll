@@ -22,38 +22,43 @@ class OrganizationSeeder extends Seeder
         // ==========================================
         $directorship = Department::updateOrCreate(
             ['code' => 'DIR'],
-            ['name' => 'Direktorat Utama RS Juwita', 'parent_id' => null, 'is_active' => true]
+            ['name' => 'Direktorat Utama', 'parent_id' => null, 'is_active' => true]
         );
 
         $yanmed = Department::updateOrCreate(
             ['code' => 'YANMED'],
-            ['name' => 'Bidang Pelayanan Medik', 'parent_id' => $directorship->id, 'is_active' => true]
+            ['name' => 'Pelayanan Medik', 'parent_id' => $directorship->id, 'is_active' => true]
         );
 
         $jangmed = Department::updateOrCreate(
             ['code' => 'JANGMED'],
-            ['name' => 'Bidang Penunjang Medis', 'parent_id' => $directorship->id, 'is_active' => true]
+            ['name' => 'Penunjang Medik', 'parent_id' => $directorship->id, 'is_active' => true]
         );
 
         $kep = Department::updateOrCreate(
             ['code' => 'KEP'],
-            ['name' => 'Bidang Keperawatan', 'parent_id' => $directorship->id, 'is_active' => true]
+            ['name' => 'Keperawatan', 'parent_id' => $directorship->id, 'is_active' => true]
         );
 
         $mkt = Department::updateOrCreate(
             ['code' => 'MKT'],
-            ['name' => 'Bagian Marketing', 'parent_id' => $directorship->id, 'is_active' => true]
+            ['name' => 'Marketing', 'parent_id' => $directorship->id, 'is_active' => true]
         );
 
-        $umSdmKeu = Department::updateOrCreate(
-            ['code' => 'UM-SDM-KEU'],
-            ['name' => 'Bagian Umum, SDM dan Keuangan', 'parent_id' => $directorship->id, 'is_active' => true]
+        $umSdm = Department::updateOrCreate(
+            ['code' => 'UM-SDM'],
+            ['name' => 'Umum & SDM', 'parent_id' => $directorship->id, 'is_active' => true]
+        );
+
+        $keu = Department::updateOrCreate(
+            ['code' => 'KEU'],
+            ['name' => 'Keuangan & Akuntansi', 'parent_id' => $directorship->id, 'is_active' => true]
         );
 
         // ==========================================
         // 2. UNITS / SUB-BAGIAN / INSTALASI
         // ==========================================
-        // 2.1 Staf Direksi & Komite
+        // 2.1 Staf Direksi, Komite & Tim SK Direktur
         $sekretariat = Unit::updateOrCreate(
             ['code' => 'SEKRETARIS'],
             ['department_id' => $directorship->id, 'name' => 'Sekretariat Direksi', 'is_active' => true]
@@ -87,7 +92,7 @@ class OrganizationSeeder extends Seeder
 
         $igd = Unit::updateOrCreate(
             ['code' => 'IGD'],
-            ['department_id' => $yanmed->id, 'name' => 'Unit Gawat Darurat (IGD)', 'is_active' => true]
+            ['department_id' => $yanmed->id, 'name' => 'Instalasi Gawat Darurat', 'is_active' => true]
         );
 
         $okVk = Unit::updateOrCreate(
@@ -113,7 +118,7 @@ class OrganizationSeeder extends Seeder
         // 2.3 Bidang Penunjang Medis (JANGMED)
         $farmasi = Unit::updateOrCreate(
             ['code' => 'FAR'],
-            ['department_id' => $jangmed->id, 'name' => 'Unit Farmasi', 'is_active' => true]
+            ['department_id' => $jangmed->id, 'name' => 'Instalasi Farmasi', 'is_active' => true]
         );
 
         $radiologi = Unit::updateOrCreate(
@@ -183,88 +188,176 @@ class OrganizationSeeder extends Seeder
             ['department_id' => $mkt->id, 'name' => 'Customer Care & Pendaftaran Pasien', 'is_active' => true]
         );
 
-        // 2.6 Bagian Umum, SDM dan Keuangan (UM-SDM-KEU)
+        // 2.6 Bagian Umum & SDM (UM-SDM)
         $itUnit = Unit::updateOrCreate(
             ['code' => 'IT'],
-            ['department_id' => $umSdmKeu->id, 'name' => 'Sub Bagian Umum - Unit SIMRS & TI', 'is_active' => true]
+            ['department_id' => $umSdm->id, 'name' => 'Sub Bagian Umum - Unit SIMRS & TI', 'is_active' => true]
         );
 
         $umumUnit = Unit::updateOrCreate(
             ['code' => 'UMUM'],
-            ['department_id' => $umSdmKeu->id, 'name' => 'Sub Bagian Umum - IPSRS, Logistik & Keamanan', 'is_active' => true]
+            ['department_id' => $umSdm->id, 'name' => 'Sub Bagian Umum - IPSRS, Logistik & Keamanan', 'is_active' => true]
         );
 
         $sdmUnit = Unit::updateOrCreate(
             ['code' => 'SDM'],
-            ['department_id' => $umSdmKeu->id, 'name' => 'Sub Bagian SDM & Diklat', 'is_active' => true]
+            ['department_id' => $umSdm->id, 'name' => 'Sub Bagian SDM & Diklat', 'is_active' => true]
         );
 
+        // 2.7 Bagian Keuangan (KEU)
         $keuUnit = Unit::updateOrCreate(
             ['code' => 'KEU'],
-            ['department_id' => $umSdmKeu->id, 'name' => 'Sub Bagian Keuangan & Akuntansi', 'is_active' => true]
+            ['department_id' => $keu->id, 'name' => 'Sub Bagian Keuangan & Akuntansi', 'is_active' => true]
+        );
+
+        // 2.8 Komite & Tim Tambahan SK Direktur
+        $komiteKep = Unit::updateOrCreate(
+            ['code' => 'KOM-KEP'],
+            ['department_id' => $directorship->id, 'name' => 'Komite Keperawatan', 'is_active' => true]
+        );
+
+        $komiteFar = Unit::updateOrCreate(
+            ['code' => 'KOM-FAR'],
+            ['department_id' => $directorship->id, 'name' => 'Komite Farmasi & Terapi', 'is_active' => true]
+        );
+
+        $komiteNakes = Unit::updateOrCreate(
+            ['code' => 'KOM-NAKES'],
+            ['department_id' => $directorship->id, 'name' => 'Komite Tenaga Kesehatan Lain', 'is_active' => true]
+        );
+
+        $komitePmkp = Unit::updateOrCreate(
+            ['code' => 'KOM-PMKP'],
+            ['department_id' => $directorship->id, 'name' => 'Komite Mutu & PMKP', 'is_active' => true]
+        );
+
+        $komiteEtik = Unit::updateOrCreate(
+            ['code' => 'KOM-ETIK'],
+            ['department_id' => $directorship->id, 'name' => 'Komite Etik & Hukum Rumah Sakit', 'is_active' => true]
+        );
+
+        $timPpi = Unit::updateOrCreate(
+            ['code' => 'TIM-PPI'],
+            ['department_id' => $directorship->id, 'name' => 'Tim PPI & PPIRS', 'is_active' => true]
+        );
+
+        $timK3rs = Unit::updateOrCreate(
+            ['code' => 'TIM-K3RS'],
+            ['department_id' => $directorship->id, 'name' => 'Tim K3RS', 'is_active' => true]
+        );
+
+        $timPonek = Unit::updateOrCreate(
+            ['code' => 'TIM-PONEK'],
+            ['department_id' => $directorship->id, 'name' => 'Tim PONEK Rumah Sakit', 'is_active' => true]
+        );
+
+        $timTb = Unit::updateOrCreate(
+            ['code' => 'TIM-TBDOT'],
+            ['department_id' => $directorship->id, 'name' => 'Tim TB-DOTS', 'is_active' => true]
+        );
+
+        $timHiv = Unit::updateOrCreate(
+            ['code' => 'TIM-HIV'],
+            ['department_id' => $directorship->id, 'name' => 'Tim Penanggulangan HIV/AIDS', 'is_active' => true]
+        );
+
+        $timStunting = Unit::updateOrCreate(
+            ['code' => 'TIM-STUNTING'],
+            ['department_id' => $directorship->id, 'name' => 'Tim Penurunan Prevalensi Stunting', 'is_active' => true]
+        );
+
+        $timPkbrs = Unit::updateOrCreate(
+            ['code' => 'TIM-PKBRS'],
+            ['department_id' => $directorship->id, 'name' => 'Tim Pelayanan KB Rumah Sakit (PKBRS)', 'is_active' => true]
+        );
+
+        $timPra = Unit::updateOrCreate(
+            ['code' => 'TIM-PRA'],
+            ['department_id' => $directorship->id, 'name' => 'Tim Program Pengendalian Resistensi Antimikroba', 'is_active' => true]
+        );
+
+        $panRm = Unit::updateOrCreate(
+            ['code' => 'PAN-RM'],
+            ['department_id' => $directorship->id, 'name' => 'Panitia Rekam Medis', 'is_active' => true]
         );
 
         // ==========================================
-        // 3. POSITIONS / JABATAN STRUKTURAL & FUNGSIONAL
+        // 3. POSITIONS / JABATAN STRUKTURAL & FUNGSIONAL (STANDAR JABATAN)
         // ==========================================
         $positionsData = [
             // Level 0: Direktur Puncak
-            ['unit_id' => $sekretariat->id, 'title' => 'Direktur Rumah Sakit Juwita', 'grade_level' => 'director', 'basic' => 25000000.00, 'allowance' => 10000000.00],
+            ['unit_id' => $sekretariat->id, 'title' => 'Direktur Rumah Sakit Juwita', 'grade_level' => 'director', 'basic' => 25000000.00, 'allowance' => 10000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/DIR-001'],
 
-            // Level Staf Direksi
-            ['unit_id' => $sekretariat->id, 'title' => 'Sekretaris Direktur', 'grade_level' => 'staff', 'basic' => 6000000.00, 'allowance' => 1000000.00],
-            ['unit_id' => $spi->id, 'title' => 'Kepala Satuan Pengawas Internal (SPI)', 'grade_level' => 'manager', 'basic' => 12000000.00, 'allowance' => 3500000.00],
-            ['unit_id' => $casemix->id, 'title' => 'Ketua Tim Casemix', 'grade_level' => 'supervisor', 'basic' => 9000000.00, 'allowance' => 2500000.00],
-            ['unit_id' => $komiteMedik->id, 'title' => 'Ketua Komite Medik', 'grade_level' => 'specialist', 'basic' => 15000000.00, 'allowance' => 5000000.00],
+            // Level Staf Direksi, Komite & Tim
+            ['unit_id' => $sekretariat->id, 'title' => 'Sekretaris Direktur', 'grade_level' => 'staff', 'basic' => 6000000.00, 'allowance' => 1000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/SEK-001'],
+            ['unit_id' => $spi->id, 'title' => 'Kepala Satuan Pengawas Internal (SPI)', 'grade_level' => 'manager', 'basic' => 12000000.00, 'allowance' => 3500000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/SPI-001'],
+            ['unit_id' => $casemix->id, 'title' => 'Ketua Tim Casemix', 'grade_level' => 'supervisor', 'basic' => 9000000.00, 'allowance' => 2500000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/CMX-001'],
+            ['unit_id' => $komiteMedik->id, 'title' => 'Ketua Komite Medik', 'grade_level' => 'specialist', 'basic' => 15000000.00, 'allowance' => 5000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KOM-001'],
+            ['unit_id' => $komiteKep->id, 'title' => 'Ketua Komite Keperawatan', 'grade_level' => 'supervisor', 'basic' => 9000000.00, 'allowance' => 2500000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KOM-002'],
+            ['unit_id' => $komitePmkp->id, 'title' => 'Ketua Komite Mutu & PMKP', 'grade_level' => 'supervisor', 'basic' => 9000000.00, 'allowance' => 2500000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KOM-003'],
+            ['unit_id' => $timK3rs->id, 'title' => 'Ketua Tim K3RS & PPI', 'grade_level' => 'supervisor', 'basic' => 8500000.00, 'allowance' => 2000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/TIM-001'],
 
             // Level 1: Kepala Bidang & Kepala Bagian (5 Pilar)
-            ['unit_id' => $ranap->id, 'title' => 'Kepala Bidang Pelayanan Medik', 'grade_level' => 'manager', 'basic' => 14000000.00, 'allowance' => 4500000.00],
-            ['unit_id' => $farmasi->id, 'title' => 'Kepala Bidang Penunjang Medis', 'grade_level' => 'manager', 'basic' => 13500000.00, 'allowance' => 4000000.00],
-            ['unit_id' => $kepRanap->id, 'title' => 'Kepala Bidang Keperawatan', 'grade_level' => 'manager', 'basic' => 13500000.00, 'allowance' => 4000000.00],
-            ['unit_id' => $mktEks->id, 'title' => 'Kepala Bagian Marketing', 'grade_level' => 'manager', 'basic' => 13000000.00, 'allowance' => 4000000.00],
-            ['unit_id' => $sdmUnit->id, 'title' => 'Kepala Bagian Umum, SDM dan Keuangan', 'grade_level' => 'manager', 'basic' => 14500000.00, 'allowance' => 4500000.00],
+            ['unit_id' => $ranap->id, 'title' => 'Kepala Bidang Pelayanan Medik', 'grade_level' => 'manager', 'basic' => 14000000.00, 'allowance' => 4500000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KB-YANMED'],
+            ['unit_id' => $farmasi->id, 'title' => 'Kepala Bidang Penunjang Medis', 'grade_level' => 'manager', 'basic' => 13500000.00, 'allowance' => 4000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KB-JANGMED'],
+            ['unit_id' => $kepRanap->id, 'title' => 'Kepala Bidang Keperawatan', 'grade_level' => 'manager', 'basic' => 13500000.00, 'allowance' => 4000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KB-KEP'],
+            ['unit_id' => $mktEks->id, 'title' => 'Kepala Bagian Marketing', 'grade_level' => 'manager', 'basic' => 13000000.00, 'allowance' => 4000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KB-MKT'],
+            ['unit_id' => $sdmUnit->id, 'title' => 'Kepala Bagian Umum, SDM dan Keuangan', 'grade_level' => 'manager', 'basic' => 14500000.00, 'allowance' => 4500000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KB-UMSDMKEU'],
 
             // Level 2: Pimpinan Unit / PJ di bawah Umum, SDM dan Keuangan
-            ['unit_id' => $itUnit->id, 'title' => 'Penanggung Jawab (PJ) Unit IT & SIMRS', 'grade_level' => 'supervisor', 'basic' => 8500000.00, 'allowance' => 2000000.00],
-            ['unit_id' => $umumUnit->id, 'title' => 'Penanggung Jawab (PJ) Unit Umum & IPSRS', 'grade_level' => 'supervisor', 'basic' => 8000000.00, 'allowance' => 2000000.00],
-            ['unit_id' => $sdmUnit->id, 'title' => 'Kepala Bagian SDM', 'grade_level' => 'manager', 'basic' => 9500000.00, 'allowance' => 2500000.00],
-            ['unit_id' => $keuUnit->id, 'title' => 'Kepala Sub Bagian Keuangan & Akuntansi', 'grade_level' => 'supervisor', 'basic' => 9000000.00, 'allowance' => 2500000.00],
+            ['unit_id' => $itUnit->id, 'title' => 'Penanggung Jawab (PJ) Unit IT & SIMRS', 'grade_level' => 'supervisor', 'basic' => 8500000.00, 'allowance' => 2000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/PJ-IT'],
+            ['unit_id' => $umumUnit->id, 'title' => 'Penanggung Jawab (PJ) Unit Umum & IPSRS', 'grade_level' => 'supervisor', 'basic' => 8000000.00, 'allowance' => 2000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/PJ-UMUM'],
+            ['unit_id' => $sdmUnit->id, 'title' => 'Kepala Bagian SDM', 'grade_level' => 'manager', 'basic' => 9500000.00, 'allowance' => 2500000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KB-SDM'],
+            ['unit_id' => $keuUnit->id, 'title' => 'Kepala Sub Bagian Keuangan & Akuntansi', 'grade_level' => 'supervisor', 'basic' => 9000000.00, 'allowance' => 2500000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KS-KEU'],
 
             // Level 2: Pimpinan Unit / PJ di bawah Pelayanan Medik
-            ['unit_id' => $igd->id, 'title' => 'Kepala Instalasi Gawat Darurat', 'grade_level' => 'manager', 'basic' => 9500000.00, 'allowance' => 3000000.00],
-            ['unit_id' => $icu->id, 'title' => 'Kepala Ruang ICU', 'grade_level' => 'supervisor', 'basic' => 7800000.00, 'allowance' => 2000000.00],
-            ['unit_id' => $ranap->id, 'title' => 'Kepala Ruang Rawat Inap', 'grade_level' => 'supervisor', 'basic' => 7800000.00, 'allowance' => 2000000.00],
-            ['unit_id' => $rajal->id, 'title' => 'Kepala Ruang Rawat Jalan', 'grade_level' => 'supervisor', 'basic' => 7500000.00, 'allowance' => 1800000.00],
-            ['unit_id' => $okVk->id, 'title' => 'Kepala Unit OK & VK', 'grade_level' => 'supervisor', 'basic' => 8500000.00, 'allowance' => 2200000.00],
-            ['unit_id' => $perina->id, 'title' => 'Kepala Ruang Bayi & Perina', 'grade_level' => 'supervisor', 'basic' => 7500000.00, 'allowance' => 1800000.00],
-            ['unit_id' => $hd->id, 'title' => 'Kepala Unit Hemodialisa', 'grade_level' => 'supervisor', 'basic' => 8000000.00, 'allowance' => 2000000.00],
+            ['unit_id' => $igd->id, 'title' => 'Kepala Instalasi Gawat Darurat', 'grade_level' => 'manager', 'basic' => 9500000.00, 'allowance' => 3000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KI-IGD'],
+            ['unit_id' => $icu->id, 'title' => 'Kepala Ruang ICU', 'grade_level' => 'supervisor', 'basic' => 7800000.00, 'allowance' => 2000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KR-ICU'],
+            ['unit_id' => $ranap->id, 'title' => 'Kepala Ruang Rawat Inap', 'grade_level' => 'supervisor', 'basic' => 7800000.00, 'allowance' => 2000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KR-RANAP'],
+            ['unit_id' => $rajal->id, 'title' => 'Kepala Ruang Rawat Jalan', 'grade_level' => 'supervisor', 'basic' => 7500000.00, 'allowance' => 1800000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KR-RAJAL'],
+            ['unit_id' => $okVk->id, 'title' => 'Kepala Unit OK & VK', 'grade_level' => 'supervisor', 'basic' => 8500000.00, 'allowance' => 2200000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KU-OKVK'],
+            ['unit_id' => $perina->id, 'title' => 'Kepala Ruang Bayi & Perina', 'grade_level' => 'supervisor', 'basic' => 7500000.00, 'allowance' => 1800000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KR-PERINA'],
+            ['unit_id' => $hd->id, 'title' => 'Kepala Unit Hemodialisa', 'grade_level' => 'supervisor', 'basic' => 8000000.00, 'allowance' => 2000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KU-HD'],
 
             // Level 2: Pimpinan Unit / PJ di bawah Penunjang Medis
-            ['unit_id' => $farmasi->id, 'title' => 'Apoteker Penanggung Jawab', 'grade_level' => 'supervisor', 'basic' => 7500000.00, 'allowance' => 1800000.00],
-            ['unit_id' => $laboratorium->id, 'title' => 'Kepala Laboratorium', 'grade_level' => 'supervisor', 'basic' => 7500000.00, 'allowance' => 1800000.00],
-            ['unit_id' => $radiologi->id, 'title' => 'Kepala Unit Radiologi', 'grade_level' => 'supervisor', 'basic' => 7500000.00, 'allowance' => 1800000.00],
-            ['unit_id' => $gizi->id, 'title' => 'Kepala Instalasi Gizi', 'grade_level' => 'supervisor', 'basic' => 7000000.00, 'allowance' => 1500000.00],
-            ['unit_id' => $rekamMedik->id, 'title' => 'Kepala Unit Rekam Medik', 'grade_level' => 'supervisor', 'basic' => 7000000.00, 'allowance' => 1500000.00],
-            ['unit_id' => $rehabMedik->id, 'title' => 'Kepala Unit Rehabilitasi Medik', 'grade_level' => 'supervisor', 'basic' => 7200000.00, 'allowance' => 1600000.00],
+            ['unit_id' => $farmasi->id, 'title' => 'Apoteker Penanggung Jawab', 'grade_level' => 'supervisor', 'basic' => 7500000.00, 'allowance' => 1800000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/APJ-FAR'],
+            ['unit_id' => $laboratorium->id, 'title' => 'Kepala Laboratorium', 'grade_level' => 'supervisor', 'basic' => 7500000.00, 'allowance' => 1800000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KU-LAB'],
+            ['unit_id' => $radiologi->id, 'title' => 'Kepala Unit Radiologi', 'grade_level' => 'supervisor', 'basic' => 7500000.00, 'allowance' => 1800000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KU-RAD'],
+            ['unit_id' => $gizi->id, 'title' => 'Kepala Instalasi Gizi', 'grade_level' => 'supervisor', 'basic' => 7000000.00, 'allowance' => 1500000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KI-GIZI'],
+            ['unit_id' => $rekamMedik->id, 'title' => 'Kepala Unit Rekam Medik', 'grade_level' => 'supervisor', 'basic' => 7000000.00, 'allowance' => 1500000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KU-RM'],
+            ['unit_id' => $rehabMedik->id, 'title' => 'Kepala Unit Rehabilitasi Medik', 'grade_level' => 'supervisor', 'basic' => 7200000.00, 'allowance' => 1600000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KU-REHAB'],
 
             // Level 2: Pimpinan di bawah Keperawatan & Marketing
-            ['unit_id' => $kepRanap->id, 'title' => 'Koordinator Keperawatan Rawat Inap', 'grade_level' => 'supervisor', 'basic' => 8000000.00, 'allowance' => 2000000.00],
-            ['unit_id' => $mktEks->id, 'title' => 'Penanggung Jawab Marketing Eksternal', 'grade_level' => 'supervisor', 'basic' => 7500000.00, 'allowance' => 1800000.00],
-            ['unit_id' => $custCare->id, 'title' => 'Penanggung Jawab Customer Care & Pendaftaran', 'grade_level' => 'supervisor', 'basic' => 7000000.00, 'allowance' => 1500000.00],
+            ['unit_id' => $kepRanap->id, 'title' => 'Koordinator Keperawatan Rawat Inap', 'grade_level' => 'supervisor', 'basic' => 8000000.00, 'allowance' => 2000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KD-KEPRANAP'],
+            ['unit_id' => $kepRajal->id, 'title' => 'Koordinator Keperawatan Rawat Jalan', 'grade_level' => 'supervisor', 'basic' => 7500000.00, 'allowance' => 1800000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KD-KEPRAJAL'],
+            ['unit_id' => $kepKhusus->id, 'title' => 'Koordinator Keperawatan Rawat Khusus', 'grade_level' => 'supervisor', 'basic' => 8000000.00, 'allowance' => 2000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KD-KEPKHUSUS'],
+            ['unit_id' => $kepKebidanan->id, 'title' => 'Koordinator Kebidanan & Kandungan', 'grade_level' => 'supervisor', 'basic' => 7800000.00, 'allowance' => 1900000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/KD-KEPBIDAN'],
+            ['unit_id' => $mktEks->id, 'title' => 'Penanggung Jawab Marketing Eksternal', 'grade_level' => 'supervisor', 'basic' => 7500000.00, 'allowance' => 1800000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/PJ-MKTEKS'],
+            ['unit_id' => $mktInt->id, 'title' => 'Penanggung Jawab Marketing Internal & Humas', 'grade_level' => 'supervisor', 'basic' => 7200000.00, 'allowance' => 1600000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/PJ-MKTINT'],
+            ['unit_id' => $custCare->id, 'title' => 'Penanggung Jawab Customer Care & Pendaftaran', 'grade_level' => 'supervisor', 'basic' => 7000000.00, 'allowance' => 1500000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/PJ-CUSTCARE'],
 
             // Level 3: Staf Fungsional & Pelaksana
-            ['unit_id' => $itUnit->id, 'title' => 'Staff Programmer SIMRS', 'grade_level' => 'staff', 'basic' => 6000000.00, 'allowance' => 500000.00],
-            ['unit_id' => $itUnit->id, 'title' => 'Staff Teknisi IT & Jaringan', 'grade_level' => 'staff', 'basic' => 5200000.00, 'allowance' => 400000.00],
-            ['unit_id' => $sdmUnit->id, 'title' => 'Staff Penggajian & HRIS', 'grade_level' => 'staff', 'basic' => 5500000.00, 'allowance' => 500000.00],
-            ['unit_id' => $sdmUnit->id, 'title' => 'Staff Rekrutmen & Diklat', 'grade_level' => 'staff', 'basic' => 5200000.00, 'allowance' => 400000.00],
-            ['unit_id' => $keuUnit->id, 'title' => 'Staff Kasir Rumah Sakit', 'grade_level' => 'staff', 'basic' => 4800000.00, 'allowance' => 300000.00],
+            ['unit_id' => $itUnit->id, 'title' => 'Staff Programmer SIMRS', 'grade_level' => 'staff', 'basic' => 6000000.00, 'allowance' => 500000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-PROG'],
+            ['unit_id' => $itUnit->id, 'title' => 'Staff Teknisi IT & Jaringan', 'grade_level' => 'staff', 'basic' => 5200000.00, 'allowance' => 400000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-TEKIT'],
+            ['unit_id' => $umumUnit->id, 'title' => 'Staff Teknisi Elektromedis & IPSRS', 'grade_level' => 'staff', 'basic' => 5200000.00, 'allowance' => 400000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-IPSRS'],
+            ['unit_id' => $sdmUnit->id, 'title' => 'Staff Penggajian & HRIS', 'grade_level' => 'staff', 'basic' => 5500000.00, 'allowance' => 500000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-HRIS'],
+            ['unit_id' => $sdmUnit->id, 'title' => 'Staff Rekrutmen & Diklat', 'grade_level' => 'staff', 'basic' => 5200000.00, 'allowance' => 400000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-REKRUT'],
+            ['unit_id' => $keuUnit->id, 'title' => 'Staff Kasir Rumah Sakit', 'grade_level' => 'staff', 'basic' => 4800000.00, 'allowance' => 300000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-KASIR'],
+            ['unit_id' => $keuUnit->id, 'title' => 'Staff Akuntansi & Perpajakan', 'grade_level' => 'staff', 'basic' => 5200000.00, 'allowance' => 400000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-AKUN'],
+            ['unit_id' => $custCare->id, 'title' => 'Staff Pendaftaran Pasien (Front Office)', 'grade_level' => 'staff', 'basic' => 4800000.00, 'allowance' => 300000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-FO'],
 
-            ['unit_id' => $igd->id, 'title' => 'Dokter Jaga IGD', 'grade_level' => 'specialist', 'basic' => 8500000.00, 'allowance' => 2000000.00],
-            ['unit_id' => $igd->id, 'title' => 'Perawat Pelaksana IGD', 'grade_level' => 'staff', 'basic' => 5200000.00, 'allowance' => 500000.00],
-            ['unit_id' => $icu->id, 'title' => 'Perawat Mahir ICU', 'grade_level' => 'staff', 'basic' => 5200000.00, 'allowance' => 600000.00],
-            ['unit_id' => $farmasi->id, 'title' => 'Tenaga Teknis Kefarmasian', 'grade_level' => 'staff', 'basic' => 5000000.00, 'allowance' => 400000.00],
-            ['unit_id' => $laboratorium->id, 'title' => 'Pranata Laboratorium Kesehatan', 'grade_level' => 'staff', 'basic' => 5000000.00, 'allowance' => 400000.00],
-            ['unit_id' => $radiologi->id, 'title' => 'Radiografer', 'grade_level' => 'staff', 'basic' => 5200000.00, 'allowance' => 450000.00],
+            ['unit_id' => $igd->id, 'title' => 'Dokter Jaga IGD', 'grade_level' => 'specialist', 'basic' => 8500000.00, 'allowance' => 2000000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-DRIGD'],
+            ['unit_id' => $igd->id, 'title' => 'Perawat Pelaksana IGD', 'grade_level' => 'staff', 'basic' => 5200000.00, 'allowance' => 500000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-PRWIGD'],
+            ['unit_id' => $icu->id, 'title' => 'Perawat Mahir ICU', 'grade_level' => 'staff', 'basic' => 5200000.00, 'allowance' => 600000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-PRWICU'],
+            ['unit_id' => $ranap->id, 'title' => 'Perawat Pelaksana Rawat Inap', 'grade_level' => 'staff', 'basic' => 5000000.00, 'allowance' => 400000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-PRWRANAP'],
+            ['unit_id' => $rajal->id, 'title' => 'Perawat Pelaksana Rawat Jalan', 'grade_level' => 'staff', 'basic' => 5000000.00, 'allowance' => 400000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-PRWRAJAL'],
+            ['unit_id' => $okVk->id, 'title' => 'Bidan Pelaksana VK', 'grade_level' => 'staff', 'basic' => 5100000.00, 'allowance' => 450000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-BDNVK'],
+            ['unit_id' => $farmasi->id, 'title' => 'Tenaga Teknis Kefarmasian', 'grade_level' => 'staff', 'basic' => 5000000.00, 'allowance' => 400000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-TTK'],
+            ['unit_id' => $laboratorium->id, 'title' => 'Pranata Laboratorium Kesehatan', 'grade_level' => 'staff', 'basic' => 5000000.00, 'allowance' => 400000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-LAB'],
+            ['unit_id' => $radiologi->id, 'title' => 'Radiografer', 'grade_level' => 'staff', 'basic' => 5200000.00, 'allowance' => 450000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-RAD'],
+            ['unit_id' => $gizi->id, 'title' => 'Nutrisionis / Dietisien', 'grade_level' => 'staff', 'basic' => 5000000.00, 'allowance' => 400000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-GIZI'],
+            ['unit_id' => $rekamMedik->id, 'title' => 'Perekam Medis', 'grade_level' => 'staff', 'basic' => 4900000.00, 'allowance' => 350000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-RM'],
+            ['unit_id' => $rehabMedik->id, 'title' => 'Fisioterapis', 'grade_level' => 'staff', 'basic' => 5000000.00, 'allowance' => 400000.00, 'contract_number' => 'HK.02.01/SMI/006.1/I/2023/ST-FISIO'],
         ];
 
         foreach ($positionsData as $pos) {
@@ -275,6 +368,7 @@ class OrganizationSeeder extends Seeder
                     'grade_level' => $pos['grade_level'],
                     'default_basic_salary' => $pos['basic'],
                     'default_positional_allowance' => $pos['allowance'],
+                    'default_contract_number' => $pos['contract_number'] ?? null,
                 ]
             );
         }
@@ -283,11 +377,14 @@ class OrganizationSeeder extends Seeder
         // 4. LINKING REPORTS_TO_ID (HIRARKI RANTAI KOMANDO)
         // ==========================================
         $reportingHierarchy = [
-            // Pimpinan Bidang/Bagian & Staf Direksi -> Direktur
+            // Pimpinan Bidang/Bagian, Staf Direksi, Komite -> Direktur
             'Sekretaris Direktur' => 'Direktur Rumah Sakit Juwita',
             'Kepala Satuan Pengawas Internal (SPI)' => 'Direktur Rumah Sakit Juwita',
             'Ketua Tim Casemix' => 'Direktur Rumah Sakit Juwita',
             'Ketua Komite Medik' => 'Direktur Rumah Sakit Juwita',
+            'Ketua Komite Keperawatan' => 'Direktur Rumah Sakit Juwita',
+            'Ketua Komite Mutu & PMKP' => 'Direktur Rumah Sakit Juwita',
+            'Ketua Tim K3RS & PPI' => 'Direktur Rumah Sakit Juwita',
             'Kepala Bidang Pelayanan Medik' => 'Direktur Rumah Sakit Juwita',
             'Kepala Bidang Penunjang Medis' => 'Direktur Rumah Sakit Juwita',
             'Kepala Bidang Keperawatan' => 'Direktur Rumah Sakit Juwita',
@@ -317,27 +414,48 @@ class OrganizationSeeder extends Seeder
             'Kepala Unit Rekam Medik' => 'Kepala Bidang Penunjang Medis',
             'Kepala Unit Rehabilitasi Medik' => 'Kepala Bidang Penunjang Medis',
 
-            // Di bawah Keperawatan & Marketing
+            // Di bawah Keperawatan
             'Koordinator Keperawatan Rawat Inap' => 'Kepala Bidang Keperawatan',
+            'Koordinator Keperawatan Rawat Jalan' => 'Kepala Bidang Keperawatan',
+            'Koordinator Keperawatan Rawat Khusus' => 'Kepala Bidang Keperawatan',
+            'Koordinator Kebidanan & Kandungan' => 'Kepala Bidang Keperawatan',
+
+            // Di bawah Marketing
             'Penanggung Jawab Marketing Eksternal' => 'Kepala Bagian Marketing',
+            'Penanggung Jawab Marketing Internal & Humas' => 'Kepala Bagian Marketing',
             'Penanggung Jawab Customer Care & Pendaftaran' => 'Kepala Bagian Marketing',
 
             // Staf Pelaksana IT -> PJ Unit IT
             'Staff Programmer SIMRS' => 'Penanggung Jawab (PJ) Unit IT & SIMRS',
             'Staff Teknisi IT & Jaringan' => 'Penanggung Jawab (PJ) Unit IT & SIMRS',
 
+            // Staf Pelaksana Umum & IPSRS -> PJ Umum & IPSRS
+            'Staff Teknisi Elektromedis & IPSRS' => 'Penanggung Jawab (PJ) Unit Umum & IPSRS',
+
             // Staf Pelaksana SDM & Keu
             'Staff Penggajian & HRIS' => 'Kepala Bagian SDM',
             'Staff Rekrutmen & Diklat' => 'Kepala Bagian SDM',
             'Staff Kasir Rumah Sakit' => 'Kepala Sub Bagian Keuangan & Akuntansi',
+            'Staff Akuntansi & Perpajakan' => 'Kepala Sub Bagian Keuangan & Akuntansi',
+
+            // Staf Pelaksana Customer Care -> PJ Customer Care
+            'Staff Pendaftaran Pasien (Front Office)' => 'Penanggung Jawab Customer Care & Pendaftaran',
 
             // Staf Pelaksana Medis & Keperawatan
             'Dokter Jaga IGD' => 'Kepala Instalasi Gawat Darurat',
             'Perawat Pelaksana IGD' => 'Kepala Instalasi Gawat Darurat',
             'Perawat Mahir ICU' => 'Kepala Ruang ICU',
+            'Perawat Pelaksana Rawat Inap' => 'Kepala Ruang Rawat Inap',
+            'Perawat Pelaksana Rawat Jalan' => 'Kepala Ruang Rawat Jalan',
+            'Bidan Pelaksana VK' => 'Kepala Unit OK & VK',
+
+            // Staf Pelaksana Penunjang Medis
             'Tenaga Teknis Kefarmasian' => 'Apoteker Penanggung Jawab',
             'Pranata Laboratorium Kesehatan' => 'Kepala Laboratorium',
             'Radiografer' => 'Kepala Unit Radiologi',
+            'Nutrisionis / Dietisien' => 'Kepala Instalasi Gizi',
+            'Perekam Medis' => 'Kepala Unit Rekam Medik',
+            'Fisioterapis' => 'Kepala Unit Rehabilitasi Medik',
         ];
 
         foreach ($reportingHierarchy as $subordinateTitle => $supervisorTitle) {

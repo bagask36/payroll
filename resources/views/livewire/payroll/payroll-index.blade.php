@@ -12,6 +12,9 @@
 
         <div class="flex items-center gap-2">
             @can('calculate', App\Models\PayrollRun::class)
+                <flux:button variant="subtle" icon="sparkles" wire:click="openThrModal" class="border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40">
+                    Kalkulasi THR (Off-Cycle)
+                </flux:button>
                 <flux:button variant="primary" icon="calculator" wire:click="openCalculateModal">
                     Kalkulasi Payroll Baru
                 </flux:button>
@@ -48,7 +51,7 @@
                 <flux:select wire:model.live="selectedRunId" class="w-72">
                     @forelse($runs as $r)
                         <flux:select.option value="{{ $r->id }}">
-                            {{ $r->period?->name }} ({{ $r->run_date->format('d/m/Y') }})
+                            {{ $r->isThr() ? '🎉 [THR] ' : '' }}{{ $r->period?->name }} ({{ $r->run_date->format('d/m/Y') }})
                         </flux:select.option>
                     @empty
                         <flux:select.option value="">Belum ada batch payroll</flux:select.option>
@@ -60,6 +63,9 @@
                 <div class="flex items-center gap-3">
                     <div class="flex items-center gap-1.5">
                         <span class="text-xs text-zinc-400">Status:</span>
+                        @if($selectedRun->isThr())
+                            <flux:badge size="sm" color="purple" icon="sparkles">Off-Cycle THR: {{ $selectedRun->metadata['holiday_name'] ?? 'Tunjangan Hari Raya' }}</flux:badge>
+                        @endif
                         @if($selectedRun->status === 'draft')
                             <flux:badge size="sm" color="zinc">Draft</flux:badge>
                         @elseif($selectedRun->status === 'calculated')
@@ -188,6 +194,77 @@
         </form>
     </flux:modal>
 
+    {{-- Calculate THR Modal --}}
+    <flux:modal wire:model="showThrModal" class="md:w-[28rem] space-y-4">
+        <div>
+            <div class="flex items-center gap-2">
+                <flux:icon name="sparkles" class="size-5 text-emerald-600" />
+                <flux:heading size="lg">Kalkulasi THR (Off-Cycle)</flux:heading>
+            </div>
+            <flux:subheading class="text-xs text-zinc-500">
+                Perhitungan proporsional masa kerja (Permenaker No. 6/2016), bebas potongan BPJS, dan pemotongan PPh 21 TER.
+            </flux:subheading>
+        </div>
+
+        <form wire:submit="calculateThr" class="space-y-4">
+            <flux:select wire:model="selectedThrPeriodId" label="Pilih Periode Terkait" required>
+                @foreach($periods as $p)
+                    <flux:select.option value="{{ $p->id }}">{{ $p->name }}</flux:select.option>
+                @endforeach
+            </flux:select>
+
+            <flux:input 
+                wire:model="thrHolidayName" 
+                label="Nama Event / Hari Raya" 
+                placeholder="Contoh: THR Idul Fitri 1447 H / THR Natal 2026" 
+                required 
+            />
+
+            <flux:input 
+                type="date" 
+                wire:model="thrCutoffDate" 
+                label="Tanggal Acuan Cutoff Masa Kerja" 
+                required 
+            />
+
+            <flux:select wire:model="thrTargetReligion" label="Target Agama / Penerima">
+                <flux:select.option value="all">Semua Karyawan (Serentak)</flux:select.option>
+                <flux:select.option value="islam">Khusus Muslim (Idul Fitri)</flux:select.option>
+                <flux:select.option value="kristen">Khusus Kristen Protestan (Natal)</flux:select.option>
+                <flux:select.option value="katolik">Khusus Katolik (Natal)</flux:select.option>
+                <flux:select.option value="hindu">Khusus Hindu (Nyepi)</flux:select.option>
+                <flux:select.option value="buddha">Khusus Buddha (Waisak)</flux:select.option>
+                <flux:select.option value="khonghucu">Khusus Khonghucu (Imlek)</flux:select.option>
+            </flux:select>
+
+            <div class="flex items-center gap-2 pt-1">
+                <flux:checkbox 
+                    wire:model="thrIncludePositional" 
+                    label="Sertakan Tunjangan Jabatan / Tunjangan Tetap" 
+                />
+            </div>
+
+            <div class="p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-lg text-xs text-emerald-800 dark:text-emerald-300 space-y-1">
+                <div class="font-semibold">Aturan Otomatis Permenaker No. 6/2016:</div>
+                <ul class="list-disc list-inside text-[11px] space-y-0.5 text-emerald-700 dark:text-emerald-400">
+                    <li>Masa kerja &ge; 12 bulan: 1 bulan upah penuh (100%).</li>
+                    <li>Masa kerja 1 s.d. &lt; 12 bulan: Prorata (Masa Kerja / 12).</li>
+                    <li>Masa kerja &lt; 1 bulan: Tidak berhak (Rp 0).</li>
+                    <li>Iuran BPJS Kesehatan & Ketenagakerjaan = Rp 0.</li>
+                </ul>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <flux:modal.close>
+                    <flux:button variant="subtle">Batal</flux:button>
+                </flux:modal.close>
+                <flux:button type="submit" variant="primary" class="bg-emerald-600 hover:bg-emerald-700 text-white" wire:loading.attr="disabled">
+                    Proses Kalkulasi THR
+                </flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
     {{-- Payslip Item Detail Modal --}}
     @if($viewingItem)
         <flux:modal wire:model="showItemDetailModal" class="md:w-[32rem] space-y-4">
@@ -217,7 +294,7 @@
                         <span class="text-zinc-600 dark:text-zinc-400">Gaji Pokok</span>
                         <span class="font-mono font-medium">Rp {{ number_format((float) $viewingItem->basic_salary, 0, ',', '.') }}</span>
                     </div>
-                    @php $allowanceComps = $viewingItem->components->where('type', 'allowance'); @endphp
+                    @php $allowanceComps = $viewingItem->components->whereIn('type', ['allowance', 'earning']); @endphp
                     @forelse($allowanceComps as $comp)
                         <div class="flex justify-between items-center py-1 border-b border-zinc-100 dark:border-zinc-800/50">
                             <span class="text-zinc-600 dark:text-zinc-400">{{ $comp->name }}</span>

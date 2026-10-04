@@ -25,6 +25,7 @@ class ScheduleSeeder extends Seeder
             ['code' => 'PAGI'],
             [
                 'name' => 'Shift Pagi',
+                'type' => 'shift',
                 'start_time' => '07:00:00',
                 'end_time' => '14:00:00',
                 'is_overnight' => false,
@@ -37,6 +38,7 @@ class ScheduleSeeder extends Seeder
             ['code' => 'SIANG'],
             [
                 'name' => 'Shift Siang',
+                'type' => 'shift',
                 'start_time' => '14:00:00',
                 'end_time' => '21:00:00',
                 'is_overnight' => false,
@@ -49,6 +51,7 @@ class ScheduleSeeder extends Seeder
             ['code' => 'MALAM'],
             [
                 'name' => 'Shift Malam',
+                'type' => 'shift',
                 'start_time' => '21:00:00',
                 'end_time' => '07:00:00',
                 'is_overnight' => true,
@@ -61,6 +64,7 @@ class ScheduleSeeder extends Seeder
             ['code' => 'NON-SHIFT'],
             [
                 'name' => 'Jam Kerja Reguler (Non-Shift)',
+                'type' => 'non_shift',
                 'start_time' => '08:00:00',
                 'end_time' => '16:30:00',
                 'is_overnight' => false,

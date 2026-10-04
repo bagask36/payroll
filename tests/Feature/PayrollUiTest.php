@@ -246,4 +246,38 @@ class PayrollUiTest extends TestCase
         $response = $this->get(route('payroll.payslips.print', $item->id));
         $response->assertStatus(403);
     }
+
+    public function test_payroll_officer_can_calculate_thr_run(): void
+    {
+        $payrollUser = User::factory()->create();
+        $payrollUser->assignRole('payroll');
+
+        $period = PayrollPeriod::create([
+            'name' => 'Off-Cycle THR 2026',
+            'start_date' => '2026-04-01',
+            'end_date' => '2026-04-10',
+            'cutoff_date' => '2026-04-10',
+            'is_closed' => false,
+        ]);
+
+        $this->actingAs($payrollUser);
+
+        Livewire::test(PayrollIndex::class)
+            ->call('openThrModal')
+            ->assertSet('showThrModal', true)
+            ->set('selectedThrPeriodId', $period->id)
+            ->set('thrHolidayName', 'THR Idul Fitri 1447 H')
+            ->set('thrCutoffDate', '2026-04-10')
+            ->set('thrTargetReligion', 'all')
+            ->set('thrIncludePositional', true)
+            ->call('calculateThr')
+            ->assertSet('showThrModal', false)
+            ->assertHasNoErrors();
+
+        $thrRun = PayrollRun::where('payroll_period_id', $period->id)->where('type', 'thr')->firstOrFail();
+        $this->assertEquals('calculated', $thrRun->status);
+        $this->assertTrue($thrRun->isThr());
+        $this->assertEquals('THR Idul Fitri 1447 H', $thrRun->metadata['holiday_name']);
+        $this->assertGreaterThan(0, $thrRun->items()->count());
+    }
 }
