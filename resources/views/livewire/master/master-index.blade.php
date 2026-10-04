@@ -51,29 +51,29 @@
     @endif
 
     {{-- Navigation Tabs --}}
-    <div class="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-2 overflow-x-auto">
-        <flux:button size="sm" :variant="$activeTab === 'units' ? 'primary' : 'subtle'" wire:click="setTab('units')">
+    <div class="flex items-center gap-1.5 sm:gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-2 overflow-x-auto no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 py-0.5">
+        <flux:button size="sm" :variant="$activeTab === 'units' ? 'primary' : 'subtle'" wire:click="setTab('units')" class="shrink-0 whitespace-nowrap cursor-pointer">
             Unit & Ruangan
         </flux:button>
-        <flux:button size="sm" :variant="$activeTab === 'positions' ? 'primary' : 'subtle'" wire:click="setTab('positions')">
+        <flux:button size="sm" :variant="$activeTab === 'positions' ? 'primary' : 'subtle'" wire:click="setTab('positions')" class="shrink-0 whitespace-nowrap cursor-pointer">
             Standar Jabatan
         </flux:button>
-        <flux:button size="sm" :variant="$activeTab === 'shifts' ? 'primary' : 'subtle'" wire:click="setTab('shifts')">
+        <flux:button size="sm" :variant="$activeTab === 'shifts' ? 'primary' : 'subtle'" wire:click="setTab('shifts')" class="shrink-0 whitespace-nowrap cursor-pointer">
             Shift & Jam Dinas
         </flux:button>
-        <flux:button size="sm" :variant="$activeTab === 'leave_types' ? 'primary' : 'subtle'" wire:click="setTab('leave_types')">
+        <flux:button size="sm" :variant="$activeTab === 'leave_types' ? 'primary' : 'subtle'" wire:click="setTab('leave_types')" class="shrink-0 whitespace-nowrap cursor-pointer">
             Kebijakan Cuti
         </flux:button>
-        <flux:button size="sm" :variant="$activeTab === 'geofences' ? 'primary' : 'subtle'" wire:click="setTab('geofences')">
+        <flux:button size="sm" :variant="$activeTab === 'geofences' ? 'primary' : 'subtle'" wire:click="setTab('geofences')" class="shrink-0 whitespace-nowrap cursor-pointer">
             Titik Geofence
         </flux:button>
-        <flux:button size="sm" :variant="$activeTab === 'payroll_periods' ? 'primary' : 'subtle'" wire:click="setTab('payroll_periods')">
+        <flux:button size="sm" :variant="$activeTab === 'payroll_periods' ? 'primary' : 'subtle'" wire:click="setTab('payroll_periods')" class="shrink-0 whitespace-nowrap cursor-pointer">
             Kalender Payroll
         </flux:button>
-        <flux:button size="sm" :variant="$activeTab === 'bpjs_rules' ? 'primary' : 'subtle'" wire:click="setTab('bpjs_rules')">
+        <flux:button size="sm" :variant="$activeTab === 'bpjs_rules' ? 'primary' : 'subtle'" wire:click="setTab('bpjs_rules')" class="shrink-0 whitespace-nowrap cursor-pointer">
             Regulasi Tarif BPJS
         </flux:button>
-        <flux:button size="sm" :variant="$activeTab === 'warning_letter_types' ? 'primary' : 'subtle'" wire:click="setTab('warning_letter_types')">
+        <flux:button size="sm" :variant="$activeTab === 'warning_letter_types' ? 'primary' : 'subtle'" wire:click="setTab('warning_letter_types')" class="shrink-0 whitespace-nowrap cursor-pointer">
             Tingkat &amp; Jenis SP
         </flux:button>
     </div>

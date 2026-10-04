@@ -773,7 +773,7 @@
                             x-ref="commandInput"
                             x-model="query" 
                             type="text" 
-                            placeholder="Ketik nama menu, modul, atau halaman... (contoh: presensi, cuti, dokter)" 
+                            placeholder="Ketik nama menu, modul, atau halaman..." 
                             class="w-full bg-transparent text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-hidden dark:text-zinc-100 font-medium"
                         />
                         <button 

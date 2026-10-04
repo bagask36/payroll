@@ -84,69 +84,140 @@
         </div>
     </flux:card>
 
-    {{-- Tabs Navigation --}}
-    <div class="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-2">
-        <flux:button 
-            size="sm" 
-            :variant="$activeTab === 'bio' ? 'primary' : 'subtle'" 
-            wire:click="setTab('bio')"
-        >
-            Biodata & Identitas
-        </flux:button>
+    {{-- Tabs Navigation (Adaptive Mobile Slider) --}}
+    <div 
+        x-data="{
+            canScrollLeft: false,
+            canScrollRight: false,
+            checkScroll() {
+                const el = this.$refs.tabSlider;
+                if (!el) return;
+                this.canScrollLeft = el.scrollLeft > 8;
+                this.canScrollRight = el.scrollLeft < (el.scrollWidth - el.clientWidth - 8);
+            },
+            scrollToActive() {
+                const active = this.$refs.tabSlider?.querySelector('[data-active=true]');
+                if (active) {
+                    active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+                }
+                this.checkScroll();
+            }
+        }"
+        x-init="
+            $nextTick(() => { scrollToActive(); checkScroll(); });
+            if (window.Livewire) {
+                Livewire.hook('commit', ({ succeed }) => {
+                    succeed(() => {
+                        $nextTick(() => { scrollToActive(); checkScroll(); });
+                    });
+                });
+            }
+        "
+        class="relative border-b border-zinc-200 dark:border-zinc-800 pb-2"
+    >
+        <!-- Mobile Left Scroll Hint Fade -->
+        <div 
+            x-show="canScrollLeft" 
+            x-transition.opacity
+            class="pointer-events-none absolute left-0 top-0 bottom-2 w-8 bg-gradient-to-r from-zinc-50 dark:from-zinc-900 to-transparent z-10 sm:hidden"
+            style="display: none;"
+        ></div>
 
-        <flux:button 
-            size="sm" 
-            :variant="$activeTab === 'employment' ? 'primary' : 'subtle'" 
-            wire:click="setTab('employment')"
-        >
-            Riwayat Penugasan
-        </flux:button>
+        <!-- Mobile Right Scroll Hint Fade -->
+        <div 
+            x-show="canScrollRight" 
+            x-transition.opacity
+            class="pointer-events-none absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-zinc-50 dark:from-zinc-900 to-transparent z-10 sm:hidden"
+            style="display: none;"
+        ></div>
 
-        <flux:button 
-            size="sm" 
-            :variant="$activeTab === 'salary' ? 'primary' : 'subtle'" 
-            wire:click="setTab('salary')"
+        <div 
+            x-ref="tabSlider"
+            @scroll.passive="checkScroll()"
+            class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 py-0.5"
         >
-            Kompensasi & Gaji
-        </flux:button>
+            <flux:button 
+                size="sm" 
+                icon="identification"
+                :variant="$activeTab === 'bio' ? 'primary' : 'subtle'" 
+                wire:click="setTab('bio')"
+                data-active="{{ $activeTab === 'bio' ? 'true' : 'false' }}"
+                class="shrink-0 whitespace-nowrap cursor-pointer"
+            >
+                Biodata & Identitas
+            </flux:button>
 
-        <flux:button 
-            size="sm" 
-            :variant="$activeTab === 'bank' ? 'primary' : 'subtle'" 
-            wire:click="setTab('bank')"
-        >
-            Rekening Payroll
-        </flux:button>
+            <flux:button 
+                size="sm" 
+                icon="briefcase"
+                :variant="$activeTab === 'employment' ? 'primary' : 'subtle'" 
+                wire:click="setTab('employment')"
+                data-active="{{ $activeTab === 'employment' ? 'true' : 'false' }}"
+                class="shrink-0 whitespace-nowrap cursor-pointer"
+            >
+                Riwayat Penugasan
+            </flux:button>
 
-        <flux:button 
-            size="sm" 
-            :variant="$activeTab === 'documents' ? 'primary' : 'subtle'" 
-            wire:click="setTab('documents')"
-        >
-            Berkas & Kepatuhan
-        </flux:button>
+            <flux:button 
+                size="sm" 
+                icon="banknotes"
+                :variant="$activeTab === 'salary' ? 'primary' : 'subtle'" 
+                wire:click="setTab('salary')"
+                data-active="{{ $activeTab === 'salary' ? 'true' : 'false' }}"
+                class="shrink-0 whitespace-nowrap cursor-pointer"
+            >
+                Kompensasi & Gaji
+            </flux:button>
 
-        <flux:button 
-            size="sm" 
-            :variant="$activeTab === 'biometrics' ? 'primary' : 'subtle'" 
-            wire:click="setTab('biometrics')"
-        >
-            Biometrik Wajah
-        </flux:button>
+            <flux:button 
+                size="sm" 
+                icon="credit-card"
+                :variant="$activeTab === 'bank' ? 'primary' : 'subtle'" 
+                wire:click="setTab('bank')"
+                data-active="{{ $activeTab === 'bank' ? 'true' : 'false' }}"
+                class="shrink-0 whitespace-nowrap cursor-pointer"
+            >
+                Rekening Payroll
+            </flux:button>
 
-        <flux:button 
-            size="sm" 
-            :variant="$activeTab === 'disciplinary' ? 'primary' : 'subtle'" 
-            wire:click="setTab('disciplinary')"
-            class="relative inline-flex items-center gap-1.5"
-        >
-            <span>Sanksi &amp; SP</span>
-            @if($hasActiveSp)
-                <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white animate-pulse">
-                    Aktif
-                </span>
-            @endif
-        </flux:button>
+            <flux:button 
+                size="sm" 
+                icon="document-text"
+                :variant="$activeTab === 'documents' ? 'primary' : 'subtle'" 
+                wire:click="setTab('documents')"
+                data-active="{{ $activeTab === 'documents' ? 'true' : 'false' }}"
+                class="shrink-0 whitespace-nowrap cursor-pointer"
+            >
+                Berkas & Kepatuhan
+            </flux:button>
+
+            <flux:button 
+                size="sm" 
+                icon="viewfinder-circle"
+                :variant="$activeTab === 'biometrics' ? 'primary' : 'subtle'" 
+                wire:click="setTab('biometrics')"
+                data-active="{{ $activeTab === 'biometrics' ? 'true' : 'false' }}"
+                class="shrink-0 whitespace-nowrap cursor-pointer"
+            >
+                Biometrik Wajah
+            </flux:button>
+
+            <flux:button 
+                size="sm" 
+                icon="shield-exclamation"
+                :variant="$activeTab === 'disciplinary' ? 'primary' : 'subtle'" 
+                wire:click="setTab('disciplinary')"
+                data-active="{{ $activeTab === 'disciplinary' ? 'true' : 'false' }}"
+                class="relative inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
+            >
+                <span>Sanksi &amp; SP</span>
+                @if($hasActiveSp)
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white animate-pulse">
+                        Aktif
+                    </span>
+                @endif
+            </flux:button>
+        </div>
     </div>
 
     {{-- Tab 1: Biodata & PII --}}

@@ -30,6 +30,7 @@ class Employee extends Model
         'ktp_number',
         'full_name',
         'gender',
+        'education_level',
         'birth_place',
         'birth_date',
         'marital_status',

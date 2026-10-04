@@ -28,6 +28,7 @@ class EmployeeFactory extends Factory
             'ktp_number' => fake()->numerify('3201##############'),
             'full_name' => fake()->name(),
             'gender' => fake()->randomElement(['male', 'female']),
+            'education_level' => fake()->randomElement(['SMA/SMK', 'D3', 'S1', 'S2', 'Profesi']),
             'birth_place' => fake()->city(),
             'birth_date' => fake()->dateTimeBetween('-50 years', '-20 years')->format('Y-m-d'),
             'marital_status' => fake()->randomElement(['single', 'married', 'divorced']),

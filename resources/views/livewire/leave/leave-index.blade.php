@@ -40,11 +40,12 @@
     @endif
 
     {{-- Tabs Navigation --}}
-    <div class="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-2 overflow-x-auto">
+    <div class="flex items-center gap-1.5 sm:gap-2 border-b border-zinc-200 dark:border-zinc-800 pb-2 overflow-x-auto no-scrollbar scroll-smooth -mx-4 px-4 sm:mx-0 sm:px-0 py-0.5">
         <flux:button 
             size="sm" 
             :variant="$activeTab === 'my_requests' ? 'primary' : 'subtle'" 
             wire:click="setTab('my_requests')"
+            class="shrink-0 whitespace-nowrap cursor-pointer"
         >
             Pengajuan Saya
         </flux:button>
@@ -54,6 +55,7 @@
                 size="sm" 
                 :variant="$activeTab === 'tier1_approvals' ? 'primary' : 'subtle'" 
                 wire:click="setTab('tier1_approvals')"
+                class="shrink-0 whitespace-nowrap cursor-pointer"
             >
                 Persetujuan Supervisor (Tier 1)
                 @if($tier1Queue->isNotEmpty())
@@ -67,6 +69,7 @@
                 size="sm" 
                 :variant="$activeTab === 'tier2_approvals' ? 'primary' : 'subtle'" 
                 wire:click="setTab('tier2_approvals')"
+                class="shrink-0 whitespace-nowrap cursor-pointer"
             >
                 Persetujuan Final SDM (Tier 2)
                 @if($tier2Queue->isNotEmpty())

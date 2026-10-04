@@ -65,6 +65,8 @@ class EmployeeShow extends Component
 
     public int $bioTaxDependents = 0;
 
+    public ?string $bioEducationLevel = 'S1';
+
     public string $bioScheduleType = 'non_shift';
 
     public ?string $bioNpwp = null;

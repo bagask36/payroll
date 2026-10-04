@@ -78,6 +78,15 @@ html {
     background: rgba(113, 113, 122, 0.7);
 }
 
+/* Utility to hide scrollbars while preserving native touch and mouse scrolling */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
 /* ==========================================================================
    2. GLOBAL UNIFIED PAGE LAYOUT ARCHITECTURE
    ========================================================================== */
