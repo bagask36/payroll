@@ -93,7 +93,7 @@ final class AuditLogTable extends PowerGridComponent
                 ->searchable()
                 ->sortable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

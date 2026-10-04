@@ -88,11 +88,11 @@ class EarningComponentIndex extends Component
             'code' => strtoupper(trim($this->code)),
             'name' => trim($this->name),
             'type' => 'allowance',
-            'is_taxable' => $this->isTaxable,
-            'is_fixed' => $this->isFixed,
+            'is_taxable' => filter_var($this->isTaxable, FILTER_VALIDATE_BOOLEAN),
+            'is_fixed' => filter_var($this->isFixed, FILTER_VALIDATE_BOOLEAN),
             'default_amount' => $this->defaultAmount,
             'description' => $this->description ? trim($this->description) : null,
-            'is_active' => $this->isActive,
+            'is_active' => filter_var($this->isActive, FILTER_VALIDATE_BOOLEAN),
         ];
 
         if ($this->editingId) {

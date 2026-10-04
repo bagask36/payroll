@@ -150,7 +150,7 @@ final class EmployeeTable extends PowerGridComponent
             Column::make('Status', 'status_badge', 'employees.status')
                 ->sortable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

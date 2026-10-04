@@ -113,7 +113,7 @@ final class PayrollItemTable extends PowerGridComponent
 
             Column::make('Rekening Bank', 'bank_info'),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

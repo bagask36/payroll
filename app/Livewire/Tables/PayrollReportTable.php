@@ -95,7 +95,7 @@ final class PayrollReportTable extends PowerGridComponent
             Column::make('Take Home Pay', 'net_pay_formatted', 'payroll_runs.total_net_pay')
                 ->sortable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

@@ -117,7 +117,7 @@ final class AttendanceTable extends PowerGridComponent
             Column::make('Status', 'status_badge', 'status')
                 ->sortable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

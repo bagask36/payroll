@@ -64,7 +64,7 @@ final class GeofenceTable extends PowerGridComponent
             Column::make('Status', 'status_badge', 'geofence_locations.is_active')
                 ->sortable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

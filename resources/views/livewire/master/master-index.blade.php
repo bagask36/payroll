@@ -99,7 +99,7 @@
                     <flux:table.column>Nama Ruangan / Unit Kerja</flux:table.column>
                     <flux:table.column>Departemen Induk</flux:table.column>
                     <flux:table.column>Status</flux:table.column>
-                    <flux:table.column align="end">Aksi</flux:table.column>
+                    <flux:table.column align="end">Opsi</flux:table.column>
                 </flux:table.columns>
 
                 <flux:table.rows>
@@ -151,7 +151,7 @@
                     <flux:table.column>Nama Jabatan</flux:table.column>
                     <flux:table.column>Unit Penempatan</flux:table.column>
                     <flux:table.column>Tingkat / Grade Golongan</flux:table.column>
-                    <flux:table.column align="end">Aksi</flux:table.column>
+                    <flux:table.column align="end">Opsi</flux:table.column>
                 </flux:table.columns>
 
                 <flux:table.rows>
@@ -201,7 +201,7 @@
                     <flux:table.column>Karakteristik</flux:table.column>
                     <flux:table.column>Toleransi Terlambat</flux:table.column>
                     <flux:table.column>Status</flux:table.column>
-                    <flux:table.column align="end">Aksi</flux:table.column>
+                    <flux:table.column align="end">Opsi</flux:table.column>
                 </flux:table.columns>
 
                 <flux:table.rows>
@@ -270,7 +270,7 @@
                     <flux:table.column>Aturan Potong Cuti</flux:table.column>
                     <flux:table.column>Wajib Lampiran</flux:table.column>
                     <flux:table.column>Status</flux:table.column>
-                    <flux:table.column align="end">Aksi</flux:table.column>
+                    <flux:table.column align="end">Opsi</flux:table.column>
                 </flux:table.columns>
 
                 <flux:table.rows>
@@ -360,7 +360,7 @@
                         <flux:table.column>Koordinat GPS (Latitude, Longitude)</flux:table.column>
                         <flux:table.column>Radius Geofence</flux:table.column>
                         <flux:table.column>Status</flux:table.column>
-                        <flux:table.column align="end">Aksi</flux:table.column>
+                        <flux:table.column align="end">Opsi</flux:table.column>
                     </flux:table.columns>
 
                     <flux:table.rows>
@@ -414,7 +414,7 @@
                     <flux:table.column>Rentang Tanggal</flux:table.column>
                     <flux:table.column>Tanggal Cut-Off Presensi</flux:table.column>
                     <flux:table.column>Status Buku</flux:table.column>
-                    <flux:table.column align="end">Aksi</flux:table.column>
+                    <flux:table.column align="end">Opsi</flux:table.column>
                 </flux:table.columns>
 
                 <flux:table.rows>
@@ -470,7 +470,7 @@
                     <flux:table.column align="end">Tarif Rumah Sakit (%)</flux:table.column>
                     <flux:table.column align="end">Plafon Upah Maksimal</flux:table.column>
                     <flux:table.column>Status</flux:table.column>
-                    <flux:table.column align="end">Aksi</flux:table.column>
+                    <flux:table.column align="end">Opsi</flux:table.column>
                 </flux:table.columns>
 
                 <flux:table.rows>
@@ -526,7 +526,7 @@
                     <flux:table.column>Masa Berlaku Default</flux:table.column>
                     <flux:table.column>Deskripsi / Konsekuensi</flux:table.column>
                     <flux:table.column align="center">Status</flux:table.column>
-                    <flux:table.column align="end">Aksi</flux:table.column>
+                    <flux:table.column align="end">Opsi</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
                     @forelse($warningLetterTypes as $wlt)

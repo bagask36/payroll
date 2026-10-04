@@ -95,7 +95,7 @@ final class LeaveRequestTable extends PowerGridComponent
             Column::make('Status', 'status_badge', 'leave_requests.status')
                 ->sortable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

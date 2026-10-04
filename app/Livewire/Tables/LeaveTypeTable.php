@@ -84,8 +84,8 @@ final class LeaveTypeTable extends PowerGridComponent
             Column::make('Status', 'status_badge', 'leave_types.is_active')
                 ->sortable(),
 
-            Column::action('Aksi'),
-        ];
+            Column::action('Opsi'),
+        ];  
     }
 
     public function actions(LeaveType $row): array

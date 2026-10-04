@@ -145,7 +145,7 @@ final class DoctorTable extends PowerGridComponent
             Column::make('Kontak', 'phone_number', 'doctors.phone_number')
                 ->searchable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

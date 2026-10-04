@@ -182,6 +182,22 @@ class SidebarAndModulesTest extends TestCase
         $this->assertDatabaseHas('salary_components', [
             'code' => 'TUNJ_INSENTIF_KHUSUS',
             'type' => 'allowance',
+            'is_fixed' => true,
+        ]);
+
+        Livewire::actingAs($this->adminUser)
+            ->test(\App\Livewire\Master\EarningComponentIndex::class)
+            ->set('code', 'TUNJ_MAKAN_HARIAN')
+            ->set('name', 'Tunjangan Uang Makan Harian')
+            ->set('defaultAmount', 45000)
+            ->set('isFixed', false)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('salary_components', [
+            'code' => 'TUNJ_MAKAN_HARIAN',
+            'type' => 'allowance',
+            'is_fixed' => false,
         ]);
     }
 

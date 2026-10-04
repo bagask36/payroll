@@ -66,7 +66,7 @@
                         <th class="px-4 py-3.5 font-semibold">Masa Berlaku Default</th>
                         <th class="px-4 py-3.5 font-semibold">Deskripsi / Konsekuensi</th>
                         <th class="px-4 py-3.5 font-semibold text-center">Status</th>
-                        <th class="px-4 py-3.5 font-semibold text-right">Aksi</th>
+                        <th class="px-4 py-3.5 font-semibold text-right">Opsi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800 text-zinc-800 dark:text-zinc-200">

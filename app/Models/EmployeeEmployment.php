@@ -22,6 +22,7 @@ class EmployeeEmployment extends Model
         'position_id',
         'contract_type',
         'contract_number',
+        'schedule_type',
         'start_date',
         'end_date',
         'is_active',

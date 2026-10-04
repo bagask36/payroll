@@ -24,6 +24,13 @@ class SalaryComponent extends Model
     ];
 
     /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'is_fixed' => true,
+    ];
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

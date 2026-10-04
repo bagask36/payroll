@@ -91,7 +91,7 @@ final class DoctorReportTable extends PowerGridComponent
             Column::make('Status', 'status_badge', 'doctors.status')
                 ->sortable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

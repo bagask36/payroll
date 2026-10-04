@@ -142,6 +142,8 @@ class EmployeeShow extends Component
 
     public string $employmentContractType = 'permanent';
 
+    public string $employmentScheduleType = 'non_shift';
+
     public string $employmentContractNumber = '';
 
     public string $employmentStartDate = '';
@@ -329,6 +331,7 @@ class EmployeeShow extends Component
         $this->employmentUnitId = $this->employee->unit_id;
         $this->employmentPositionId = $this->employee->position_id;
         $this->employmentContractType = $latestEmployment?->contract_type ?? 'permanent';
+        $this->employmentScheduleType = $this->employee->schedule_type ?? 'non_shift';
         $this->employmentContractNumber = 'SK/RSJ/'.Carbon::now()->format('Ym').'/'.str_pad((string) $this->employee->id, 4, '0', STR_PAD_LEFT);
         $this->employmentStartDate = Carbon::today()->toDateString();
         $this->employmentEndDate = null;
@@ -372,6 +375,7 @@ class EmployeeShow extends Component
         $this->employmentUnitId = $rec->unit_id;
         $this->employmentPositionId = $rec->position_id;
         $this->employmentContractType = $rec->contract_type;
+        $this->employmentScheduleType = $rec->schedule_type ?? ($rec->is_active ? ($this->employee->schedule_type ?? 'non_shift') : 'non_shift');
         $this->employmentContractNumber = $rec->contract_number;
         $this->employmentStartDate = $rec->start_date?->toDateString() ?? '';
         $this->employmentEndDate = $rec->end_date?->toDateString();
@@ -420,6 +424,7 @@ class EmployeeShow extends Component
             'employmentUnitId' => ['required', 'exists:units,id'],
             'employmentPositionId' => ['required', 'exists:positions,id'],
             'employmentContractType' => ['required', 'in:permanent,contract,probation,internship'],
+            'employmentScheduleType' => ['required', 'in:non_shift,shift'],
             'employmentContractNumber' => ['required', 'string', 'max:100'],
             'employmentStartDate' => ['required', 'date'],
             'employmentEndDate' => ['nullable', 'date', 'after_or_equal:employmentStartDate'],
@@ -436,6 +441,7 @@ class EmployeeShow extends Component
             'employmentUnitId.required' => 'Unit penempatan wajib dipilih.',
             'employmentPositionId.required' => 'Jabatan wajib dipilih.',
             'employmentContractType.required' => 'Jenis ikatan kerja wajib dipilih.',
+            'employmentScheduleType.required' => 'Pola jam kerja wajib dipilih.',
             'employmentContractNumber.required' => 'Nomor SK / Kontrak wajib diisi.',
             'employmentStartDate.required' => 'Tanggal mulai tugas wajib diisi.',
             'employmentEndDate.after_or_equal' => 'Tanggal akhir kontrak harus sama atau setelah tanggal mulai.',
@@ -476,6 +482,7 @@ class EmployeeShow extends Component
                 'unit_id' => $empRec->unit_id,
                 'position_id' => $empRec->position_id,
                 'contract_type' => $empRec->contract_type,
+                'schedule_type' => $empRec->schedule_type ?? 'non_shift',
                 'contract_number' => $empRec->contract_number,
                 'start_date' => $empRec->start_date?->toDateString(),
                 'end_date' => $empRec->end_date?->toDateString(),
@@ -486,6 +493,7 @@ class EmployeeShow extends Component
                     'unit_id' => $this->employmentUnitId,
                     'position_id' => $this->employmentPositionId,
                     'contract_type' => $this->employmentContractType,
+                    'schedule_type' => $this->employmentScheduleType,
                     'contract_number' => $this->employmentContractNumber,
                     'start_date' => $this->employmentStartDate,
                     'end_date' => $this->employmentEndDate ?: null,
@@ -498,6 +506,7 @@ class EmployeeShow extends Component
                     $this->employee->update([
                         'unit_id' => $this->employmentUnitId,
                         'position_id' => $this->employmentPositionId,
+                        'schedule_type' => $this->employmentScheduleType,
                     ]);
                 }
 
@@ -513,6 +522,8 @@ class EmployeeShow extends Component
                 newValues: [
                     'unit_id' => $this->employmentUnitId,
                     'position_id' => $this->employmentPositionId,
+                    'contract_type' => $this->employmentContractType,
+                    'schedule_type' => $this->employmentScheduleType,
                     'contract_number' => $this->employmentContractNumber,
                     'start_date' => $this->employmentStartDate,
                     'has_document' => (bool) $uploadedDocId,
@@ -525,6 +536,7 @@ class EmployeeShow extends Component
             $oldUnitId = $this->employee->unit_id;
             $oldPositionId = $this->employee->position_id;
             $oldContractType = $this->employee->currentEmployment?->contract_type;
+            $oldScheduleType = $this->employee->schedule_type ?? 'non_shift';
 
             DB::transaction(function () use ($uploadedDocId, $canUpdateSalary) {
                 $startDate = Carbon::parse($this->employmentStartDate);
@@ -544,6 +556,7 @@ class EmployeeShow extends Component
                     'unit_id' => $this->employmentUnitId,
                     'position_id' => $this->employmentPositionId,
                     'contract_type' => $this->employmentContractType,
+                    'schedule_type' => $this->employmentScheduleType,
                     'contract_number' => $this->employmentContractNumber,
                     'start_date' => $this->employmentStartDate,
                     'end_date' => $this->employmentEndDate ?: null,
@@ -552,10 +565,11 @@ class EmployeeShow extends Component
                     'is_active' => true,
                 ]);
 
-                // Otomatis mutasikan / perbarui unit & jabatan aktif di profil pegawai
+                // Otomatis mutasikan / perbarui unit, jabatan, dan pola jam kerja aktif di profil pegawai
                 $this->employee->update([
                     'unit_id' => $this->employmentUnitId,
                     'position_id' => $this->employmentPositionId,
+                    'schedule_type' => $this->employmentScheduleType,
                 ]);
 
                 // Sinkronkan remunerasi standar jika opsi aktif dan user berwenang
@@ -571,11 +585,13 @@ class EmployeeShow extends Component
                     'unit_id' => $oldUnitId,
                     'position_id' => $oldPositionId,
                     'contract_type' => $oldContractType,
+                    'schedule_type' => $oldScheduleType,
                 ],
                 newValues: [
                     'unit_id' => $this->employmentUnitId,
                     'position_id' => $this->employmentPositionId,
                     'contract_type' => $this->employmentContractType,
+                    'schedule_type' => $this->employmentScheduleType,
                     'contract_number' => $this->employmentContractNumber,
                     'start_date' => $this->employmentStartDate,
                     'notes' => $this->employmentNotes,

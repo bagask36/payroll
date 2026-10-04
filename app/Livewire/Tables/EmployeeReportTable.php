@@ -115,7 +115,7 @@ final class EmployeeReportTable extends PowerGridComponent
 
             Column::make('Kedisiplinan', 'disciplinary_badge'),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

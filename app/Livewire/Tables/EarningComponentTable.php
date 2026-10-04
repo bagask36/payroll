@@ -45,8 +45,8 @@ final class EarningComponentTable extends PowerGridComponent
             })
             ->add('nature_badge', function (SalaryComponent $c) {
                 $fixedBadge = $c->is_fixed
-                    ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800">Tetap</span>'
-                    : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 text-zinc-700 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700">Variabel/Harian</span>';
+                    ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800">Rutin (Tetap)</span>'
+                    : '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800">Variabel (Kehadiran)</span>';
 
                 $taxBadge = $c->is_taxable
                     ? '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800">Kena PPh 21</span>'
@@ -56,7 +56,9 @@ final class EarningComponentTable extends PowerGridComponent
             })
             ->add('amount_display', function (SalaryComponent $c) {
                 if ($c->default_amount && $c->default_amount > 0) {
-                    return '<span class="font-mono text-xs font-semibold text-zinc-800 dark:text-zinc-200">Rp '.number_format((float) $c->default_amount, 0, ',', '.').'</span>';
+                    $suffix = $c->is_fixed ? '/bln' : '/hari';
+
+                    return '<span class="font-mono text-xs font-semibold text-zinc-800 dark:text-zinc-200">Rp '.number_format((float) $c->default_amount, 0, ',', '.').' <span class="text-[10px] text-zinc-400 font-normal">'.$suffix.'</span></span>';
                 }
 
                 return '<span class="text-zinc-400 text-xs italic">Kustom / Rumus</span>';
@@ -89,7 +91,7 @@ final class EarningComponentTable extends PowerGridComponent
             Column::make('Status', 'status_badge', 'salary_components.is_active')
                 ->sortable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

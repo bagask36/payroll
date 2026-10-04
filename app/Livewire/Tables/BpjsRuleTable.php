@@ -75,7 +75,7 @@ final class BpjsRuleTable extends PowerGridComponent
             Column::make('Status', 'status_badge', 'is_active')
                 ->sortable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

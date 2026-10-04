@@ -135,7 +135,7 @@ final class DocumentTable extends PowerGridComponent
             Column::make('Tanggal Unggah', 'created_at_formatted', 'documents.created_at')
                 ->sortable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

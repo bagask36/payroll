@@ -296,7 +296,7 @@
                                 <th class="px-4 py-3">Akhir Kontrak</th>
                                 <th class="px-4 py-3">Status</th>
                                 <th class="px-4 py-3">Berkas SK</th>
-                                <th class="px-4 py-3 text-right">Aksi</th>
+                                <th class="px-4 py-3 text-right">Opsi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -504,10 +504,11 @@
                     @php
                         $allowances = $assignedComponents->filter(fn($c) => $c->component?->type === 'allowance');
                         $deductions = $assignedComponents->filter(fn($c) => $c->component?->type === 'deduction');
-                        $totalAllowances = $allowances->where('is_active', true)->sum('amount');
+                        $routineAllowances = $allowances->where('is_active', true)->filter(fn($c) => $c->component?->is_fixed)->sum('amount');
+                        $variableAllowancesCount = $allowances->where('is_active', true)->filter(fn($c) => ! $c->component?->is_fixed)->count();
                         $totalDeductions = $deductions->where('is_active', true)->sum('amount');
                         $currentBase = (float) ($latestSalary?->basic_salary ?? 0);
-                        $estGross = $currentBase + $totalAllowances;
+                        $estGross = $currentBase + $routineAllowances;
                         $estTakeHome = $estGross - $totalDeductions;
                     @endphp
 
@@ -518,15 +519,18 @@
                             <p class="text-sm font-bold font-mono text-zinc-800 dark:text-zinc-200 mt-0.5">Rp {{ number_format($currentBase, 0, ',', '.') }}</p>
                         </div>
                         <div>
-                            <span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">+ Total Tunjangan Rutin</span>
-                            <p class="text-sm font-bold font-mono text-emerald-700 dark:text-emerald-300 mt-0.5">Rp {{ number_format($totalAllowances, 0, ',', '.') }}</p>
+                            <span class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">+ Tunjangan Rutin</span>
+                            <p class="text-sm font-bold font-mono text-emerald-700 dark:text-emerald-300 mt-0.5">Rp {{ number_format($routineAllowances, 0, ',', '.') }}</p>
+                            @if($variableAllowancesCount > 0)
+                                <span class="text-[10px] text-zinc-400 font-sans">+ {{ $variableAllowancesCount }} tunjangan variabel kehadiran</span>
+                            @endif
                         </div>
                         <div>
                             <span class="text-xs text-rose-600 dark:text-rose-400 font-medium">- Total Potongan Rutin</span>
                             <p class="text-sm font-bold font-mono text-rose-700 dark:text-rose-300 mt-0.5">Rp {{ number_format($totalDeductions, 0, ',', '.') }}</p>
                         </div>
                         <div>
-                            <span class="text-xs text-zinc-500 font-medium">Estimasi Penghasilan Kotor</span>
+                            <span class="text-xs text-zinc-500 font-medium">Estimasi Gaji Kotor (Rutin)</span>
                             <p class="text-sm font-bold font-mono text-zinc-900 dark:text-zinc-100 mt-0.5">Rp {{ number_format($estGross, 0, ',', '.') }}</p>
                         </div>
                     </div>
@@ -535,9 +539,9 @@
                     <div class="space-y-2 mt-4">
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
-                                1. Daftar Tunjangan Rutin (Allowances)
+                                1. Daftar Tunjangan Pegawai (Rutin & Variabel)
                             </span>
-                            <span class="text-xs text-zinc-400">Total: Rp {{ number_format($totalAllowances, 0, ',', '.') }}</span>
+                            <span class="text-xs text-zinc-400">Rutin: Rp {{ number_format($routineAllowances, 0, ',', '.') }}</span>
                         </div>
 
                         <div class="overflow-x-auto rounded-lg border border-zinc-200 dark:border-zinc-700">
@@ -545,12 +549,13 @@
                                 <thead class="bg-zinc-50 dark:bg-zinc-800/60 text-zinc-500 dark:text-zinc-400 border-b border-zinc-200 dark:border-zinc-700">
                                     <tr>
                                         <th class="py-2.5 px-3">Komponen</th>
-                                        <th class="py-2.5 px-3">Nominal / Bulan</th>
+                                        <th class="py-2.5 px-3">Tipe</th>
+                                        <th class="py-2.5 px-3">Nominal / Tarif</th>
                                         <th class="py-2.5 px-3">Masa Berlaku</th>
                                         <th class="py-2.5 px-3">Keterangan</th>
                                         <th class="py-2.5 px-3">Status</th>
                                         @if($canUpdateSalary)
-                                            <th class="py-2.5 px-3 text-right">Aksi</th>
+                                            <th class="py-2.5 px-3 text-right">Opsi</th>
                                         @endif
                                     </tr>
                                 </thead>
@@ -561,8 +566,16 @@
                                                 {{ $item->component?->name ?? 'Komponen' }}
                                                 <span class="block text-[11px] font-mono text-zinc-400">{{ $item->component?->code }}</span>
                                             </td>
+                                            <td class="py-2.5 px-3">
+                                                @if($item->component?->is_fixed)
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800">Rutin</span>
+                                                @else
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800">Variabel</span>
+                                                @endif
+                                            </td>
                                             <td class="py-2.5 px-3 font-mono font-bold text-emerald-700 dark:text-emerald-400">
                                                 Rp {{ number_format((float)$item->amount, 0, ',', '.') }}
+                                                <span class="text-[10px] font-normal text-zinc-400">{{ $item->component?->is_fixed ? '/bln' : '/hari' }}</span>
                                             </td>
                                             <td class="py-2.5 px-3 text-zinc-600 dark:text-zinc-300">
                                                 {{ $item->effective_from?->format('d/m/Y') }}
@@ -622,7 +635,7 @@
                                         <th class="py-2.5 px-3">Keterangan</th>
                                         <th class="py-2.5 px-3">Status</th>
                                         @if($canUpdateSalary)
-                                            <th class="py-2.5 px-3 text-right">Aksi</th>
+                                            <th class="py-2.5 px-3 text-right">Opsi</th>
                                         @endif
                                     </tr>
                                 </thead>
@@ -1120,7 +1133,7 @@
                                 <th class="px-4 py-3.5 font-semibold text-center">Berkas</th>
                                 <th class="px-4 py-3.5 font-semibold text-center">Status</th>
                                 @if($canManageDisciplinary)
-                                    <th class="px-4 py-3.5 font-semibold text-right">Aksi</th>
+                                    <th class="px-4 py-3.5 font-semibold text-right">Opsi</th>
                                 @endif
                             </tr>
                         </thead>
@@ -1632,12 +1645,15 @@
             </flux:subheading>
         </div>
 
+        @php
+            $currentComp = $availableComponents->firstWhere('id', (int) $selectedComponentId);
+        @endphp
         <form wire:submit.prevent="saveComponent" class="space-y-4">
             <flux:select label="Pilih Komponen Gaji" wire:model.live="selectedComponentId" placeholder="-- Pilih Komponen --" required>
                 <option value="">-- Pilih Komponen --</option>
                 <optgroup label="Tunjangan (Allowances)">
                     @foreach($availableComponents->where('type', 'allowance') as $ac)
-                        <option value="{{ $ac->id }}">[{{ $ac->code }}] {{ $ac->name }} (Default: Rp {{ number_format((float)$ac->default_amount, 0, ',', '.') }})</option>
+                        <option value="{{ $ac->id }}">[{{ $ac->code }}] {{ $ac->name }} ({{ $ac->is_fixed ? 'Rutin /bln' : 'Variabel /hari' }} - Rp {{ number_format((float)$ac->default_amount, 0, ',', '.') }})</option>
                     @endforeach
                 </optgroup>
                 <optgroup label="Potongan (Deductions)">
@@ -1648,12 +1664,12 @@
             </flux:select>
 
             <flux:input 
-                label="Nominal Komponen Bulanan (Rp)" 
+                :label="($currentComp && ! $currentComp->is_fixed) ? 'Tarif per Hari Hadir (Rp) — Dikalikan Kehadiran Saat Payroll' : 'Nominal Komponen Bulanan (Rp)'" 
                 type="number" 
                 step="0.01" 
                 min="0" 
                 wire:model="componentAmount" 
-                placeholder="misal: 500000" 
+                placeholder="misal: 50000" 
                 required 
             />
 

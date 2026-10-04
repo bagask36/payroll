@@ -99,7 +99,7 @@ final class MyPayslipTable extends PowerGridComponent
 
             Column::make('Status', 'status_badge'),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

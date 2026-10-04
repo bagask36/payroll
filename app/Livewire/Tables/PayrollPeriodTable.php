@@ -68,7 +68,7 @@ final class PayrollPeriodTable extends PowerGridComponent
             Column::make('Status', 'status_badge', 'payroll_periods.is_closed')
                 ->sortable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

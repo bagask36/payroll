@@ -181,7 +181,7 @@ final class Pph21ReportTable extends PowerGridComponent
             Column::make('Status', 'status_badge', 'payroll_runs.status')
                 ->sortable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

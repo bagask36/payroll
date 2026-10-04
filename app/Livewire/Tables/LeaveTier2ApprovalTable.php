@@ -103,7 +103,7 @@ final class LeaveTier2ApprovalTable extends PowerGridComponent
             Column::make('Alasan Cuti', 'reason', 'leave_requests.reason')
                 ->searchable(),
 
-            Column::action('Aksi Final'),
+            Column::action('Opsi Final'),
         ];
     }
 

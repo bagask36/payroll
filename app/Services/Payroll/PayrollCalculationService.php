@@ -2,6 +2,7 @@
 
 namespace App\Services\Payroll;
 
+use App\Models\Attendance;
 use App\Models\BpjsRule;
 use App\Models\Employee;
 use App\Models\PayrollItem;
@@ -66,6 +67,20 @@ class PayrollCalculationService
             $deductions = 0.0;
             $componentBreakdowns = [];
 
+            // Calculate attendance days for the employee in this payroll period (up to cutoff date)
+            $period = $run->period;
+            $startDate = $period?->start_date;
+            $cutoffDate = $period?->cutoff_date ?? $period?->end_date ?? $run->run_date;
+
+            $presentDays = 0;
+            if ($startDate && $cutoffDate) {
+                $presentDays = Attendance::where('employee_id', $employee->id)
+                    ->whereBetween('date', [$startDate, $cutoffDate])
+                    ->whereIn('status', ['present', 'late'])
+                    ->distinct('date')
+                    ->count('date');
+            }
+
             // Fetch employee's active assigned components
             $activeComponents = $employee->activeSalaryComponents()->with('component')->get();
             foreach ($activeComponents as $assignedComp) {
@@ -76,14 +91,24 @@ class PayrollCalculationService
 
                 $amt = (float) $assignedComp->amount;
                 if ($compModel->type === 'allowance' || $compModel->type === 'earning') {
-                    $allowances += $amt;
+                    if ($compModel->is_fixed) {
+                        // Rutin (Tetap): Diterima penuh bulanan
+                        $finalAmt = $amt;
+                        $compName = $compModel->name;
+                    } else {
+                        // Variabel: Dihitung per hari kehadiran valid (present/late)
+                        $finalAmt = $amt * $presentDays;
+                        $compName = "{$compModel->name} ({$presentDays} hari × Rp " . number_format($amt, 0, ',', '.') . ')';
+                    }
+
+                    $allowances += $finalAmt;
                     if ($compModel->is_taxable) {
-                        $taxableAllowances += $amt;
+                        $taxableAllowances += $finalAmt;
                     }
                     $componentBreakdowns[] = [
-                        'name' => $compModel->name,
+                        'name' => $compName,
                         'type' => 'allowance',
-                        'amount' => $amt,
+                        'amount' => $finalAmt,
                     ];
                 } elseif ($compModel->type === 'deduction') {
                     $deductions += $amt;

@@ -85,7 +85,7 @@ final class DeductionComponentTable extends PowerGridComponent
             Column::make('Status', 'status_badge', 'salary_components.is_active')
                 ->sortable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 

@@ -92,7 +92,7 @@ final class PositionTable extends PowerGridComponent
             Column::make('Std. Tunj. Jabatan', 'default_positional_allowance_formatted', 'positions.default_positional_allowance')
                 ->sortable(),
 
-            Column::action('Aksi'),
+            Column::action('Opsi'),
         ];
     }
 
