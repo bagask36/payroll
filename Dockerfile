@@ -22,8 +22,8 @@ COPY database/ ./database/
 COPY routes/ ./routes/
 COPY artisan ./
 
-# Generate optimized autoloader
-RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
+# Generate optimized autoloader without executing scripts
+RUN composer dump-autoload --optimize --no-dev --classmap-authoritative --no-scripts
 
 # ==============================================================================
 # Stage 2: Build Frontend Assets (Vite + Tailwind CSS v4)
@@ -95,8 +95,14 @@ COPY --from=composer-builder /app/vendor /var/www/html/vendor
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Setup directory permissions for Laravel
-RUN mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache \
+# Setup directory permissions for Laravel and run package discovery
+RUN mkdir -p /var/www/html/storage/framework/cache/data \
+             /var/www/html/storage/framework/sessions \
+             /var/www/html/storage/framework/views \
+             /var/www/html/storage/logs \
+             /var/www/html/storage/app/public \
+             /var/www/html/bootstrap/cache \
+    && php artisan package:discover --ansi \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
