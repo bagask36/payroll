@@ -1,33 +1,22 @@
-<div class="space-y-6">
+<div class="app-page-container">
     {{-- Header --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-            <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                Master Data: Shift Kerja &amp; Jam Dinas
-            </flux:heading>
-            <flux:subheading class="mt-1 text-zinc-500 dark:text-zinc-400">
-                Konfigurasi jadwal rotasi shift pagi, siang, malam, dan toleransi keterlambatan presensi.
-            </flux:subheading>
-        </div>
-
-        <div class="flex items-center gap-2">
+    <x-page-header 
+        title="Master Data: Shift Kerja &amp; Jam Dinas" 
+        subtitle="Konfigurasi jadwal rotasi shift pagi, siang, malam, dan toleransi keterlambatan presensi."
+    >
+        <x-slot:actions>
             <flux:button variant="primary" icon="plus" wire:click="openCreateShift">
                 Tambah Shift Baru
             </flux:button>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
-    @if($feedbackMessage)
-        <div class="p-4 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 flex items-center gap-3">
-            <flux:icon name="check-circle" class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span class="text-sm font-medium">{{ $feedbackMessage }}</span>
-        </div>
-    @endif
+    <x-flash-message :message="$feedbackMessage" />
 
     {{-- PowerGrid Datatable --}}
-    <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800">
+    <x-table-card>
         <livewire:tables.shift-table />
-    </flux:card>
+    </x-table-card>
 
     {{-- MODAL SHIFT --}}
     <flux:modal wire:model="showShiftModal" class="w-full max-w-2xl space-y-4">

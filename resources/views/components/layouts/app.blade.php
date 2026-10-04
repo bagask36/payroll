@@ -319,53 +319,216 @@
         </flux:sidebar>
 
         {{-- Top App Header --}}
-        <flux:header sticky class="border-b border-zinc-200 bg-white/95 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/95 pt-safe">
-            <flux:sidebar.toggle class="me-3 lg:hidden" icon="bars-2" inset="left" />
+        <flux:header sticky class="border-b border-zinc-200/80 bg-white/95 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/95 pt-safe h-16 px-3 sm:px-6">
+            <flux:sidebar.toggle class="me-2.5 lg:hidden" icon="bars-2" inset="left" />
 
-            <a href="{{ route('dashboard') }}" class="flex items-center gap-2 lg:hidden me-3">
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-2 lg:hidden me-2.5">
                 <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="SIM SDM RS Juwita" class="h-7 w-auto max-w-[110px] object-contain" />
             </a>
 
-            <flux:breadcrumbs class="max-sm:hidden">
-                <flux:breadcrumbs.item href="{{ route('dashboard') }}">SIM SDM RS Juwita</flux:breadcrumbs.item>
-                @if(isset($title))
-                    <flux:breadcrumbs.item>{{ $title }}</flux:breadcrumbs.item>
+            {{-- Left: Breadcrumbs & Hospital Live Status Pill --}}
+            <div class="flex items-center gap-3">
+                <flux:breadcrumbs class="max-sm:hidden">
+                    <flux:breadcrumbs.item href="{{ route('dashboard') }}" class="font-semibold text-zinc-900 dark:text-zinc-100">
+                        SIM SDM
+                    </flux:breadcrumbs.item>
+                    @if(isset($title))
+                        <flux:breadcrumbs.item>{{ $title }}</flux:breadcrumbs.item>
+                    @endif
+                </flux:breadcrumbs>
+
+                <div class="hidden 2xl:flex items-center gap-1.5 px-2.5 py-0.8 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                    <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>RS Juwita • 24 Jam</span>
+                </div>
+            </div>
+
+            {{-- Center: Desktop Primary Quick Navigation Bar (Prominent & Noticeable) --}}
+            <nav class="hidden lg:flex items-center gap-1 mx-auto px-2 py-1 rounded-xl bg-zinc-100/80 dark:bg-zinc-800/60 border border-zinc-200/60 dark:border-zinc-700/50">
+                {{-- 1. Dashboard --}}
+                <a 
+                    href="{{ route('dashboard') }}" 
+                    class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('dashboard') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
+                >
+                    <flux:icon name="home" class="size-3.5 {{ request()->routeIs('dashboard') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
+                    <span>Dashboard</span>
+                </a>
+
+                {{-- 2. Presensi --}}
+                @if(auth()->user()?->can('attendance.view_summary') || auth()->user()?->can('attendance.check_in_out') || auth()->user()?->can('attendance.view_own') || auth()->user()?->can('attendance.view_all'))
+                    <a 
+                        href="{{ route('attendance.index') }}" 
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('attendance.*') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
+                    >
+                        <flux:icon name="clock" class="size-3.5 {{ request()->routeIs('attendance.*') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
+                        <span>Presensi</span>
+                    </a>
                 @endif
-            </flux:breadcrumbs>
+
+                {{-- 3. Jadwal & Shift --}}
+                @can('schedule.view')
+                    <a 
+                        href="{{ route('schedules.index') }}" 
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('schedules.*') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
+                    >
+                        <flux:icon name="calendar" class="size-3.5 {{ request()->routeIs('schedules.*') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
+                        <span>Jadwal</span>
+                    </a>
+                @endcan
+
+                {{-- 4. Cuti & Izin --}}
+                @if(auth()->user()?->can('leave.view_own') || auth()->user()?->can('leave.create_own') || auth()->user()?->can('leave.view_all'))
+                    <a 
+                        href="{{ route('leaves.index') }}" 
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('leaves.*') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
+                    >
+                        <flux:icon name="document-text" class="size-3.5 {{ request()->routeIs('leaves.*') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
+                        <span>Cuti &amp; Izin</span>
+                    </a>
+                @endif
+
+                {{-- 5. Slip Gaji / Payroll --}}
+                @if(auth()->user()?->employee)
+                    <a 
+                        href="{{ route('payroll.my-payslips') }}" 
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('payroll.my-payslips') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
+                    >
+                        <flux:icon name="receipt-percent" class="size-3.5 {{ request()->routeIs('payroll.my-payslips') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
+                        <span>Slip Gaji</span>
+                    </a>
+                @elseif(auth()->user()?->can('payroll.view_all'))
+                    <a 
+                        href="{{ route('payroll.index') }}" 
+                        class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('payroll.*') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
+                    >
+                        <flux:icon name="banknotes" class="size-3.5 {{ request()->routeIs('payroll.*') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
+                        <span>Payroll</span>
+                    </a>
+                @endif
+
+                {{-- 6. Pegawai (Admin / HR) --}}
+                @if(auth()->user()?->can('employee.view'))
+                    <a 
+                        href="{{ route('employees.index') }}" 
+                        class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('employees.*') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
+                    >
+                        <flux:icon name="users" class="size-3.5 {{ request()->routeIs('employees.*') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
+                        <span>Pegawai</span>
+                    </a>
+                @endif
+
+                {{-- 7. Dokter (Admin / HR / Medis) --}}
+                @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('hr_manager') || auth()->user()?->can('doctor.manage_credentials'))
+                    <a 
+                        href="{{ route('doctors.index') }}" 
+                        class="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all {{ request()->routeIs('doctors.*') ? 'bg-white dark:bg-zinc-700 text-emerald-700 dark:text-emerald-300 font-semibold shadow-xs border border-zinc-200/80 dark:border-zinc-600' : 'text-zinc-600 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-white hover:bg-white/60 dark:hover:bg-zinc-700/50' }}"
+                    >
+                        <flux:icon name="user-group" class="size-3.5 {{ request()->routeIs('doctors.*') ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-400' }}" />
+                        <span>Dokter</span>
+                    </a>
+                @endif
+            </nav>
 
             <flux:spacer />
 
-            <flux:button
-                x-data
-                x-on:click="$flux.dark = ! $flux.dark"
-                variant="subtle"
-                size="sm"
-                icon="moon"
-                class="me-2"
-                aria-label="Ganti mode gelap"
-            />
+            {{-- Right: Command Search Pill, Dark Mode, Notifications, User Capsule --}}
+            <div class="flex items-center gap-2">
+                {{-- Quick Command / Search Pill (Instant Keyboard ⌘K Navigation) --}}
+                <button 
+                    type="button" 
+                    x-data 
+                    x-on:click="$dispatch('open-command-palette')" 
+                    class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-zinc-200/90 bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 text-xs text-zinc-500 dark:text-zinc-400 transition-all cursor-pointer shadow-2xs group"
+                    title="Buka Pencarian Cepat Modul (⌘K)"
+                >
+                    <flux:icon name="magnifying-glass" class="size-3.5 text-zinc-400 group-hover:text-emerald-600 transition-colors" />
+                    <span class="font-normal">Cari menu...</span>
+                    <kbd class="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-white dark:bg-zinc-700 border border-zinc-200 dark:border-zinc-600 rounded text-zinc-400 dark:text-zinc-300">⌘K</kbd>
+                </button>
 
-            <flux:dropdown position="bottom" align="end" class="max-md:hidden">
-                <flux:profile 
-                    name="{{ auth()->user()?->name ?? 'User' }}" 
-                    initials="{{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 2)) }}"
-                    class="cursor-pointer"
+                {{-- Notification / Pending Leave Quick Shortcut --}}
+                @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('supervisor') || auth()->user()?->hasRole('hr_manager'))
+                    <a 
+                        href="{{ route('leaves.index') }}" 
+                        title="Daftar Pengajuan Cuti &amp; Izin" 
+                        class="relative flex items-center justify-center size-8.5 rounded-xl border border-zinc-200/80 bg-zinc-50/80 hover:bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-300 transition-colors"
+                    >
+                        <flux:icon name="bell" class="size-4" />
+                        <span class="absolute top-1.5 right-1.5 size-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900"></span>
+                    </a>
+                @endif
+
+                {{-- Dark Mode Toggle --}}
+                <flux:button
+                    x-data
+                    x-on:click="$flux.dark = ! $flux.dark"
+                    variant="subtle"
+                    size="sm"
+                    icon="moon"
+                    class="size-8.5 rounded-xl!"
+                    aria-label="Ganti mode gelap"
                 />
 
-                <flux:menu class="w-56">
-                    <div class="px-3 py-2 border-b border-zinc-100 dark:border-zinc-800">
-                        <p class="text-xs text-zinc-400 font-medium">Masuk sebagai:</p>
-                        <p class="text-sm font-semibold truncate">{{ auth()->user()?->email }}</p>
-                    </div>
+                {{-- Executive User Profile Capsule --}}
+                <flux:dropdown position="bottom" align="end" class="max-md:hidden">
+                    <button type="button" class="flex items-center gap-2.5 p-1 pe-2.5 rounded-xl border border-zinc-200/80 bg-zinc-50/60 hover:bg-zinc-100 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-800/40 dark:hover:bg-zinc-800 transition-all cursor-pointer shadow-2xs">
+                        <div class="size-7.5 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                            {{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 2)) }}
+                        </div>
+                        <div class="text-left hidden lg:block leading-tight max-w-[130px]">
+                            <div class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                                {{ auth()->user()?->name ?? 'User' }}
+                            </div>
+                            <div class="text-[10px] text-zinc-400 truncate capitalize font-medium">
+                                {{ auth()->user()?->roles->first()?->name ? str_replace('_', ' ', auth()->user()->roles->first()->name) : 'Pengguna' }}
+                            </div>
+                        </div>
+                        <flux:icon name="chevron-down" class="size-3 text-zinc-400" />
+                    </button>
 
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full text-red-600 dark:text-red-400">
-                            Keluar (Logout)
+                    <flux:menu class="w-60">
+                        <div class="px-3.5 py-2.5 border-b border-zinc-100 dark:border-zinc-800">
+                            <p class="text-xs text-zinc-400 font-medium">Masuk sebagai:</p>
+                            <p class="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate">{{ auth()->user()?->name }}</p>
+                            <p class="text-xs text-zinc-500 dark:text-zinc-400 truncate font-mono mt-0.5">{{ auth()->user()?->email }}</p>
+                            @if(auth()->user()?->roles->isNotEmpty())
+                                <div class="mt-2 flex flex-wrap gap-1">
+                                    @foreach(auth()->user()->roles as $r)
+                                        <flux:badge size="xs" color="emerald" class="capitalize">
+                                            {{ str_replace('_', ' ', $r->name) }}
+                                        </flux:badge>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+
+                        <flux:menu.item href="{{ route('dashboard') }}" icon="home">
+                            Dashboard
                         </flux:menu.item>
-                    </form>
-                </flux:menu>
-            </flux:dropdown>
+
+                        @if(auth()->user()?->employee)
+                            <flux:menu.item href="{{ route('payroll.my-payslips') }}" icon="receipt-percent">
+                                Slip Gaji Saya
+                            </flux:menu.item>
+                        @endif
+
+                        @can('leave.view_own')
+                            <flux:menu.item href="{{ route('leaves.index') }}" icon="document-text">
+                                Riwayat Cuti
+                            </flux:menu.item>
+                        @endcan
+
+                        <flux:menu.separator />
+
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full text-red-600 dark:text-red-400">
+                                Keluar (Logout)
+                            </flux:menu.item>
+                        </form>
+                    </flux:menu>
+                </flux:dropdown>
+            </div>
         </flux:header>
 
         {{-- Main Content (full width with mobile bottom clearance) --}}
@@ -525,6 +688,212 @@
                 >
                     <flux:icon name="x-mark" class="size-4" />
                 </button>
+            </div>
+        </div>
+
+        {{-- Desktop & Global Command Palette (⌘K) for Instant Navigation --}}
+        @php
+            $cmdCanMaster = auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('payroll') || auth()->user()?->hasPermission('system.config_view');
+            $cmdCanEmp = auth()->user()?->can('employee.view');
+            $cmdCanDoc = auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('hr_manager') || auth()->user()?->can('doctor.manage_credentials');
+            $cmdCanOrg = auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('hr_manager') || auth()->user()?->can('org.create') || auth()->user()?->can('org.update');
+            $cmdCanPayroll = auth()->user()?->can('payroll.view_all');
+            $cmdCanDocs = auth()->user()?->can('document.view_own') || auth()->user()?->can('document.view_all');
+            $cmdCanReports = $canSeeReports ?? false;
+            $cmdCanAudit = auth()->user()?->can('system.audit_view');
+            $cmdCanSettings = auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasPermission('system.config_view');
+        @endphp
+
+        <div 
+            x-data="{
+                open: false,
+                query: '',
+                items: [
+                    { name: 'Dashboard', category: 'Navigasi', url: '{{ route('dashboard') }}', keywords: 'beranda home dashboard ringkasan' },
+                    @if(auth()->user()?->can('attendance.view_summary') || auth()->user()?->can('attendance.check_in_out') || auth()->user()?->can('attendance.view_own') || auth()->user()?->can('attendance.view_all'))
+                        { name: 'Presensi & Kehadiran', category: 'Waktu', url: '{{ route('attendance.index') }}', keywords: 'presensi absen check-in check-out kehadiran clock in' },
+                    @endif
+                    @can('schedule.view')
+                        { name: 'Jadwal & Shift Roster', category: 'Waktu', url: '{{ route('schedules.index') }}', keywords: 'jadwal shift roster kalender dinas kerja' },
+                    @endcan
+                    @if(auth()->user()?->can('leave.view_own') || auth()->user()?->can('leave.create_own') || auth()->user()?->can('leave.view_all'))
+                        { name: 'Pengajuan Cuti & Izin', category: 'Waktu', url: '{{ route('leaves.index') }}', keywords: 'cuti izin permohonan sakit cuti tahunan approval' },
+                    @endif
+                    @if(auth()->user()?->employee)
+                        { name: 'Slip Gaji', category: 'Keuangan', url: '{{ route('payroll.my-payslips') }}', keywords: 'slip gaji take home pay transfer gaji penghasilan' },
+                    @endif
+                    @if($cmdCanPayroll)
+                        { name: 'Penggajian (Payroll)', category: 'Keuangan', url: '{{ route('payroll.index') }}', keywords: 'payroll gaji perhitungan run salary kompensasi' },
+                    @endif
+                    @if($cmdCanEmp)
+                        { name: 'Pegawai & Staf', category: 'SDM', url: '{{ route('employees.index') }}', keywords: 'pegawai staf karyawan sdm direktori nik nip' },
+                    @endif
+                    @if($cmdCanDoc)
+                        { name: 'Tenaga Medis & Dokter', category: 'SDM', url: '{{ route('doctors.index') }}', keywords: 'dokter spesialis str sip kredensial medis tarif' },
+                    @endif
+                    @if($cmdCanOrg)
+                        { name: 'Struktur Organisasi', category: 'SDM', url: '{{ route('org.structure') }}', keywords: 'organisasi departemen hierarki direksi bagan' },
+                    @endif
+                    @if($cmdCanDocs)
+                        { name: 'Arsip Dokumen', category: 'Dokumen', url: '{{ route('documents.index') }}', keywords: 'dokumen berkas ktp kk ijazah str sip kontrak spk' },
+                    @endif
+                    @if($cmdCanReports)
+                        @if($canSeeEmployeeReport)
+                            { name: 'Laporan Kepegawaian', category: 'Laporan', url: '{{ route('reports.employees') }}', keywords: 'laporan pegawai staf demografi' },
+                        @endif
+                        @if($canSeeAttendanceReport)
+                            { name: 'Laporan Kehadiran', category: 'Laporan', url: '{{ route('reports.attendance') }}', keywords: 'laporan presensi kehadiran terlambat' },
+                        @endif
+                        @if($canSeeLeaveReport)
+                            { name: 'Laporan Cuti & Izin', category: 'Laporan', url: '{{ route('reports.leaves') }}', keywords: 'laporan cuti saldo cuti izin' },
+                        @endif
+                        @if($canSeePayrollReport)
+                            { name: 'Laporan Payroll', category: 'Laporan', url: '{{ route('reports.payroll') }}', keywords: 'laporan penggajian rekapitulasi gaji' },
+                        @endif
+                        @if($canSeePph21Report)
+                            { name: 'Laporan PPh 21', category: 'Laporan', url: '{{ route('reports.pph21') }}', keywords: 'pajak pph21 ter bukti potong' },
+                        @endif
+                        @if($canSeeDoctorReport)
+                            { name: 'Laporan Dokter', category: 'Laporan', url: '{{ route('reports.doctors') }}', keywords: 'laporan dokter str sip' },
+                        @endif
+                    @endif
+                    @if($cmdCanMaster)
+                        @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin'))
+                            { name: 'Unit Kerja', category: 'Master', url: '{{ route('master.units') }}', keywords: 'unit kerja instalasi ruangan bagian' },
+                            { name: 'Standar Jabatan', category: 'Master', url: '{{ route('master.positions') }}', keywords: 'jabatan posisi grade level' },
+                        @endif
+                        @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->can('schedule.manage_shifts'))
+                            { name: 'Shift Kerja', category: 'Master', url: '{{ route('master.shifts') }}', keywords: 'shift pagi sore malam' },
+                        @endif
+                        @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->can('leave.manage_policy'))
+                            { name: 'Jenis Cuti', category: 'Master', url: '{{ route('master.leave-types') }}', keywords: 'jenis cuti kuota tahunan' },
+                        @endif
+                        @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('hr_manager'))
+                            { name: 'Tingkat & Jenis SP', category: 'Master', url: '{{ route('master.warning-letter-types') }}', keywords: 'surat peringatan sp 1 2 3 sanksi disiplin' },
+                        @endif
+                        @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->can('system.config_view'))
+                            { name: 'Titik Geofence', category: 'Master', url: '{{ route('master.geofences') }}', keywords: 'geofence radius gps koordinat' },
+                        @endif
+                        @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('payroll') || auth()->user()?->can('payroll.calculate'))
+                            { name: 'Periode Payroll', category: 'Master', url: '{{ route('master.payroll-periods') }}', keywords: 'periode payroll cutoff' },
+                        @endif
+                        @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('payroll'))
+                            { name: 'Komponen Penghasilan', category: 'Master', url: '{{ route('master.earnings') }}', keywords: 'gaji pokok tunjangan penghasilan' },
+                            { name: 'Komponen Potongan', category: 'Master', url: '{{ route('master.deductions') }}', keywords: 'potongan kas bon pph21 bpjs' },
+                        @endif
+                        @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('payroll') || auth()->user()?->can('statutory.view'))
+                            { name: 'Regulasi BPJS', category: 'Master', url: '{{ route('master.bpjs') }}', keywords: 'bpjs kesehatan ketenagakerjaan' },
+                            { name: 'Parameter PPh 21', category: 'Master', url: '{{ route('master.pph21') }}', keywords: 'pph 21 ptkp tarif ter' },
+                        @endif
+                    @endif
+                    @if($cmdCanAudit)
+                        { name: 'Audit Trail', category: 'Sistem', url: '{{ route('audit-logs.index') }}', keywords: 'audit log rekaman jejak user' },
+                    @endif
+                    @if($cmdCanSettings)
+                        { name: 'Pengaturan Sistem', category: 'Sistem', url: '{{ route('system.settings') }}', keywords: 'pengaturan konfigurasi aplikasi' },
+                    @endif
+                ],
+                get filteredItems() {
+                    if (!this.query.trim()) return this.items;
+                    const q = this.query.toLowerCase().trim();
+                    return this.items.filter(item => 
+                        item.name.toLowerCase().includes(q) || 
+                        item.category.toLowerCase().includes(q) || 
+                        item.keywords.toLowerCase().includes(q)
+                    );
+                }
+            }"
+            x-on:open-command-palette.window="open = true; $nextTick(() => $refs.commandInput.focus())"
+            x-on:keydown.window.prevent.cmd.k="open = true; $nextTick(() => $refs.commandInput.focus())"
+            x-on:keydown.window.prevent.ctrl.k="open = true; $nextTick(() => $refs.commandInput.focus())"
+            x-show="open"
+            x-cloak
+            class="fixed inset-0 z-50 overflow-y-auto p-4 sm:p-6 md:p-20"
+            role="dialog"
+            aria-modal="true"
+        >
+            {{-- Backdrop --}}
+            <div 
+                x-show="open" 
+                x-transition:enter="ease-out duration-200" 
+                x-transition:enter-start="opacity-0" 
+                x-transition:enter-end="opacity-100" 
+                x-transition:leave="ease-in duration-150" 
+                x-transition:leave-start="opacity-100" 
+                x-transition:leave-end="opacity-0" 
+                x-on:click="open = false" 
+                class="fixed inset-0 bg-zinc-900/60 backdrop-blur-sm transition-opacity"
+            ></div>
+
+            {{-- Modal Panel --}}
+            <div 
+                x-show="open" 
+                x-transition:enter="ease-out duration-200" 
+                x-transition:enter-start="opacity-0 scale-95" 
+                x-transition:enter-end="opacity-100 scale-100" 
+                x-transition:leave="ease-in duration-150" 
+                x-transition:leave-start="opacity-100 scale-100" 
+                x-transition:leave-end="opacity-0 scale-95" 
+                x-on:keydown.escape.window="open = false" 
+                class="relative mx-auto max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800"
+            >
+                {{-- Search Header --}}
+                <div class="relative border-b border-zinc-200 dark:border-zinc-800 px-4 py-3">
+                    <div class="flex items-center gap-3">
+                        <flux:icon name="magnifying-glass" class="size-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <input 
+                            x-ref="commandInput"
+                            x-model="query" 
+                            type="text" 
+                            placeholder="Ketik nama menu, modul, atau halaman... (contoh: presensi, cuti, dokter)" 
+                            class="w-full bg-transparent text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-hidden dark:text-zinc-100 font-medium"
+                        />
+                        <button 
+                            type="button" 
+                            x-on:click="open = false" 
+                            class="rounded-lg p-1 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 cursor-pointer"
+                        >
+                            <kbd class="px-1.5 py-0.5 text-[10px] font-mono border border-zinc-200 dark:border-zinc-700 rounded bg-zinc-50 dark:bg-zinc-800">ESC</kbd>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Results List --}}
+                <div class="max-h-80 overflow-y-auto p-2">
+                    <template x-if="filteredItems.length > 0">
+                        <div class="space-y-1">
+                            <template x-for="(item, idx) in filteredItems" :key="idx">
+                                <a 
+                                    :href="item.url" 
+                                    class="group flex items-center justify-between rounded-xl px-3 py-2 text-xs transition-colors hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-zinc-800 dark:text-zinc-200 hover:text-emerald-900 dark:hover:text-emerald-300"
+                                >
+                                    <div class="flex items-center gap-3 min-w-0">
+                                        <div class="flex size-7 shrink-0 items-center justify-center rounded-lg bg-zinc-100 text-zinc-600 group-hover:bg-emerald-600 group-hover:text-white dark:bg-zinc-800 dark:text-zinc-400 transition-colors">
+                                            <flux:icon name="arrow-top-right-on-square" class="size-3.5" />
+                                        </div>
+                                        <span class="font-semibold text-sm truncate" x-text="item.name"></span>
+                                    </div>
+                                    <span 
+                                        class="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/60 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 shrink-0" 
+                                        x-text="item.category"
+                                    ></span>
+                                </a>
+                            </template>
+                        </div>
+                    </template>
+                    <template x-if="filteredItems.length === 0">
+                        <div class="py-10 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                            <flux:icon name="magnifying-glass" class="mx-auto size-8 text-zinc-300 dark:text-zinc-600 mb-2" />
+                            <p>Tidak ada modul yang cocok dengan "<span class="font-semibold text-zinc-700 dark:text-zinc-300" x-text="query"></span>"</p>
+                        </div>
+                    </template>
+                </div>
+
+                {{-- Footer Hints --}}
+                <div class="flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/60 px-4 py-2 text-[11px] text-zinc-400">
+                    <span>Tekan <kbd class="px-1.5 py-0.5 rounded font-mono border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">Enter</kbd> untuk membuka</span>
+                    <span>Pencarian Cepat SIM SDM RS Juwita</span>
+                </div>
             </div>
         </div>
 

@@ -716,33 +716,52 @@
     {{-- ========================================================================= --}}
     @else
         {{-- Management Hero Header --}}
-        <div class="relative overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            <div class="absolute -right-8 -top-8 size-48 rounded-full bg-gradient-to-br from-emerald-500/10 via-blue-500/5 to-transparent blur-2xl dark:from-emerald-500/20"></div>
-            <div class="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div class="flex items-start gap-4">
-                    <div class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-500/20">
-                        <flux:icon name="building-office-2" class="size-7" />
+        <div class="relative overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-6 sm:p-7 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+            <div class="absolute -right-12 -top-12 size-64 rounded-full bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-transparent blur-3xl dark:from-emerald-500/25"></div>
+            <div class="absolute -left-12 -bottom-12 size-56 rounded-full bg-gradient-to-tr from-blue-500/10 via-indigo-500/5 to-transparent blur-2xl dark:from-blue-500/15"></div>
+
+            <div class="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex items-start gap-4 sm:gap-5">
+                    <div class="relative flex size-15 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-600/25">
+                        <flux:icon name="building-office-2" class="size-8" />
+                        <span class="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900">
+                            <span class="size-2 rounded-full bg-white animate-pulse"></span>
+                        </span>
                     </div>
                     <div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                                Dashboard Operasional & SDM
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <flux:heading size="xl" class="font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100 text-xl sm:text-2xl">
+                                Dashboard Operasional &amp; SDM
                             </flux:heading>
-                            <flux:badge size="sm" color="emerald">RS Juwita Executive</flux:badge>
+                            <flux:badge size="sm" color="emerald" class="shadow-2xs font-semibold">
+                                RS Juwita Executive
+                            </flux:badge>
                         </div>
                         <flux:subheading class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                            {{ $this->greeting }}, <span class="font-semibold text-zinc-800 dark:text-zinc-200">{{ auth()->user()?->name }}</span>. Pantau indikator kinerja rumah sakit terkini.
+                            {{ $this->greeting }}, <span class="font-bold text-zinc-800 dark:text-zinc-200">{{ auth()->user()?->name }}</span>. Pantau indikator kinerja rumah sakit terkini.
                         </flux:subheading>
                     </div>
                 </div>
 
+                {{-- Header Actions & Realtime Status --}}
                 <div class="flex flex-wrap items-center gap-3">
-                    <div class="flex items-center gap-2 rounded-xl border border-zinc-200/80 bg-zinc-50/80 px-3.5 py-2 text-xs font-medium text-zinc-600 dark:border-zinc-800 dark:bg-zinc-800/60 dark:text-zinc-300">
+                    {{-- Real-time Digital Clock & Date Capsule --}}
+                    <div 
+                        x-data="{ 
+                            time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) 
+                        }" 
+                        x-init="setInterval(() => time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }), 1000)"
+                        class="flex items-center gap-2.5 rounded-2xl border border-zinc-200/90 bg-zinc-50/90 px-4 py-2 text-xs text-zinc-700 dark:border-zinc-800 dark:bg-zinc-800/70 dark:text-zinc-300 shadow-2xs"
+                    >
                         <flux:icon name="calendar" class="size-4 text-emerald-600 dark:text-emerald-400" />
-                        <span class="font-mono">{{ now()->translatedFormat('l, d F Y') }}</span>
+                        <span class="font-medium">{{ now()->translatedFormat('l, d F Y') }}</span>
+                        <span class="text-zinc-300 dark:text-zinc-600">•</span>
+                        <span class="font-mono font-bold text-emerald-700 dark:text-emerald-400 tabular-nums" x-text="time"></span>
+                        <span class="text-[10px] uppercase font-semibold text-zinc-400">WIB</span>
                     </div>
 
-                    <flux:button wire:click="refreshData" variant="subtle" size="sm" class="cursor-pointer">
+                    {{-- Refresh Button --}}
+                    <flux:button wire:click="refreshData" variant="subtle" size="sm" class="rounded-xl! cursor-pointer border border-zinc-200/80 dark:border-zinc-800">
                         <span wire:loading.remove wire:target="refreshData" class="flex items-center gap-1.5">
                             <flux:icon name="arrow-path" class="size-4" />
                             <span>Segarkan</span>
@@ -754,27 +773,60 @@
                     </flux:button>
                 </div>
             </div>
+
+            {{-- Executive Quick Action Deck inside Hero --}}
+            <div class="mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider me-1">Pintasan Cepat:</span>
+                    <a href="{{ route('attendance.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/50 border border-emerald-200/70 dark:border-emerald-800/60 transition-colors">
+                        <flux:icon name="clock" class="size-3.5 text-emerald-600" />
+                        <span>Live Presensi</span>
+                    </a>
+                    <a href="{{ route('schedules.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:bg-blue-900/50 border border-blue-200/70 dark:border-blue-800/60 transition-colors">
+                        <flux:icon name="calendar" class="size-3.5 text-blue-600" />
+                        <span>Roster Shift</span>
+                    </a>
+                    <a href="{{ route('leaves.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-purple-50 text-purple-700 hover:bg-purple-100 dark:bg-purple-950/50 dark:text-purple-300 dark:hover:bg-purple-900/50 border border-purple-200/70 dark:border-purple-800/60 transition-colors">
+                        <flux:icon name="document-text" class="size-3.5 text-purple-600" />
+                        <span>Approval Cuti</span>
+                        @if($pendingLeavesCount > 0)
+                            <span class="ms-1 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-amber-500 text-white">
+                                {{ $pendingLeavesCount }}
+                            </span>
+                        @endif
+                    </a>
+                    <a href="{{ route('payroll.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-950/50 dark:text-amber-300 dark:hover:bg-amber-900/50 border border-amber-200/70 dark:border-amber-800/60 transition-colors">
+                        <flux:icon name="banknotes" class="size-3.5 text-amber-600" />
+                        <span>Manajemen Payroll</span>
+                    </a>
+                </div>
+
+                <div class="hidden sm:flex items-center gap-2 text-xs text-zinc-400 font-medium">
+                    <span class="size-2 rounded-full bg-emerald-500"></span>
+                    <span>Sistem SDM &amp; Presensi Geofence Aktif</span>
+                </div>
+            </div>
         </div>
 
         {{-- Doctor Credential Compliance Warning Alert --}}
         @if(!empty($doctorAlerts))
-            <div class="overflow-hidden rounded-2xl border border-amber-300 bg-amber-50/90 p-5 shadow-xs dark:border-amber-800 dark:bg-amber-950/40">
-                <div class="flex items-center justify-between gap-4">
-                    <div class="flex items-center gap-3 text-amber-900 dark:text-amber-200">
-                        <div class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-200 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300">
+            <div class="overflow-hidden rounded-3xl border border-amber-300/80 bg-gradient-to-r from-amber-50/90 via-orange-50/40 to-white p-5 sm:p-6 shadow-xs dark:border-amber-800/70 dark:from-amber-950/40 dark:via-zinc-900 dark:to-zinc-900">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div class="flex items-start gap-3.5 text-amber-900 dark:text-amber-200">
+                        <div class="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-amber-200/80 text-amber-800 dark:bg-amber-900/70 dark:text-amber-300 shadow-xs">
                             <flux:icon name="exclamation-triangle" class="size-5" />
                         </div>
                         <div>
-                            <div class="text-sm font-bold">
+                            <div class="text-sm font-bold tracking-tight">
                                 Peringatan Kepatuhan Izin Praktik Medis ({{ count($doctorAlerts) }} Dokter Perlu Perhatian)
                             </div>
-                            <div class="text-xs text-amber-700 dark:text-amber-300/80">
-                                STR atau SIP dokter berikut akan segera kedaluwarsa dalam kurun waktu 60 hari ke depan.
+                            <div class="text-xs text-amber-700 dark:text-amber-300/80 mt-0.5">
+                                Surat Tanda Registrasi (STR) atau Surat Izin Praktik (SIP) dokter berikut akan segera kedaluwarsa dalam 60 hari.
                             </div>
                         </div>
                     </div>
-                    <a href="{{ route('doctors.index') }}" class="hidden sm:inline-block">
-                        <flux:button size="xs" variant="outline" class="border-amber-300 text-amber-900 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-200">
+                    <a href="{{ route('doctors.index') }}" class="shrink-0">
+                        <flux:button size="sm" variant="outline" class="border-amber-300 text-amber-900 hover:bg-amber-100 dark:border-amber-700 dark:text-amber-200 rounded-xl!">
                             Kelola Dokter &rarr;
                         </flux:button>
                     </a>
@@ -782,19 +834,19 @@
 
                 <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                     @foreach(array_slice($doctorAlerts, 0, 6) as $doc)
-                        <div class="flex flex-col justify-between rounded-xl border border-amber-200/80 bg-white/90 p-3.5 shadow-2xs dark:border-amber-900/60 dark:bg-zinc-900/90">
+                        <div class="flex flex-col justify-between rounded-2xl border border-amber-200/80 bg-white/95 p-4 shadow-2xs dark:border-amber-900/60 dark:bg-zinc-900/90 transition-all hover:border-amber-300 hover:shadow-sm">
                             <div class="flex items-start gap-3">
-                                <div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-xs font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                                <div class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-amber-500 to-orange-400 text-xs font-extrabold text-white shadow-2xs">
                                     {{ strtoupper(substr($doc['name'] ?? 'Dr', 0, 2)) }}
                                 </div>
                                 <div class="min-w-0">
                                     <div class="truncate text-xs font-bold text-zinc-900 dark:text-zinc-100">{{ $doc['name'] }}</div>
-                                    <div class="truncate text-[11px] text-zinc-500 dark:text-zinc-400">{{ $doc['specialization'] ?? 'Dokter Umum' }}</div>
+                                    <div class="truncate text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">{{ $doc['specialization'] ?? 'Dokter Umum' }}</div>
                                 </div>
                             </div>
-                            <div class="mt-3 flex items-center justify-between border-t border-amber-100 pt-2 text-[11px] dark:border-zinc-800">
-                                <span class="font-mono text-zinc-600 dark:text-zinc-400">STR: {{ $doc['str_valid_until'] }}</span>
-                                <flux:badge size="xs" color="amber">Segera Berakhir</flux:badge>
+                            <div class="mt-3.5 flex items-center justify-between border-t border-amber-100/80 pt-2.5 text-[11px] dark:border-zinc-800">
+                                <span class="font-mono text-zinc-600 dark:text-zinc-400 font-medium">STR s/d: {{ $doc['str_valid_until'] }}</span>
+                                <flux:badge size="xs" color="amber" class="font-bold">Segera Berakhir</flux:badge>
                             </div>
                         </div>
                     @endforeach
@@ -804,97 +856,151 @@
 
         {{-- Staffing Distribution Metrics --}}
         <div>
-            <div class="mb-3 flex items-center justify-between">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Distribusi Ketenagaan Rumah Sakit</h3>
-                <a href="{{ route('employees.index') }}" class="text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400">
-                    Direktori Pegawai &rarr;
+            <div class="mb-3.5 flex items-center justify-between">
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Distribusi Ketenagaan Rumah Sakit</h3>
+                    <p class="text-[11px] text-zinc-400 mt-0.5">Ringkasan demografi staf medis dan non-medis aktif</p>
+                </div>
+                <a href="{{ route('employees.index') }}" class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400">
+                    <span>Direktori Pegawai</span>
+                    <span>&rarr;</span>
                 </a>
             </div>
+
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {{-- Total Karyawan Aktif --}}
-                <div class="group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-blue-500 to-indigo-500"></div>
-                    <div class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 shadow-xs dark:bg-blue-950/60 dark:text-blue-400">
-                        <flux:icon name="users" class="size-6" />
+                <div class="group relative flex items-center gap-4 overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-5 sm:p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-blue-500 to-indigo-500"></div>
+                    <div class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 shadow-xs dark:bg-blue-950/60 dark:text-blue-400">
+                        <flux:icon name="users" class="size-7" />
                     </div>
                     <div class="min-w-0">
-                        <div class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Karyawan Aktif</div>
-                        <div class="mt-1 font-mono text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Karyawan Aktif</span>
+                            <flux:badge size="xs" color="blue">Organik</flux:badge>
+                        </div>
+                        <div class="mt-1 font-mono text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
                             {{ number_format($staffing['total_active_employees'] ?? 0) }}
                         </div>
-                        <div class="text-[11px] text-zinc-400">Pegawai organik operasional</div>
+                        <div class="text-[11px] text-zinc-400 font-medium mt-0.5">Pegawai organik operasional</div>
                     </div>
                 </div>
 
                 {{-- Dokter & Spesialis Aktif --}}
-                <div class="group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-emerald-500 to-teal-500"></div>
-                    <div class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 shadow-xs dark:bg-emerald-950/60 dark:text-emerald-400">
-                        <flux:icon name="user-group" class="size-6" />
+                <div class="group relative flex items-center gap-4 overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-5 sm:p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-emerald-500 to-teal-500"></div>
+                    <div class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 shadow-xs dark:bg-emerald-950/60 dark:text-emerald-400">
+                        <flux:icon name="user-group" class="size-7" />
                     </div>
                     <div class="min-w-0">
-                        <div class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Dokter & Spesialis Aktif</div>
-                        <div class="mt-1 font-mono text-3xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Dokter &amp; Spesialis Aktif</span>
+                            <flux:badge size="xs" color="emerald">Medis</flux:badge>
+                        </div>
+                        <div class="mt-1 font-mono text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
                             {{ number_format($staffing['total_active_doctors'] ?? 0) }}
                         </div>
-                        <div class="text-[11px] text-zinc-400">Dokter berizin praktik aktif</div>
+                        <div class="text-[11px] text-zinc-400 font-medium mt-0.5">Dokter berizin praktik aktif</div>
                     </div>
                 </div>
 
                 {{-- Total Tenaga Kerja Keseluruhan --}}
-                <div class="group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-purple-500 to-pink-500"></div>
-                    <div class="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-purple-50 text-purple-600 shadow-xs dark:bg-purple-950/60 dark:text-purple-400">
-                        <flux:icon name="building-office-2" class="size-6" />
+                <div class="group relative flex items-center gap-4 overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-5 sm:p-6 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900 sm:col-span-2 lg:col-span-1">
+                    <div class="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-purple-500 to-pink-500"></div>
+                    <div class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-purple-50 text-purple-600 shadow-xs dark:bg-purple-950/60 dark:text-purple-400">
+                        <flux:icon name="building-office-2" class="size-7" />
                     </div>
                     <div class="min-w-0">
-                        <div class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Tenaga Kerja Keseluruhan</div>
-                        <div class="mt-1 font-mono text-3xl font-bold tracking-tight text-purple-600 dark:text-purple-400">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Tenaga Kerja Keseluruhan</span>
+                            <flux:badge size="xs" color="purple">Total SDM</flux:badge>
+                        </div>
+                        <div class="mt-1 font-mono text-3xl font-extrabold tracking-tight text-purple-600 dark:text-purple-400">
                             {{ number_format($staffing['total_workforce'] ?? 0) }}
                         </div>
-                        <div class="text-[11px] text-zinc-400">Karyawan + Tenaga Dokter</div>
+                        <div class="text-[11px] text-zinc-400 font-medium mt-0.5">Karyawan + Tenaga Dokter</div>
                     </div>
                 </div>
             </div>
 
             {{-- Contract Breakdown Pills --}}
             @if(!empty($staffing['contract_breakdown']))
-                <div class="mt-3 flex flex-wrap items-center gap-2">
-                    <span class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Status Ikatan Kerja:</span>
+                <div class="mt-3.5 flex flex-wrap items-center gap-2">
+                    <span class="text-xs font-bold text-zinc-500 dark:text-zinc-400">Status Ikatan Kerja:</span>
                     @foreach($staffing['contract_breakdown'] as $contractType => $count)
-                        <div class="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-white px-2.5 py-1 text-xs dark:border-zinc-800 dark:bg-zinc-900">
+                        <div class="flex items-center gap-2 rounded-xl border border-zinc-200/80 bg-white px-3 py-1.5 text-xs dark:border-zinc-800 dark:bg-zinc-900 shadow-2xs">
                             <span class="font-medium text-zinc-700 dark:text-zinc-300">{{ $contractType }}</span>
-                            <span class="rounded bg-zinc-100 px-1.5 py-0.2 font-mono text-[11px] font-bold text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">{{ $count }}</span>
+                            <span class="rounded-lg bg-zinc-100 px-2 py-0.5 font-mono text-[11px] font-bold text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">{{ $count }}</span>
                         </div>
                     @endforeach
                 </div>
             @endif
         </div>
 
-        {{-- Today's Attendance Overview --}}
+        {{-- Today's Attendance Overview & Operational Progress Radar --}}
         <div>
-            <div class="mb-3 flex items-center justify-between">
-                <div class="flex items-center gap-2">
+            @php
+                $sched = max((int) ($attendance['total_scheduled'] ?? 0), 1);
+                $checked = (int) ($attendance['total_checked_in'] ?? 0);
+                $presentCount = (int) ($attendance['present_count'] ?? 0);
+                $lateCount = (int) ($attendance['late_count'] ?? 0);
+                $unreported = max(0, $sched - $checked);
+                
+                $pctPresent = round(($presentCount / $sched) * 100, 1);
+                $pctLate = round(($lateCount / $sched) * 100, 1);
+                $pctUnreported = max(0, round(100 - $pctPresent - $pctLate, 1));
+                $attRate = round(($checked / $sched) * 100, 1);
+            @endphp
+
+            <div class="mb-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div class="flex items-center gap-3">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
                         Rekapitulasi Kehadiran Hari Ini ({{ $attendance['date'] ?? now()->toDateString() }})
                     </h3>
-                    @php
-                        $sched = max((int) ($attendance['total_scheduled'] ?? 0), 1);
-                        $checked = (int) ($attendance['total_checked_in'] ?? 0);
-                        $attRate = round(($checked / $sched) * 100, 1);
-                    @endphp
-                    <flux:badge size="xs" :color="$attRate >= 80 ? 'emerald' : 'amber'">
+                    <flux:badge size="xs" :color="$attRate >= 80 ? 'emerald' : 'amber'" class="font-bold">
                         {{ $attRate }}% Kehadiran
                     </flux:badge>
                 </div>
-                <a href="{{ route('attendance.index') }}" class="text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400">
-                    Live Presensi &rarr;
+                <a href="{{ route('attendance.index') }}" class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400">
+                    <span>Live Presensi</span>
+                    <span>&rarr;</span>
                 </a>
+            </div>
+
+            {{-- Multi-Segment Stacked Visual Attendance Progress Bar --}}
+            <div class="mb-4 rounded-2xl border border-zinc-200/80 bg-white p-4 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                <div class="flex items-center justify-between text-xs font-semibold mb-2">
+                    <span class="text-zinc-700 dark:text-zinc-300">Komposisi Presensi Shift Berjalan</span>
+                    <span class="font-mono text-emerald-600 dark:text-emerald-400">{{ $checked }} dari {{ $sched }} Staf Hadir</span>
+                </div>
+
+                {{-- Stacked Bar --}}
+                <div class="h-3 w-full rounded-full overflow-hidden bg-zinc-100 dark:bg-zinc-800 flex">
+                    <div class="bg-emerald-500 h-full transition-all duration-500" style="width: {{ $pctPresent }}%" title="Tepat Waktu: {{ $presentCount }} ({{ $pctPresent }}%)"></div>
+                    <div class="bg-amber-400 h-full transition-all duration-500" style="width: {{ $pctLate }}%" title="Terlambat: {{ $lateCount }} ({{ $pctLate }}%)"></div>
+                    <div class="bg-zinc-200 dark:bg-zinc-700 h-full transition-all duration-500" style="width: {{ $pctUnreported }}%" title="Belum Check-In: {{ $unreported }} ({{ $pctUnreported }}%)"></div>
+                </div>
+
+                {{-- Segment Legend --}}
+                <div class="mt-3 flex flex-wrap items-center justify-between gap-y-2 text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="size-2.5 rounded-full bg-emerald-500"></span>
+                        <span class="text-zinc-600 dark:text-zinc-400 font-medium">Tepat Waktu: <strong class="text-zinc-900 dark:text-zinc-100">{{ $presentCount }}</strong> ({{ $pctPresent }}%)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="size-2.5 rounded-full bg-amber-400"></span>
+                        <span class="text-zinc-600 dark:text-zinc-400 font-medium">Terlambat: <strong class="text-zinc-900 dark:text-zinc-100">{{ $lateCount }}</strong> ({{ $pctLate }}%)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="size-2.5 rounded-full bg-zinc-300 dark:bg-zinc-600"></span>
+                        <span class="text-zinc-600 dark:text-zinc-400 font-medium">Belum Hadir: <strong class="text-zinc-900 dark:text-zinc-100">{{ $unreported }}</strong> ({{ $pctUnreported }}%)</span>
+                    </div>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {{-- Jadwal Terdaftar --}}
-                <div class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                <div class="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
                     <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-blue-500 to-indigo-500"></div>
                     <div>
                         <div class="flex items-center justify-between">
@@ -904,10 +1010,10 @@
                             </div>
                         </div>
                         <div class="mt-3 flex items-baseline gap-2">
-                            <span class="font-mono text-3xl font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
+                            <span class="font-mono text-3xl font-extrabold tabular-nums text-zinc-900 dark:text-zinc-100">
                                 {{ $attendance['total_scheduled'] ?? 0 }}
                             </span>
-                            <span class="text-xs font-medium text-zinc-400">Staf</span>
+                            <span class="text-xs font-medium text-zinc-400">Staf Terjadwal</span>
                         </div>
                     </div>
                     <div class="mt-4 border-t border-zinc-100 pt-3 text-[11px] text-zinc-400 dark:border-zinc-800">
@@ -916,7 +1022,7 @@
                 </div>
 
                 {{-- Hadir Tepat Waktu --}}
-                <div class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                <div class="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
                     <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500"></div>
                     <div>
                         <div class="flex items-center justify-between">
@@ -926,10 +1032,10 @@
                             </div>
                         </div>
                         <div class="mt-3 flex items-baseline gap-2">
-                            <span class="font-mono text-3xl font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
+                            <span class="font-mono text-3xl font-extrabold tabular-nums text-emerald-600 dark:text-emerald-400">
                                 {{ $attendance['present_count'] ?? 0 }}
                             </span>
-                            <span class="text-xs font-medium text-emerald-600/80 dark:text-emerald-400/80">Staf</span>
+                            <span class="text-xs font-medium text-emerald-600/80 dark:text-emerald-400/80">Staf ({{ $pctPresent }}%)</span>
                         </div>
                     </div>
                     <div class="mt-4 border-t border-zinc-100 pt-3 text-[11px] text-zinc-400 dark:border-zinc-800">
@@ -938,7 +1044,7 @@
                 </div>
 
                 {{-- Hadir Terlambat --}}
-                <div class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                <div class="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
                     <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500"></div>
                     <div>
                         <div class="flex items-center justify-between">
@@ -948,7 +1054,7 @@
                             </div>
                         </div>
                         <div class="mt-3 flex items-baseline gap-2">
-                            <span class="font-mono text-3xl font-bold tabular-nums text-amber-600 dark:text-amber-400">
+                            <span class="font-mono text-3xl font-extrabold tabular-nums text-amber-600 dark:text-amber-400">
                                 {{ $attendance['late_count'] ?? 0 }}
                             </span>
                             <span class="text-xs font-medium text-amber-600/80 dark:text-amber-400/80">Staf</span>
@@ -960,7 +1066,7 @@
                 </div>
 
                 {{-- Total Check-In --}}
-                <div class="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                <div class="group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
                     <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-purple-500 to-pink-500"></div>
                     <div>
                         <div class="flex items-center justify-between">
@@ -970,7 +1076,7 @@
                             </div>
                         </div>
                         <div class="mt-3 flex items-baseline gap-2">
-                            <span class="font-mono text-3xl font-bold tabular-nums text-purple-600 dark:text-purple-400">
+                            <span class="font-mono text-3xl font-extrabold tabular-nums text-purple-600 dark:text-purple-400">
                                 {{ $attendance['total_checked_in'] ?? 0 }}
                             </span>
                             <span class="text-xs font-medium text-purple-600/80 dark:text-purple-400/80">Staf</span>
@@ -986,111 +1092,126 @@
         {{-- Payroll Summary Card --}}
         @if($payroll)
             <div>
-                <div class="mb-3 flex items-center justify-between">
-                    <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Ringkasan Penggajian Terakhir</h3>
-                    <a href="{{ route('payroll.index') }}" class="text-xs font-medium text-emerald-600 hover:underline dark:text-emerald-400">
-                        Modul Payroll &rarr;
+                <div class="mb-3.5 flex items-center justify-between">
+                    <div>
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Ringkasan Penggajian Terakhir</h3>
+                        <p class="text-[11px] text-zinc-400 mt-0.5">Kalkulasi payroll periode terakhir yang difinalisasi</p>
+                    </div>
+                    <a href="{{ route('payroll.index') }}" class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400">
+                        <span>Modul Payroll</span>
+                        <span>&rarr;</span>
                     </a>
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                    <div class="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 transition-all hover:shadow-sm">
                         <div class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Gaji Kotor (Bruto)</div>
-                        <div class="mt-2 font-mono text-lg font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                        <div class="mt-2 font-mono text-xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
                             Rp {{ number_format((float) ($payroll['total_gross_pay'] ?? 0), 0, ',', '.') }}
                         </div>
                         <div class="mt-2 text-[11px] text-zinc-400">Total bruto periode berjalan</div>
                     </div>
 
-                    <div class="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-                        <div class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Potongan & Pajak</div>
-                        <div class="mt-2 font-mono text-lg font-bold tracking-tight text-rose-600 dark:text-rose-400">
+                    <div class="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 transition-all hover:shadow-sm">
+                        <div class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Potongan &amp; Pajak</div>
+                        <div class="mt-2 font-mono text-xl font-extrabold tracking-tight text-rose-600 dark:text-rose-400">
                             - Rp {{ number_format((float) ($payroll['total_deductions'] ?? 0), 0, ',', '.') }}
                         </div>
-                        <div class="mt-2 text-[11px] text-zinc-400">BPJS, PPh 21, & potongan</div>
+                        <div class="mt-2 text-[11px] text-zinc-400">BPJS, PPh 21, &amp; potongan</div>
                     </div>
 
-                    <div class="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 transition-all hover:shadow-sm">
                         <div class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Slip Gaji</div>
                         <div class="mt-2 flex items-baseline gap-2">
-                            <span class="font-mono text-2xl font-bold tabular-nums text-zinc-900 dark:text-zinc-100">
+                            <span class="font-mono text-3xl font-extrabold tabular-nums text-zinc-900 dark:text-zinc-100">
                                 {{ $payroll['total_payslips'] ?? 0 }}
                             </span>
-                            <span class="text-xs font-medium text-zinc-400">Slip</span>
+                            <span class="text-xs font-medium text-zinc-400">Slip Karyawan</span>
                         </div>
                         <div class="mt-2 text-[11px] text-zinc-400">Karyawan terproses</div>
                     </div>
 
-                    <div class="rounded-2xl border border-emerald-300 bg-gradient-to-br from-emerald-50/80 via-white to-teal-50/50 p-5 shadow-xs dark:border-emerald-800 dark:from-emerald-950/40 dark:via-zinc-900 dark:to-zinc-900">
+                    <div class="rounded-3xl border border-emerald-300/80 bg-gradient-to-br from-emerald-50/90 via-white to-teal-50/50 p-5 shadow-xs dark:border-emerald-800 dark:from-emerald-950/40 dark:via-zinc-900 dark:to-zinc-900 transition-all hover:shadow-md">
                         <div class="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">Take Home Pay (Bersih)</div>
                         <div class="mt-2 font-mono text-xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
                             Rp {{ number_format((float) ($payroll['total_net_pay'] ?? 0), 0, ',', '.') }}
                         </div>
-                        <div class="mt-2 text-[11px] text-emerald-700 dark:text-emerald-300">Total netto siap salur</div>
+                        <div class="mt-2 text-[11px] text-emerald-700 dark:text-emerald-300 font-medium">Total netto siap salur</div>
                     </div>
                 </div>
             </div>
         @endif
 
-        {{-- Quick Operational Shortcuts --}}
+        {{-- Quick Operational Shortcuts (Launchpad Hub) --}}
         <div>
-            <div class="mb-3 flex items-center justify-between">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Navigasi Operasional Cepat</h3>
-                <span class="text-xs text-zinc-400">Pusat kendali modul utama</span>
+            <div class="mb-3.5 flex items-center justify-between">
+                <div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Navigasi Operasional Cepat</h3>
+                    <p class="text-[11px] text-zinc-400 mt-0.5">Pusat kendali dan akses instan ke seluruh modul utama</p>
+                </div>
+                <button 
+                    type="button" 
+                    x-data 
+                    x-on:click="$dispatch('open-command-palette')" 
+                    class="text-xs font-semibold text-emerald-600 hover:text-emerald-700 hover:underline dark:text-emerald-400 cursor-pointer"
+                >
+                    Lihat Semua Menu (⌘K) &rarr;
+                </button>
             </div>
-            <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-                <a href="{{ route('employees.index') }}" class="group flex flex-col items-center rounded-2xl border border-zinc-200/80 bg-white p-4 text-center shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="flex size-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 transition-colors group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-950/60 dark:text-blue-400">
-                        <flux:icon name="users" class="size-5" />
+
+            <div class="grid grid-cols-2 gap-3.5 sm:grid-cols-3 lg:grid-cols-6">
+                <a href="{{ route('employees.index') }}" class="group flex flex-col items-center rounded-3xl border border-zinc-200/80 bg-white p-5 text-center shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-blue-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="flex size-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 transition-all group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-950/60 dark:text-blue-400 shadow-2xs">
+                        <flux:icon name="users" class="size-6" />
                     </div>
-                    <span class="mt-2.5 text-xs font-bold text-zinc-900 dark:text-zinc-100">Karyawan</span>
-                    <span class="text-[10px] text-zinc-400">Direktori SDM</span>
+                    <span class="mt-3 text-xs font-bold text-zinc-900 dark:text-zinc-100">Karyawan</span>
+                    <span class="text-[10px] text-zinc-400 font-medium">Direktori SDM</span>
                 </a>
 
-                <a href="{{ route('doctors.index') }}" class="group flex flex-col items-center rounded-2xl border border-zinc-200/80 bg-white p-4 text-center shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="flex size-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950/60 dark:text-emerald-400">
-                        <flux:icon name="user-group" class="size-5" />
+                <a href="{{ route('doctors.index') }}" class="group flex flex-col items-center rounded-3xl border border-zinc-200/80 bg-white p-5 text-center shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-emerald-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="flex size-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 transition-all group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950/60 dark:text-emerald-400 shadow-2xs">
+                        <flux:icon name="user-group" class="size-6" />
                     </div>
-                    <span class="mt-2.5 text-xs font-bold text-zinc-900 dark:text-zinc-100">Dokter</span>
-                    <span class="text-[10px] text-zinc-400">STR & SIP</span>
+                    <span class="mt-3 text-xs font-bold text-zinc-900 dark:text-zinc-100">Dokter</span>
+                    <span class="text-[10px] text-zinc-400 font-medium">STR &amp; SIP</span>
                 </a>
 
-                <a href="{{ route('schedules.index') }}" class="group flex flex-col items-center rounded-2xl border border-zinc-200/80 bg-white p-4 text-center shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-indigo-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="flex size-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition-colors group-hover:bg-indigo-600 group-hover:text-white dark:bg-indigo-950/60 dark:text-indigo-400">
-                        <flux:icon name="calendar" class="size-5" />
+                <a href="{{ route('schedules.index') }}" class="group flex flex-col items-center rounded-3xl border border-zinc-200/80 bg-white p-5 text-center shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-indigo-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="flex size-12 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 transition-all group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white dark:bg-indigo-950/60 dark:text-indigo-400 shadow-2xs">
+                        <flux:icon name="calendar" class="size-6" />
                     </div>
-                    <span class="mt-2.5 text-xs font-bold text-zinc-900 dark:text-zinc-100">Jadwal Shift</span>
-                    <span class="text-[10px] text-zinc-400">Roster Bulanan</span>
+                    <span class="mt-3 text-xs font-bold text-zinc-900 dark:text-zinc-100">Jadwal Shift</span>
+                    <span class="text-[10px] text-zinc-400 font-medium">Roster Bulanan</span>
                 </a>
 
-                <a href="{{ route('attendance.index') }}" class="group flex flex-col items-center rounded-2xl border border-zinc-200/80 bg-white p-4 text-center shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-teal-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="flex size-11 items-center justify-center rounded-xl bg-teal-50 text-teal-600 transition-colors group-hover:bg-teal-600 group-hover:text-white dark:bg-teal-950/60 dark:text-teal-400">
-                        <flux:icon name="clock" class="size-5" />
+                <a href="{{ route('attendance.index') }}" class="group flex flex-col items-center rounded-3xl border border-zinc-200/80 bg-white p-5 text-center shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-teal-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="flex size-12 items-center justify-center rounded-2xl bg-teal-50 text-teal-600 transition-all group-hover:scale-110 group-hover:bg-teal-600 group-hover:text-white dark:bg-teal-950/60 dark:text-teal-400 shadow-2xs">
+                        <flux:icon name="clock" class="size-6" />
                     </div>
-                    <span class="mt-2.5 text-xs font-bold text-zinc-900 dark:text-zinc-100">Presensi</span>
-                    <span class="text-[10px] text-zinc-400">Monitor Log</span>
+                    <span class="mt-3 text-xs font-bold text-zinc-900 dark:text-zinc-100">Presensi</span>
+                    <span class="text-[10px] text-zinc-400 font-medium">Monitor Log</span>
                 </a>
 
-                <a href="{{ route('leaves.index') }}" class="group flex flex-col items-center rounded-2xl border border-zinc-200/80 bg-white p-4 text-center shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-purple-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="flex size-11 items-center justify-center rounded-xl bg-purple-50 text-purple-600 transition-colors group-hover:bg-purple-600 group-hover:text-white dark:bg-purple-950/60 dark:text-purple-400">
-                        <flux:icon name="document-text" class="size-5" />
+                <a href="{{ route('leaves.index') }}" class="group flex flex-col items-center rounded-3xl border border-zinc-200/80 bg-white p-5 text-center shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-purple-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="flex size-12 items-center justify-center rounded-2xl bg-purple-50 text-purple-600 transition-all group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white dark:bg-purple-950/60 dark:text-purple-400 shadow-2xs">
+                        <flux:icon name="document-text" class="size-6" />
                     </div>
-                    <span class="mt-2.5 text-xs font-bold text-zinc-900 dark:text-zinc-100">Cuti & Izin</span>
-                    <span class="text-[10px] text-zinc-400">
+                    <span class="mt-3 text-xs font-bold text-zinc-900 dark:text-zinc-100">Cuti &amp; Izin</span>
+                    <span class="text-[10px] font-medium">
                         @if($pendingLeavesCount > 0)
-                            <strong class="text-amber-600">{{ $pendingLeavesCount }} Menunggu</strong>
+                            <strong class="text-amber-600 dark:text-amber-400">{{ $pendingLeavesCount }} Menunggu</strong>
                         @else
-                            Approval Cuti
+                            <span class="text-zinc-400">Approval Cuti</span>
                         @endif
                     </span>
                 </a>
 
-                <a href="{{ route('payroll.index') }}" class="group flex flex-col items-center rounded-2xl border border-zinc-200/80 bg-white p-4 text-center shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                    <div class="flex size-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600 transition-colors group-hover:bg-amber-600 group-hover:text-white dark:bg-amber-950/60 dark:text-amber-400">
-                        <flux:icon name="banknotes" class="size-5" />
+                <a href="{{ route('payroll.index') }}" class="group flex flex-col items-center rounded-3xl border border-zinc-200/80 bg-white p-5 text-center shadow-xs transition-all duration-200 hover:-translate-y-1 hover:border-amber-500/50 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                    <div class="flex size-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 transition-all group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white dark:bg-amber-950/60 dark:text-amber-400 shadow-2xs">
+                        <flux:icon name="banknotes" class="size-6" />
                     </div>
-                    <span class="mt-2.5 text-xs font-bold text-zinc-900 dark:text-zinc-100">Payroll</span>
-                    <span class="text-[10px] text-zinc-400">Proses & Slip</span>
+                    <span class="mt-3 text-xs font-bold text-zinc-900 dark:text-zinc-100">Payroll</span>
+                    <span class="text-[10px] text-zinc-400 font-medium">Proses &amp; Slip</span>
                 </a>
             </div>
         </div>
