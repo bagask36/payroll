@@ -23,10 +23,12 @@ class PayrollRun extends Model
         'uuid',
         'payroll_period_id',
         'run_date',
+        'type',
         'status',
         'total_gross_pay',
         'total_deductions',
         'total_net_pay',
+        'metadata',
         'processed_by',
         'finalized_by',
         'finalized_at',
@@ -42,6 +44,7 @@ class PayrollRun extends Model
             'total_gross_pay' => 'decimal:2',
             'total_deductions' => 'decimal:2',
             'total_net_pay' => 'decimal:2',
+            'metadata' => 'array',
             'finalized_at' => 'datetime',
         ];
     }
@@ -113,6 +116,14 @@ class PayrollRun extends Model
     public function isFinalized(): bool
     {
         return in_array($this->status, ['finalized', 'paid'], true);
+    }
+
+    /**
+     * Check if this run is an off-cycle THR run.
+     */
+    public function isThr(): bool
+    {
+        return $this->type === 'thr';
     }
 
     /**

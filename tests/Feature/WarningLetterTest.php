@@ -262,4 +262,40 @@ class WarningLetterTest extends TestCase
             ->call('openCreateWarningLetter')
             ->assertStatus(403);
     }
+
+    public function test_employee_report_reflects_active_warning_letters_and_exports_csv(): void
+    {
+        $admin = User::where('email', 'admin@juwitahospital.com')->firstOrFail();
+        $employee = Employee::factory()->create(['full_name' => 'Karyawan Uji Disiplin', 'status' => 'active']);
+        $spType = WarningLetterType::where('code', 'SP-1')->firstOrFail();
+
+        EmployeeWarningLetter::create([
+            'employee_id' => $employee->id,
+            'warning_letter_type_id' => $spType->id,
+            'letter_number' => '099/SP-I/LAP/10/2026',
+            'issued_date' => now()->toDateString(),
+            'valid_from' => now()->toDateString(),
+            'valid_until' => now()->addMonths(6)->toDateString(),
+            'violation_reason' => 'Uji kedisiplinan laporan',
+            'authorized_by' => 'Kabag SDM',
+            'status' => 'active',
+            'created_by' => $admin->id,
+        ]);
+
+        $this->actingAs($admin);
+
+        // Test metric card & CSV export
+        Livewire::test(\App\Livewire\Report\EmployeeReportIndex::class)
+            ->assertStatus(200)
+            ->assertSee('Dalam Sanksi (SP Aktif)')
+            ->call('exportCsv')
+            ->assertFileDownloaded('laporan-kepegawaian-rs-juwita.csv');
+
+        // Test PowerGrid table renders disciplinary column
+        Livewire::test(\App\Livewire\Tables\EmployeeReportTable::class)
+            ->assertStatus(200)
+            ->assertSee('SP Aktif: Surat Peringatan Pertama (SP I)')
+            ->assertSee('Tertib');
+    }
 }
+

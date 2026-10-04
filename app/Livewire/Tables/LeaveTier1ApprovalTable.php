@@ -54,31 +54,12 @@ final class LeaveTier1ApprovalTable extends PowerGridComponent
             ->where('leave_requests.status', 'pending_tier1')
             ->latest('leave_requests.created_at');
 
-        // Scope to subordinates if the supervisor is linked to an employee profile (excluding Super Admin / HR Manager override)
+        // Scope to subordinates (plus own requests for the 'Pengajuan Sendiri' action state)
         if ($user->employee && ! $user->isSuperAdmin() && ! $user->hasRole('hr_manager')) {
-            $subordinatePositionIds = Position::where('reports_to_id', $user->employee->position_id)->pluck('id');
-            $supervisorUnitId = $user->employee->unit_id;
-            $isUnitHead = in_array(strtolower($user->employee->position?->grade_level ?? ''), ['supervisor', 'manager', 'head']);
+            $subordinateEmployeeIds = $user->employee->getSubordinates()->pluck('id');
+            $allowedEmployeeIds = $subordinateEmployeeIds->push($user->employee->id);
 
-            $query->where(function ($q) use ($subordinatePositionIds, $supervisorUnitId, $isUnitHead) {
-                $hasCriteria = false;
-                if ($subordinatePositionIds->isNotEmpty()) {
-                    $q->whereIn('employees.position_id', $subordinatePositionIds);
-                    $hasCriteria = true;
-                }
-                if ($isUnitHead && $supervisorUnitId) {
-                    if ($hasCriteria) {
-                        $q->orWhere('employees.unit_id', $supervisorUnitId);
-                    } else {
-                        $q->where('employees.unit_id', $supervisorUnitId);
-                    }
-                    $hasCriteria = true;
-                }
-
-                if (! $hasCriteria) {
-                    $q->whereRaw('1 = 1');
-                }
-            });
+            $query->whereIn('employees.id', $allowedEmployeeIds);
         }
 
         return $query;

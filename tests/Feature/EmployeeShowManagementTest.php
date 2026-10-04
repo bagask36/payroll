@@ -671,5 +671,86 @@ class EmployeeShowManagementTest extends TestCase
 
         $response->assertFileDownloaded('sk_asli.pdf');
     }
+
+    public function test_employee_assignment_auto_pulls_and_inherits_sk_number_and_document_from_master_position(): void
+    {
+        Storage::fake('local');
+        $user = $this->userWithRole('hr_admin');
+        $this->actingAs($user);
+
+        $storagePath = 'documents/compliance/position/sk_formasi_kepala_ruang.pdf';
+        Storage::disk('local')->put($storagePath, 'PDF_MASTER_FORMASI');
+
+        $doc = Document::create([
+            'documentable_type' => Position::class,
+            'documentable_id' => 1,
+            'uploaded_by' => $user->id,
+            'document_type' => 'contract',
+            'original_name' => 'sk_formasi_kepala_ruang.pdf',
+            'mime_type' => 'application/pdf',
+            'file_size' => 18,
+            'storage_path' => $storagePath,
+            'storage_provider' => 'local',
+        ]);
+
+        $unit = Unit::factory()->create();
+        $position = Position::factory()->create([
+            'unit_id' => $unit->id,
+            'title' => 'Kepala Ruang Rawat Inap',
+            'default_contract_number' => 'SK/DIR/RSJ/2026/099',
+            'document_id' => $doc->id,
+        ]);
+
+        $employee = Employee::factory()->create();
+
+        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
+            ->call('openEmploymentModal')
+            ->set('employmentPositionId', $position->id)
+            ->assertSet('employmentContractNumber', 'SK/DIR/RSJ/2026/099')
+            ->assertSet('employmentExistingDocumentId', $doc->id)
+            ->set('employmentUnitId', $unit->id)
+            ->set('employmentContractType', 'permanent')
+            ->set('employmentStartDate', '2026-03-01')
+            ->call('saveEmployment')
+            ->assertHasNoErrors()
+            ->assertSet('showEmploymentModal', false);
+
+        $employment = EmployeeEmployment::where('employee_id', $employee->id)
+            ->where('contract_number', 'SK/DIR/RSJ/2026/099')
+            ->firstOrFail();
+
+        $this->assertEquals($doc->id, $employment->document_id);
+    }
+
+    public function test_hr_admin_can_manage_position_sk_number_and_upload_document_in_position_index(): void
+    {
+        Storage::fake('local');
+        $user = $this->userWithRole('hr_admin');
+        $this->actingAs($user);
+
+        $file = UploadedFile::fake()->create('sk_penetapan_dokter.pdf', 400, 'application/pdf');
+
+        Livewire::test(\App\Livewire\Master\PositionIndex::class)
+            ->call('openCreatePosition')
+            ->set('positionTitle', 'Dokter Subspesialis Bedah')
+            ->set('positionDefaultContractNumber', 'SK/DIR/FORMASI/2026/007')
+            ->set('positionSkDocumentFile', $file)
+            ->call('savePosition')
+            ->assertHasNoErrors()
+            ->assertSet('showPositionModal', false);
+
+        $pos = Position::where('title', 'Dokter Subspesialis Bedah')->firstOrFail();
+        $this->assertEquals('SK/DIR/FORMASI/2026/007', $pos->default_contract_number);
+        $this->assertNotNull($pos->document_id);
+        $this->assertSame('sk_penetapan_dokter.pdf', $pos->document->original_name);
+        $this->assertTrue(Storage::disk('local')->exists($pos->document->storage_path));
+
+        // Test download
+        $response = Livewire::test(\App\Livewire\Master\PositionIndex::class)
+            ->call('downloadPositionDocument', $pos->id);
+
+        $response->assertFileDownloaded('sk_penetapan_dokter.pdf');
+    }
 }
+
 

@@ -53,6 +53,8 @@ class MasterIndex extends Component
 
     public ?string $positionDefaultPositionalAllowance = '';
 
+    public ?string $positionDefaultContractNumber = '';
+
     // Shift Form State
     public bool $showShiftModal = false;
 
@@ -224,7 +226,7 @@ class MasterIndex extends Component
     // --- POSITION ACTIONS ---
     public function openCreatePosition(): void
     {
-        $this->reset(['editingPositionId', 'positionTitle', 'positionUnitId', 'positionDefaultBasicSalary', 'positionDefaultPositionalAllowance']);
+        $this->reset(['editingPositionId', 'positionTitle', 'positionUnitId', 'positionDefaultBasicSalary', 'positionDefaultPositionalAllowance', 'positionDefaultContractNumber']);
         $this->positionGradeLevel = 'III/a';
         $this->showPositionModal = true;
     }
@@ -238,6 +240,7 @@ class MasterIndex extends Component
         $this->positionGradeLevel = $pos->grade_level ?? 'III/a';
         $this->positionDefaultBasicSalary = $pos->default_basic_salary !== null ? (string) (float) $pos->default_basic_salary : '';
         $this->positionDefaultPositionalAllowance = $pos->default_positional_allowance !== null ? (string) (float) $pos->default_positional_allowance : '';
+        $this->positionDefaultContractNumber = $pos->default_contract_number ?? '';
         $this->showPositionModal = true;
     }
 
@@ -249,6 +252,7 @@ class MasterIndex extends Component
             'positionGradeLevel' => 'nullable|string|max:20',
             'positionDefaultBasicSalary' => 'nullable|numeric|min:0',
             'positionDefaultPositionalAllowance' => 'nullable|numeric|min:0',
+            'positionDefaultContractNumber' => 'nullable|string|max:100',
         ]);
 
         $payload = [
@@ -257,6 +261,7 @@ class MasterIndex extends Component
             'grade_level' => $this->positionGradeLevel,
             'default_basic_salary' => $this->positionDefaultBasicSalary !== '' && $this->positionDefaultBasicSalary !== null ? $this->positionDefaultBasicSalary : null,
             'default_positional_allowance' => $this->positionDefaultPositionalAllowance !== '' && $this->positionDefaultPositionalAllowance !== null ? $this->positionDefaultPositionalAllowance : null,
+            'default_contract_number' => $this->positionDefaultContractNumber ? trim($this->positionDefaultContractNumber) : null,
         ];
 
         if ($this->editingPositionId) {

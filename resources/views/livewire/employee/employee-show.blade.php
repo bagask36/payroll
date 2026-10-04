@@ -192,6 +192,12 @@
                         </p>
                     </div>
                     <div>
+                        <span class="text-xs text-zinc-500">Agama / Hari Raya</span>
+                        <p class="font-medium text-zinc-900 dark:text-zinc-100 mt-0.5 capitalize">
+                            {{ $employee->religion ?: '-' }}
+                        </p>
+                    </div>
+                    <div>
                         <span class="text-xs text-zinc-500">Nomor Induk Kependudukan (NIK KTP)</span>
                         <p class="font-mono font-medium text-zinc-900 dark:text-zinc-100 mt-0.5">
                             @if($canViewSensitive)
@@ -1325,12 +1331,22 @@
                     <option value="internship">Magang / Internship</option>
                 </flux:select>
 
-                <flux:input 
-                    label="Nomor SK / SPK / Kontrak" 
-                    wire:model="employmentContractNumber" 
-                    placeholder="misal: SK/RSJ/2026/045" 
-                    required 
-                />
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-sm font-medium text-zinc-800 dark:text-zinc-200">Nomor SK / SPK / Kontrak</label>
+                        @if($employmentPositionId)
+                            <button type="button" wire:click="pullSkFromPosition" class="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 font-medium inline-flex items-center gap-1 cursor-pointer" title="Tarik nomor SK &amp; berkas dari standar master jabatan">
+                                <flux:icon name="arrow-path" class="size-3" />
+                                <span>Tarik SK Jabatan</span>
+                            </button>
+                        @endif
+                    </div>
+                    <flux:input 
+                        wire:model="employmentContractNumber" 
+                        placeholder="misal: SK/RSJ/2026/045" 
+                        required 
+                    />
+                </div>
 
                 <flux:input 
                     label="Tanggal Mulai Tugas" 
@@ -1453,6 +1469,14 @@
                     <option value="married">Menikah</option>
                     <option value="divorced">Cerai Hidup</option>
                     <option value="widowed">Cerai Mati</option>
+                </flux:select>
+                <flux:select label="Agama / Hari Raya" wire:model="bioReligion">
+                    <option value="islam">Islam (Idul Fitri)</option>
+                    <option value="kristen">Kristen Protestan (Natal)</option>
+                    <option value="katolik">Katolik (Natal)</option>
+                    <option value="hindu">Hindu (Nyepi)</option>
+                    <option value="buddha">Buddha (Waisak)</option>
+                    <option value="khonghucu">Khonghucu (Imlek)</option>
                 </flux:select>
                 <flux:input label="Jumlah Tanggungan (PTKP, maks. 3)" type="number" min="0" max="3" wire:model="bioTaxDependents" />
                 @if($canViewSensitive)

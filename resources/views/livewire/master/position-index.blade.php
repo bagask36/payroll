@@ -79,9 +79,52 @@
                 </div>
             </div>
 
+            {{-- SK Dasar Formasi / Penetapan Jabatan --}}
+            <div class="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                        SK Formasi &amp; Dasar Penetapan Jabatan
+                    </div>
+                    <span class="text-[11px] text-zinc-400">Otomatis ditarik ke Penugasan Pegawai</span>
+                </div>
+                <p class="text-xs text-zinc-500">
+                    Nomor SK dan berkas scan fisik SK formasi ini akan otomatis terisi saat HR menetapkan pegawai pada jabatan ini.
+                </p>
+
+                <flux:input 
+                    wire:model="positionDefaultContractNumber" 
+                    label="Nomor SK Formasi / Penetapan Jabatan" 
+                    placeholder="Misal: 015/SK-DIR/RSJ/2026 atau SK/DIR/2026/088" 
+                />
+
+                <div class="space-y-2 p-3 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900/40">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Upload Berkas Scan Fisik SK Jabatan</span>
+                        <span class="text-[11px] text-zinc-400">PDF, JPG, PNG (Maks. 10MB)</span>
+                    </div>
+
+                    @if($positionExistingDocumentName)
+                        <div class="flex items-center justify-between gap-2 p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-800 dark:text-emerald-300">
+                            <div class="flex items-center gap-1.5 truncate">
+                                <flux:icon name="document-check" class="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                <span class="truncate">Berkas terpasang: <strong>{{ $positionExistingDocumentName }}</strong></span>
+                            </div>
+                            @if($editingPositionId)
+                                <flux:button size="xs" variant="ghost" icon="arrow-down-tray" wire:click="downloadPositionDocument({{ $editingPositionId }})">
+                                    Unduh
+                                </flux:button>
+                            @endif
+                        </div>
+                    @endif
+
+                    <flux:input type="file" wire:model="positionSkDocumentFile" accept=".pdf,.jpg,.jpeg,.png" />
+                    <div wire:loading wire:target="positionSkDocumentFile" class="text-xs text-sky-600 dark:text-sky-400">Mengunggah berkas SK jabatan…</div>
+                </div>
+            </div>
+
             <div class="flex items-center justify-end gap-2 pt-2">
                 <flux:modal.close><flux:button variant="subtle">Batal</flux:button></flux:modal.close>
-                <flux:button type="submit" variant="primary">Simpan Jabatan</flux:button>
+                <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="positionSkDocumentFile">Simpan Jabatan</flux:button>
             </div>
         </form>
     </flux:modal>

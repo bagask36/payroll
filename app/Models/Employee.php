@@ -33,6 +33,7 @@ class Employee extends Model
         'birth_place',
         'birth_date',
         'marital_status',
+        'religion',
         'tax_dependents',
         'npwp_number',
         'phone_number',
@@ -304,7 +305,7 @@ class Employee extends Model
     }
 
     /**
-     * Check if this employee is a supervisor of the target employee.
+     * Check if this employee is a supervisor (direct or ancestral) of the target employee.
      */
     public function isSupervisorOf(Employee $subordinate): bool
     {
@@ -325,22 +326,45 @@ class Employee extends Model
             }
         }
 
+        // 3. Ancestor traversal upwards (e.g. Staf IT -> PJ IT -> Kabag Umum -> Direktur)
+        $currentPos = $subordinate->position;
+        $visited = [$currentPos?->id];
+        while ($currentPos && $currentPos->reports_to_id) {
+            if ($currentPos->reports_to_id === $this->position_id) {
+                return true;
+            }
+            if (in_array($currentPos->reports_to_id, $visited, true)) {
+                break;
+            }
+            $visited[] = $currentPos->reports_to_id;
+            $currentPos = Position::find($currentPos->reports_to_id);
+        }
+
         return false;
     }
 
     /**
-     * Get all subordinate employees reporting to this employee.
+     * Get all subordinate employees reporting directly or indirectly to this employee.
      *
      * @return \Illuminate\Database\Eloquent\Collection<int, Employee>
      */
     public function getSubordinates(): \Illuminate\Database\Eloquent\Collection
     {
-        $subordinatePositionIds = Position::where('reports_to_id', $this->position_id)->pluck('id');
+        $subordinatePositionIds = [];
+        $frontier = Position::where('reports_to_id', $this->position_id)->pluck('id')->all();
+
+        while (! empty($frontier)) {
+            $subordinatePositionIds = array_unique(array_merge($subordinatePositionIds, $frontier));
+            $frontier = Position::whereIn('reports_to_id', $frontier)
+                ->whereNotIn('id', $subordinatePositionIds)
+                ->pluck('id')
+                ->all();
+        }
 
         return self::where('status', 'active')
             ->where('id', '!=', $this->id)
             ->where(function ($q) use ($subordinatePositionIds) {
-                if ($subordinatePositionIds->isNotEmpty()) {
+                if (! empty($subordinatePositionIds)) {
                     $q->whereIn('position_id', $subordinatePositionIds);
                 }
                 if ($this->unit_id && in_array(strtolower($this->position?->grade_level ?? ''), ['supervisor', 'manager', 'head'])) {

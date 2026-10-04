@@ -31,6 +31,7 @@ class EmployeeFactory extends Factory
             'birth_place' => fake()->city(),
             'birth_date' => fake()->dateTimeBetween('-50 years', '-20 years')->format('Y-m-d'),
             'marital_status' => fake()->randomElement(['single', 'married', 'divorced']),
+            'religion' => fake()->randomElement(['islam', 'kristen', 'katolik', 'hindu', 'buddha', 'khonghucu']),
             'tax_dependents' => fake()->numberBetween(0, 3),
             'npwp_number' => fake()->numerify('##.###.###.#-###.###'),
             'phone_number' => '08'.fake()->numerify('##########'),

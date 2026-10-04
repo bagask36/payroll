@@ -58,6 +58,8 @@ class EmployeeShow extends Component
 
     public string $bioMaritalStatus = 'single';
 
+    public string $bioReligion = 'islam';
+
     public int $bioTaxDependents = 0;
 
     public ?string $bioNpwp = null;
@@ -246,7 +248,7 @@ class EmployeeShow extends Component
     public function updatedEmploymentPositionId(?int $positionId): void
     {
         if ($positionId) {
-            $pos = Position::find($positionId);
+            $pos = Position::with('document')->find($positionId);
             if ($pos) {
                 if ($pos->unit_id && empty($this->employmentUnitId)) {
                     $this->employmentUnitId = $pos->unit_id;
@@ -257,8 +259,44 @@ class EmployeeShow extends Component
                 if ($pos->default_positional_allowance !== null) {
                     $this->employmentPositionalAllowance = (string) (float) $pos->default_positional_allowance;
                 }
+                if ($pos->default_contract_number) {
+                    $this->employmentContractNumber = $pos->default_contract_number;
+                }
+                if ($pos->document_id && ! $this->employmentDocumentFile) {
+                    $this->employmentExistingDocumentId = $pos->document_id;
+                    $this->employmentExistingDocumentName = ($pos->document?->original_name ?? 'Berkas SK Formasi').' (Standar SK Jabatan)';
+                }
             }
         }
+    }
+
+    public function pullSkFromPosition(): void
+    {
+        if (! $this->employmentPositionId) {
+            return;
+        }
+
+        $pos = Position::with('document')->find($this->employmentPositionId);
+        if (! $pos) {
+            return;
+        }
+
+        if ($pos->default_contract_number) {
+            $this->employmentContractNumber = $pos->default_contract_number;
+        }
+        if ($pos->document_id) {
+            $this->employmentExistingDocumentId = $pos->document_id;
+            $this->employmentExistingDocumentName = ($pos->document?->original_name ?? 'Berkas SK Formasi').' (Standar SK Jabatan)';
+            $this->employmentDocumentFile = null;
+        }
+        if ($pos->default_basic_salary !== null) {
+            $this->employmentBasicSalary = (string) (float) $pos->default_basic_salary;
+        }
+        if ($pos->default_positional_allowance !== null) {
+            $this->employmentPositionalAllowance = (string) (float) $pos->default_positional_allowance;
+        }
+
+        $this->dispatch('notify', variant: 'success', message: 'Nomor SK, berkas fisik SK, dan remunerasi berhasil ditarik dari jabatan '.$pos->title);
     }
 
     public function applyPositionDefaultSalary(): void
@@ -293,6 +331,17 @@ class EmployeeShow extends Component
         $this->syncSalaryWithSk = true;
 
         $currentPos = $this->employee->position;
+        if ($currentPos) {
+            $currentPos->load('document');
+            if ($currentPos->default_contract_number) {
+                $this->employmentContractNumber = $currentPos->default_contract_number;
+            }
+            if ($currentPos->document_id) {
+                $this->employmentExistingDocumentId = $currentPos->document_id;
+                $this->employmentExistingDocumentName = ($currentPos->document?->original_name ?? 'Berkas SK Formasi').' (Standar SK Jabatan)';
+            }
+        }
+
         $activeSalary = $this->employee->currentSalary;
 
         $this->employmentBasicSalary = $currentPos?->default_basic_salary !== null
@@ -344,7 +393,7 @@ class EmployeeShow extends Component
         $this->authorize('download', $employment->document);
 
         $content = $documentService->download($employment->document->storage_path);
-        if (! $content) {
+        if ($content === null) {
             abort(404, 'Berkas fisik tidak ditemukan di penyimpanan server.');
         }
 
@@ -626,6 +675,7 @@ class EmployeeShow extends Component
         $this->bioBirthPlace = (string) $e->birth_place;
         $this->bioBirthDate = $e->birth_date?->toDateString() ?? '';
         $this->bioMaritalStatus = (string) ($e->marital_status ?: 'single');
+        $this->bioReligion = (string) ($e->religion ?: 'islam');
         $this->bioTaxDependents = (int) $e->tax_dependents;
         // Sensitive PII only pre-filled for users allowed to see it
         $this->bioNpwp = $canSensitive ? $e->npwp_number : null;
@@ -648,6 +698,7 @@ class EmployeeShow extends Component
             'bioBirthPlace' => ['required', 'string', 'max:100'],
             'bioBirthDate' => ['required', 'date', 'before:today'],
             'bioMaritalStatus' => ['required', 'in:single,married,divorced,widowed'],
+            'bioReligion' => ['nullable', 'in:islam,kristen,katolik,hindu,buddha,khonghucu'],
             'bioTaxDependents' => ['required', 'integer', 'min:0', 'max:3'],
         ];
         if ($canEditSensitive) {
@@ -665,7 +716,7 @@ class EmployeeShow extends Component
             'bioKtp.digits' => 'NIK KTP harus 16 digit angka.',
         ]);
 
-        $tracked = ['full_name', 'phone_number', 'residential_address', 'gender', 'birth_place', 'birth_date', 'marital_status', 'tax_dependents', 'npwp_number'];
+        $tracked = ['full_name', 'phone_number', 'residential_address', 'gender', 'birth_place', 'birth_date', 'marital_status', 'religion', 'tax_dependents', 'npwp_number'];
         $old = collect($this->employee->only($tracked))
             ->map(fn ($v) => $v instanceof \DateTimeInterface ? $v->format('Y-m-d') : $v)
             ->all();
@@ -677,6 +728,7 @@ class EmployeeShow extends Component
             'birth_place' => $this->bioBirthPlace,
             'birth_date' => $this->bioBirthDate,
             'marital_status' => $this->bioMaritalStatus,
+            'religion' => $this->bioReligion ?: null,
             'tax_dependents' => $this->bioTaxDependents,
         ];
 

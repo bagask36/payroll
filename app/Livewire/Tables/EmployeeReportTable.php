@@ -44,7 +44,7 @@ final class EmployeeReportTable extends PowerGridComponent
                 'units.name as unit_name',
                 'positions.title as position_title',
             ])
-            ->with(['currentEmployment']);
+            ->with(['currentEmployment', 'activeWarningLetters.warningLetterType']);
     }
 
     public function fields(): PowerGridFields
@@ -73,7 +73,18 @@ final class EmployeeReportTable extends PowerGridComponent
 
                 return '<span class="text-zinc-400 text-xs">-</span>';
             })
-            ->add('join_date_display', fn (Employee $emp) => '<span class="font-mono text-xs text-zinc-600 dark:text-zinc-400">'.($emp->currentEmployment?->join_date ? $emp->currentEmployment->join_date->format('d/m/Y') : '-').'</span>');
+            ->add('join_date_display', fn (Employee $emp) => '<span class="font-mono text-xs text-zinc-600 dark:text-zinc-400">'.($emp->currentEmployment?->join_date ? $emp->currentEmployment->join_date->format('d/m/Y') : '-').'</span>')
+            ->add('disciplinary_badge', function (Employee $emp) {
+                $activeSp = $emp->activeWarningLetters->first();
+                if ($activeSp) {
+                    $typeName = e($activeSp->warningLetterType?->name ?? 'SP');
+                    $validUntil = $activeSp->valid_until ? $activeSp->valid_until->format('d/m/Y') : '-';
+
+                    return '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800" title="Berlaku s.d. '.$validUntil.'">SP Aktif: '.$typeName.'</span>';
+                }
+
+                return '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-normal text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800">Tertib</span>';
+            });
     }
 
     public function columns(): array
@@ -101,6 +112,8 @@ final class EmployeeReportTable extends PowerGridComponent
             Column::make('Ikatan Kerja', 'contract_badge'),
 
             Column::make('Mulai Tugas', 'join_date_display'),
+
+            Column::make('Kedisiplinan', 'disciplinary_badge'),
 
             Column::action('Aksi'),
         ];

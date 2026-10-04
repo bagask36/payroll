@@ -53,7 +53,7 @@ class EmployeeReportIndex extends Component
 
     public function exportCsv()
     {
-        $query = Employee::with(['unit', 'position', 'currentEmployment']);
+        $query = Employee::with(['unit', 'position', 'currentEmployment', 'activeWarningLetters.warningLetterType']);
 
         if ($this->statusFilter === 'active') {
             $query->where('status', 'active');
@@ -80,9 +80,14 @@ class EmployeeReportIndex extends Component
 
         $callback = function () use ($employees) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['NIP', 'Nama Lengkap', 'Unit Kerja', 'Jabatan', 'Status Karyawan', 'Tipe Kontrak', 'Tanggal Bergabung']);
+            fputcsv($file, ['NIP', 'Nama Lengkap', 'Unit Kerja', 'Jabatan', 'Status Karyawan', 'Tipe Kontrak', 'Tanggal Bergabung', 'Status Kedisiplinan / SP']);
 
             foreach ($employees as $emp) {
+                $activeSp = $emp->activeWarningLetters->first();
+                $spStatus = $activeSp 
+                    ? ($activeSp->warningLetterType?->name ?? 'SP') . ' (' . $activeSp->letter_number . ' s/d ' . ($activeSp->valid_until ? $activeSp->valid_until->format('d/m/Y') : '-') . ')'
+                    : 'Tertib (Bebas Sanksi)';
+
                 fputcsv($file, [
                     $emp->nip,
                     $emp->full_name,
@@ -91,6 +96,7 @@ class EmployeeReportIndex extends Component
                     $emp->status,
                     $emp->currentEmployment?->contract_type ?? '-',
                     $emp->currentEmployment?->join_date?->format('d/m/Y') ?? '-',
+                    $spStatus,
                 ]);
             }
             fclose($file);
@@ -101,7 +107,7 @@ class EmployeeReportIndex extends Component
 
     public function render()
     {
-        $query = Employee::with(['unit', 'position', 'currentEmployment']);
+        $query = Employee::with(['unit', 'position', 'currentEmployment', 'activeWarningLetters.warningLetterType']);
 
         if (! empty($this->search)) {
             $query->where(function ($q) {
@@ -132,6 +138,7 @@ class EmployeeReportIndex extends Component
         $totalActive = Employee::where('status', 'active')->count();
         $totalPermanent = Employee::whereHas('currentEmployment', fn ($q) => $q->where('contract_type', 'permanent'))->count();
         $totalContract = Employee::whereHas('currentEmployment', fn ($q) => $q->where('contract_type', 'contract'))->count();
+        $totalWithActiveSp = Employee::whereHas('warningLetters', fn ($q) => $q->active())->count();
 
         return view('livewire.report.employee-report-index', [
             'employees' => $employees,
@@ -139,6 +146,7 @@ class EmployeeReportIndex extends Component
             'totalActive' => $totalActive,
             'totalPermanent' => $totalPermanent,
             'totalContract' => $totalContract,
+            'totalWithActiveSp' => $totalWithActiveSp,
         ]);
     }
 }

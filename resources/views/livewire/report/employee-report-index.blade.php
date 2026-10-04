@@ -24,7 +24,7 @@
     </div>
 
     {{-- Metrics Cards --}}
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs">
             <div class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Pegawai Aktif</div>
             <div class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">{{ $totalActive }}</div>
@@ -39,6 +39,15 @@
             <div class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Pegawai Kontrak (PKWT)</div>
             <div class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">{{ $totalContract }}</div>
             <div class="text-xs text-amber-600 dark:text-amber-400 mt-1 font-medium">Kontrak berkala</div>
+        </div>
+        <div class="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs">
+            <div class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Dalam Sanksi (SP Aktif)</div>
+            <div class="text-2xl font-bold {{ $totalWithActiveSp > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-zinc-900 dark:text-zinc-100' }} mt-1">
+                {{ $totalWithActiveSp }}
+            </div>
+            <div class="text-xs {{ $totalWithActiveSp > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-zinc-400' }} mt-1 font-medium">
+                {{ $totalWithActiveSp > 0 ? 'Perlu evaluasi kontrak' : 'Tidak ada sanksi aktif' }}
+            </div>
         </div>
     </div>
 

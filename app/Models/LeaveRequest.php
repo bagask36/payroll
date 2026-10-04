@@ -122,6 +122,34 @@ class LeaveRequest extends Model
     }
 
     /**
+     * Get the dynamic approval chain for this leave request.
+     *
+     * @return array<int, array{tier: int, title: string, approver_type: string, position_id: ?int, position_title: ?string, is_hr_final: bool}>
+     */
+    public function getApprovalChain(): array
+    {
+        return app(LeaveApprovalChainService::class)->buildChain($this);
+    }
+
+    /**
+     * Get the current pending stage for this leave request.
+     *
+     * @return array{tier: int, title: string, approver_type: string, position_id: ?int, position_title: ?string, is_hr_final: bool}|null
+     */
+    public function getCurrentPendingStage(): ?array
+    {
+        return app(LeaveApprovalChainService::class)->getCurrentPendingStage($this);
+    }
+
+    /**
+     * Advance approval for the current stage via the approval engine.
+     */
+    public function approveStage(User $approver, ?string $notes = null): void
+    {
+        app(LeaveApprovalChainService::class)->approveStage($approver, $this, $notes);
+    }
+
+    /**
      * Tier 1 Approval (Supervisor / Unit Head).
      */
     public function approveTier1(User $approver, ?string $notes = null): void

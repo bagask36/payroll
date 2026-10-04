@@ -57,6 +57,9 @@ final class PositionTable extends PowerGridComponent
                 : '<span class="text-zinc-400 text-xs italic">-</span>')
             ->add('default_positional_allowance_formatted', fn (Position $p) => $p->default_positional_allowance
                 ? '<span class="font-mono text-xs font-medium text-emerald-700 dark:text-emerald-400">Rp '.number_format((float) $p->default_positional_allowance, 0, ',', '.').'</span>'
+                : '<span class="text-zinc-400 text-xs italic">-</span>')
+            ->add('default_contract_number', fn (Position $p) => $p->default_contract_number
+                ? '<div class="flex items-center gap-1 font-mono text-xs text-zinc-800 dark:text-zinc-200"><span>'.e($p->default_contract_number).'</span>'.($p->document_id ? '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-sans font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">Berkas SK</span>' : '').'</div>'
                 : '<span class="text-zinc-400 text-xs italic">-</span>');
     }
 
@@ -76,6 +79,10 @@ final class PositionTable extends PowerGridComponent
                 ->sortable(),
 
             Column::make('Golongan / Jenjang', 'grade', 'positions.grade_level')
+                ->searchable()
+                ->sortable(),
+
+            Column::make('SK Formasi Jabatan', 'default_contract_number', 'positions.default_contract_number')
                 ->searchable()
                 ->sortable(),
 
