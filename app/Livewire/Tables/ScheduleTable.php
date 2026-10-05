@@ -74,7 +74,7 @@ final class ScheduleTable extends PowerGridComponent
                 if (! $row->schedule_date) {
                     return '-';
                 }
-                $dayName = $row->schedule_date->translatedFormat('l');
+                $dayName = $row->schedule_date->locale('id')->translatedFormat('l');
                 $dateFormatted = $row->schedule_date->format('d/m/Y');
 
                 return '

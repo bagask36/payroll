@@ -7,10 +7,14 @@ use App\Contracts\FaceAiService;
 use App\Models\User;
 use App\Services\Audit\AuditService;
 use App\Services\Document\DocumentService;
+use App\Services\Document\GoogleDriveStorageProvider;
 use App\Services\Document\LocalStorageProvider;
 use App\Services\FaceAi\LocalMockFaceAiService;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use PowerComponents\LivewirePowerGrid\Components\SetUp\Exportable;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(DocumentStorageProvider::class, function () {
-            $gdrive = new \App\Services\Document\GoogleDriveStorageProvider;
+            $gdrive = new GoogleDriveStorageProvider;
             if ($gdrive->isConfigured()) {
                 return $gdrive;
             }
@@ -41,12 +45,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        date_default_timezone_set(config('app.timezone', 'Asia/Jakarta'));
+        Carbon::setLocale('id');
+
         if (! app()->environment('local') || str_starts_with((string) config('app.url'), 'https://')) {
-            \Illuminate\Support\Facades\URL::forceScheme('https');
+            URL::forceScheme('https');
         }
 
         if (! class_exists('PowerComponents\LivewirePowerGrid\Exportable')) {
-            class_alias(\PowerComponents\LivewirePowerGrid\Components\SetUp\Exportable::class, 'PowerComponents\LivewirePowerGrid\Exportable');
+            class_alias(Exportable::class, 'PowerComponents\LivewirePowerGrid\Exportable');
         }
 
         Gate::before(function (User $user, string $ability): ?bool {

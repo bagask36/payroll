@@ -46,7 +46,7 @@
         <div class="flex flex-wrap items-center gap-2">
             <flux:button size="sm" variant="subtle" icon="chevron-left" wire:click="previousWeek" />
             <div class="px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 text-xs font-semibold text-zinc-900 dark:text-zinc-100 font-mono">
-                {{ $startDate->translatedFormat('d M Y') }} — {{ $endDate->translatedFormat('d M Y') }}
+                {{ $startDate->locale('id')->translatedFormat('d M Y') }} — {{ $endDate->locale('id')->translatedFormat('d M Y') }}
             </div>
             <flux:button size="sm" variant="subtle" icon="chevron-right" wire:click="nextWeek" />
             <flux:button size="sm" variant="subtle" wire:click="currentWeek">Minggu Ini</flux:button>
@@ -145,11 +145,16 @@
                     @if($dateSelectionMode === 'single')
                         <div>
                             <flux:input 
-                                wire:model="scheduleDate" 
+                                wire:model.live="scheduleDate" 
                                 label="Tanggal Dinas" 
                                 type="date" 
                                 required 
                             />
+                            @if($scheduleDate)
+                                <div class="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                                    Hari: <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ \Carbon\Carbon::parse($scheduleDate)->locale('id')->isoFormat('dddd, D MMMM Y') }}</span>
+                                </div>
+                            @endif
                         </div>
                     @endif
 
@@ -157,18 +162,32 @@
                     @if($dateSelectionMode === 'range')
                         <div class="space-y-3">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <flux:input 
-                                    wire:model="rangeStartDate" 
-                                    label="Dari Tanggal" 
-                                    type="date" 
-                                    required 
-                                />
-                                <flux:input 
-                                    wire:model="rangeEndDate" 
-                                    label="Sampai Tanggal" 
-                                    type="date" 
-                                    required 
-                                />
+                                <div>
+                                    <flux:input 
+                                        wire:model.live="rangeStartDate" 
+                                        label="Dari Tanggal" 
+                                        type="date" 
+                                        required 
+                                    />
+                                    @if($rangeStartDate)
+                                        <div class="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+                                            {{ \Carbon\Carbon::parse($rangeStartDate)->locale('id')->isoFormat('dddd, D MMM Y') }}
+                                        </div>
+                                    @endif
+                                </div>
+                                <div>
+                                    <flux:input 
+                                        wire:model.live="rangeEndDate" 
+                                        label="Sampai Tanggal" 
+                                        type="date" 
+                                        required 
+                                    />
+                                    @if($rangeEndDate)
+                                        <div class="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
+                                            {{ \Carbon\Carbon::parse($rangeEndDate)->locale('id')->isoFormat('dddd, D MMM Y') }}
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
 
                             <div>
@@ -220,12 +239,12 @@
                             @if(! empty($scheduleDates))
                                 <div class="flex flex-wrap items-center gap-1.5 pt-1">
                                     @foreach($scheduleDates as $d)
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                                            <span>{{ \Carbon\Carbon::parse($d)->translatedFormat('d M Y (D)') }}</span>
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                                            <span>{{ \Carbon\Carbon::parse($d)->locale('id')->isoFormat('dddd, D MMM Y') }}</span>
                                             <button 
                                                 type="button" 
                                                 wire:click="removeSpecificDate('{{ $d }}')" 
-                                                class="text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-100"
+                                                class="text-emerald-600 hover:text-emerald-900 dark:hover:text-emerald-100 cursor-pointer"
                                                 title="Hapus"
                                             >
                                                 &times;
