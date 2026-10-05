@@ -5,6 +5,7 @@ namespace App\Livewire\Master;
 use App\Models\LeaveType;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -75,7 +76,7 @@ class LeaveTypeIndex extends Component
     public function saveLeaveType(AuditService $auditService): void
     {
         $this->validate([
-            'leaveTypeCode' => 'required|string|max:20|unique:leave_types,code,'.$this->editingLeaveTypeId,
+            'leaveTypeCode' => ['required', 'string', 'max:20', Rule::unique('leave_types', 'code')->ignore($this->editingLeaveTypeId)],
             'leaveTypeName' => 'required|string|max:100',
             'leaveTypeDefaultDays' => 'required|integer|min:0|max:365',
         ]);

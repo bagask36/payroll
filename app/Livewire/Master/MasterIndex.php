@@ -12,6 +12,7 @@ use App\Models\Shift;
 use App\Models\Unit;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -196,7 +197,7 @@ class MasterIndex extends Component
     public function saveUnit(AuditService $auditService): void
     {
         $this->validate([
-            'unitCode' => 'required|string|max:20|unique:units,code,'.$this->editingUnitId,
+            'unitCode' => ['required', 'string', 'max:20', Rule::unique('units', 'code')->ignore($this->editingUnitId)],
             'unitName' => 'required|string|max:100',
             'unitDepartmentId' => 'required|exists:departments,id',
         ]);
@@ -309,7 +310,7 @@ class MasterIndex extends Component
     public function saveShift(AuditService $auditService): void
     {
         $this->validate([
-            'shiftCode' => 'required|string|max:20|unique:shifts,code,'.$this->editingShiftId,
+            'shiftCode' => ['required', 'string', 'max:20', Rule::unique('shifts', 'code')->ignore($this->editingShiftId)],
             'shiftName' => 'required|string|max:100',
             'shiftType' => 'required|in:shift,non_shift',
             'shiftStartTime' => 'required|date_format:H:i',
@@ -376,7 +377,7 @@ class MasterIndex extends Component
     public function saveLeaveType(AuditService $auditService): void
     {
         $this->validate([
-            'leaveTypeCode' => 'required|string|max:20|unique:leave_types,code,'.$this->editingLeaveTypeId,
+            'leaveTypeCode' => ['required', 'string', 'max:20', Rule::unique('leave_types', 'code')->ignore($this->editingLeaveTypeId)],
             'leaveTypeName' => 'required|string|max:100',
             'leaveTypeDefaultDays' => 'required|integer|min:0|max:365',
         ]);
@@ -598,7 +599,7 @@ class MasterIndex extends Component
     public function saveWarningLetterType(AuditService $auditService): void
     {
         $this->validate([
-            'wltCode' => 'required|string|max:50|unique:warning_letter_types,code,'.$this->editingWarningLetterTypeId,
+            'wltCode' => ['required', 'string', 'max:50', Rule::unique('warning_letter_types', 'code')->ignore($this->editingWarningLetterTypeId)],
             'wltName' => 'required|string|max:150',
             'wltLevel' => 'required|integer|min:0|max:10',
             'wltValidityMonths' => 'required|integer|min:1|max:60',

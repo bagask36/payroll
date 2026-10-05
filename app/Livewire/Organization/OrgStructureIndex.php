@@ -8,6 +8,7 @@ use App\Models\Position;
 use App\Models\Unit;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
@@ -109,7 +110,7 @@ class OrgStructureIndex extends Component
         }
 
         $this->validate([
-            'deptCode' => 'required|string|max:20|unique:departments,code,'.$this->editingDeptId,
+            'deptCode' => ['required', 'string', 'max:20', Rule::unique('departments', 'code')->ignore($this->editingDeptId)],
             'deptName' => 'required|string|max:100',
             'deptParentId' => 'nullable|exists:departments,id',
         ]);
@@ -244,7 +245,7 @@ class OrgStructureIndex extends Component
         }
 
         $this->validate([
-            'unitCode' => 'required|string|max:20|unique:units,code,'.$this->editingUnitId,
+            'unitCode' => ['required', 'string', 'max:20', Rule::unique('units', 'code')->ignore($this->editingUnitId)],
             'unitName' => 'required|string|max:100',
             'unitDepartmentId' => 'required|exists:departments,id',
         ]);

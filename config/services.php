@@ -44,4 +44,11 @@ return [
         'shared_drive_id' => env('GOOGLE_DRIVE_SHARED_DRIVE_ID'),
     ],
 
+    'face_ai' => [
+        'url' => env('FACE_AI_SERVICE_URL'),
+        'secret' => env('FACE_AI_SECRET'),
+        'similarity_threshold' => (float) env('FACE_AI_SIMILARITY_THRESHOLD', 0.80),
+        'liveness_threshold' => (float) env('FACE_AI_LIVENESS_THRESHOLD', 0.70),
+    ],
+
 ];

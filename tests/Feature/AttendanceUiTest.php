@@ -531,4 +531,112 @@ class AttendanceUiTest extends TestCase
 
         $this->assertFalse(Cache::has('active_geofence_location'));
     }
+
+    public function test_clock_in_rejected_when_actual_facial_features_differ_from_enrolled_biometrics(): void
+    {
+        $faceAi = app(FaceAiService::class);
+
+        // Person A image (enrolled face)
+        $imgA = imagecreatetruecolor(100, 100);
+        imagefilledrectangle($imgA, 0, 0, 99, 99, imagecolorallocate($imgA, 220, 200, 180));
+        imagefilledellipse($imgA, 50, 50, 60, 70, imagecolorallocate($imgA, 240, 210, 190));
+        imagefilledellipse($imgA, 40, 45, 10, 8, imagecolorallocate($imgA, 50, 40, 30));
+        imagefilledellipse($imgA, 60, 45, 10, 8, imagecolorallocate($imgA, 50, 40, 30));
+        ob_start();
+        imagejpeg($imgA);
+        $rawA = ob_get_clean();
+
+        $enrolledVector = $faceAi->extractEmbedding($rawA)->embedding;
+
+        // Person B image (different face trying to clock in)
+        $imgB = imagecreatetruecolor(100, 100);
+        imagefilledrectangle($imgB, 0, 0, 99, 99, imagecolorallocate($imgB, 50, 50, 60));
+        imagefilledellipse($imgB, 50, 50, 80, 50, imagecolorallocate($imgB, 120, 90, 80));
+        imagefilledellipse($imgB, 35, 40, 16, 14, imagecolorallocate($imgB, 10, 10, 10));
+        imagefilledellipse($imgB, 65, 40, 16, 14, imagecolorallocate($imgB, 10, 10, 10));
+        ob_start();
+        imagejpeg($imgB);
+        $rawB = ob_get_clean();
+
+        $capturedBase64 = 'data:image/jpeg;base64,'.base64_encode($rawB);
+
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('employee');
+
+        $employee = Employee::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'ACTIVE',
+            'face_biometric_vector' => $enrolledVector,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(ClockInOut::class)
+            ->call('updateCoordinates', -6.195000, 106.820000)
+            ->set('faceImageBase64', $capturedBase64)
+            ->call('clockIn')
+            ->assertSee('Wajah tidak cocok dengan data biometrik terdaftar');
+
+        $this->assertDatabaseMissing('attendances', [
+            'employee_id' => $employee->id,
+            'date' => Carbon::today()->toDateString(),
+        ]);
+    }
+
+    public function test_clock_in_rejected_when_enrolled_employee_does_not_provide_face_photo(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('employee');
+
+        $employee = Employee::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'ACTIVE',
+            'face_biometric_vector' => [0.1, 0.2, 0.3],
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(ClockInOut::class)
+            ->call('updateCoordinates', -6.195000, 106.820000)
+            ->set('faceImageBase64', null)
+            ->call('clockIn')
+            ->assertSee('Data biometrik wajah terdaftar pada profil Anda. Wajib mengambil foto wajah untuk presensi.');
+
+        $this->assertDatabaseMissing('attendances', [
+            'employee_id' => $employee->id,
+            'date' => Carbon::today()->toDateString(),
+        ]);
+    }
+
+    public function test_clock_in_rejected_when_client_liveness_score_is_low(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('employee');
+
+        $employee = Employee::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'ACTIVE',
+        ]);
+
+        $this->actingAs($user);
+
+        // Generate valid jpeg image
+        $img = imagecreatetruecolor(100, 100);
+        ob_start();
+        imagejpeg($img);
+        $raw = ob_get_clean();
+        $capturedBase64 = 'data:image/jpeg;base64,'.base64_encode($raw);
+
+        Livewire::test(ClockInOut::class)
+            ->call('updateCoordinates', -6.195000, 106.820000)
+            ->set('faceImageBase64', $capturedBase64)
+            ->set('clientLivenessScore', 0.25) // Low liveness (< 0.50 motion)
+            ->call('clockIn')
+            ->assertSee('Verifikasi keaslian wajah gagal');
+
+        $this->assertDatabaseMissing('attendances', [
+            'employee_id' => $employee->id,
+            'date' => Carbon::today()->toDateString(),
+        ]);
+    }
 }

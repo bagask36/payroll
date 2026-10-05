@@ -453,6 +453,11 @@
                         if (this.countdown > 1) {
                             this.countdown--;
                         } else {
+                            if (this.motionProgress < 40 && !this.motionThresholdPassed && this.countdownAttempts < 3) {
+                                this.countdownAttempts = (this.countdownAttempts || 0) + 1;
+                                this.countdown = 2;
+                                return;
+                            }
                             this.countdown = 0;
                             clearInterval(this.countdownTimer);
                             this.countdownTimer = null;
@@ -487,6 +492,7 @@
                     @this.generateChallenge();
                     this.motionProgress = 0;
                     this.motionThresholdPassed = false;
+                    this.countdownAttempts = 0;
                     this.startCountdown();
                 },
 
@@ -497,8 +503,10 @@
                     }
                     @this.set('faceImageBase64', null);
                     @this.set('livenessPassed', false);
+                    @this.set('clientLivenessScore', 0.0);
                     this.motionProgress = 0;
                     this.motionThresholdPassed = false;
+                    this.countdownAttempts = 0;
                     this.startCamera();
                 },
 
@@ -537,7 +545,7 @@
                                     this.motionProgress = Math.max(0, this.motionProgress - 1);
                                 }
 
-                                if (this.motionProgress >= 70) {
+                                if (this.motionProgress >= 60) {
                                     this.motionThresholdPassed = true;
                                 }
                             }
@@ -571,8 +579,10 @@
                     ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
                     const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                     
+                    const clientScore = Math.min(1.0, Math.max(0.1, this.motionProgress / 100));
+                    @this.set('clientLivenessScore', clientScore);
                     @this.set('faceImageBase64', dataUrl);
-                    @this.set('livenessPassed', true);
+                    @this.set('livenessPassed', this.motionProgress >= 50 || this.motionThresholdPassed);
                     this.stopCamera();
                 }
             };

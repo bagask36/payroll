@@ -5,6 +5,7 @@ namespace App\Livewire\Master;
 use App\Models\WarningLetterType;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -80,7 +81,7 @@ class WarningLetterTypeIndex extends Component
     public function save(AuditService $auditService): void
     {
         $this->validate([
-            'code' => 'required|string|max:50|unique:warning_letter_types,code,'.$this->editingId,
+            'code' => ['required', 'string', 'max:50', Rule::unique('warning_letter_types', 'code')->ignore($this->editingId)],
             'name' => 'required|string|max:150',
             'level' => 'required|integer|min:0|max:10',
             'validityMonths' => 'required|integer|min:1|max:60',

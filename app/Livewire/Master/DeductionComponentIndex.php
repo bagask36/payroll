@@ -5,6 +5,7 @@ namespace App\Livewire\Master;
 use App\Models\SalaryComponent;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -74,7 +75,7 @@ class DeductionComponentIndex extends Component
     public function save(AuditService $auditService): void
     {
         $this->validate([
-            'code' => 'required|string|max:50|unique:salary_components,code,' . $this->editingId,
+            'code' => ['required', 'string', 'max:50', Rule::unique('salary_components', 'code')->ignore($this->editingId)],
             'name' => 'required|string|max:100',
             'defaultAmount' => 'required|numeric|min:0',
             'description' => 'nullable|string|max:255',

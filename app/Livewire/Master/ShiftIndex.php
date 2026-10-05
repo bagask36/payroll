@@ -5,6 +5,7 @@ namespace App\Livewire\Master;
 use App\Models\Shift;
 use App\Services\Audit\AuditService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -79,7 +80,7 @@ class ShiftIndex extends Component
     public function saveShift(AuditService $auditService): void
     {
         $this->validate([
-            'shiftCode' => 'required|string|max:20|unique:shifts,code,'.$this->editingShiftId,
+            'shiftCode' => ['required', 'string', 'max:20', Rule::unique('shifts', 'code')->ignore($this->editingShiftId)],
             'shiftName' => 'required|string|max:100',
             'shiftStartTime' => 'required',
             'shiftEndTime' => 'required',

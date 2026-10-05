@@ -46,6 +46,8 @@ class ClockInOut extends Component
 
     public bool $livenessPassed = false;
 
+    public float $clientLivenessScore = 0.0;
+
     public function mount(): void
     {
         $this->authorize('checkInOut', Attendance::class);
@@ -176,23 +178,46 @@ class ClockInOut extends Component
         $similarity = 0.95;
         $liveness = 0.98;
 
+        $referenceVector = $user?->employee?->face_biometric_vector ?? [];
+
+        // If employee has enrolled biometric data, capturing a face photo is mandatory
+        if (! empty($referenceVector) && empty($this->faceImageBase64)) {
+            $this->errorMessage = 'Data biometrik wajah terdaftar pada profil Anda. Wajib mengambil foto wajah untuk presensi.';
+
+            return;
+        }
+
         if ($this->faceImageBase64) {
-            $livenessResult = $faceAiService->checkLiveness($this->faceImageBase64);
-            if (! $livenessResult->isLive) {
-                $this->errorMessage = 'Verifikasi keaslian wajah gagal: '.$livenessResult->errorMessage;
+            $livenessOptions = [];
+            if ($this->clientLivenessScore > 0) {
+                $livenessOptions['motion_score'] = $this->clientLivenessScore;
+            }
+
+            $livenessResult = $faceAiService->checkLiveness($this->faceImageBase64, $livenessOptions);
+            $livenessThreshold = (float) config('services.face_ai.liveness_threshold', 0.70);
+
+            if (! $livenessResult->isLive || $livenessResult->confidenceScore < $livenessThreshold) {
+                $pct = round($livenessResult->confidenceScore * 100);
+                $minPct = round($livenessThreshold * 100);
+                $reason = $livenessResult->errorMessage ?: 'Tingkat keaslian gerak hidup rendah (minimal '.round($livenessThreshold * 100).'%)';
+                $this->errorMessage = 'Verifikasi keaslian wajah gagal: '.$reason;
 
                 return;
             }
 
-            $referenceVector = $user?->employee?->face_biometric_vector ?? [];
             if (! empty($referenceVector)) {
-                $verification = $faceAiService->verify($this->faceImageBase64, $referenceVector);
-                if (! $verification->isMatched) {
-                    $this->errorMessage = 'Wajah tidak cocok dengan data biometrik terdaftar (kemiripan: '.round($verification->similarityScore * 100).'%).';
+                $similarityThreshold = (float) config('services.face_ai.similarity_threshold', 0.80);
+                $verification = $faceAiService->verify($this->faceImageBase64, $referenceVector, ['threshold' => $similarityThreshold]);
+
+                if (! $verification->isMatched || $verification->similarityScore < $similarityThreshold) {
+                    $pct = round($verification->similarityScore * 100);
+                    $minPct = round($similarityThreshold * 100);
+                    $this->errorMessage = "Wajah tidak cocok dengan data biometrik terdaftar (kemiripan: {$pct}%, minimal: {$minPct}%). Presensi ditolak.";
 
                     return;
                 }
-                $faceMatched = $verification->isMatched;
+
+                $faceMatched = true;
                 $similarity = $verification->similarityScore;
             }
 
@@ -282,24 +307,47 @@ class ClockInOut extends Component
         $similarity = 0.95;
         $liveness = 0.98;
 
+        $user = Auth::user();
+        $referenceVector = $user?->employee?->face_biometric_vector ?? [];
+
+        // If employee has enrolled biometric data, capturing a face photo is mandatory
+        if (! empty($referenceVector) && empty($this->faceImageBase64)) {
+            $this->errorMessage = 'Data biometrik wajah terdaftar pada profil Anda. Wajib mengambil foto wajah untuk presensi.';
+
+            return;
+        }
+
         if ($this->faceImageBase64) {
-            $livenessResult = $faceAiService->checkLiveness($this->faceImageBase64);
-            if (! $livenessResult->isLive) {
-                $this->errorMessage = 'Verifikasi keaslian wajah gagal: '.$livenessResult->errorMessage;
+            $livenessOptions = [];
+            if ($this->clientLivenessScore > 0) {
+                $livenessOptions['motion_score'] = $this->clientLivenessScore;
+            }
+
+            $livenessResult = $faceAiService->checkLiveness($this->faceImageBase64, $livenessOptions);
+            $livenessThreshold = (float) config('services.face_ai.liveness_threshold', 0.70);
+
+            if (! $livenessResult->isLive || $livenessResult->confidenceScore < $livenessThreshold) {
+                $pct = round($livenessResult->confidenceScore * 100);
+                $minPct = round($livenessThreshold * 100);
+                $reason = $livenessResult->errorMessage ?: 'Tingkat keaslian gerak hidup rendah (minimal '.round($livenessThreshold * 100).'%)';
+                $this->errorMessage = 'Verifikasi keaslian wajah gagal: '.$reason;
 
                 return;
             }
 
-            $user = Auth::user();
-            $referenceVector = $user?->employee?->face_biometric_vector ?? [];
             if (! empty($referenceVector)) {
-                $verification = $faceAiService->verify($this->faceImageBase64, $referenceVector);
-                if (! $verification->isMatched) {
-                    $this->errorMessage = 'Wajah tidak cocok dengan data biometrik terdaftar (kemiripan: '.round($verification->similarityScore * 100).'%).';
+                $similarityThreshold = (float) config('services.face_ai.similarity_threshold', 0.80);
+                $verification = $faceAiService->verify($this->faceImageBase64, $referenceVector, ['threshold' => $similarityThreshold]);
+
+                if (! $verification->isMatched || $verification->similarityScore < $similarityThreshold) {
+                    $pct = round($verification->similarityScore * 100);
+                    $minPct = round($similarityThreshold * 100);
+                    $this->errorMessage = "Wajah tidak cocok dengan data biometrik terdaftar (kemiripan: {$pct}%, minimal: {$minPct}%). Presensi ditolak.";
 
                     return;
                 }
-                $faceMatched = $verification->isMatched;
+
+                $faceMatched = true;
                 $similarity = $verification->similarityScore;
             }
 
