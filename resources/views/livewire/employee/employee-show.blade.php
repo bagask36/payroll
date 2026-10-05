@@ -1101,8 +1101,8 @@
                                 <flux:icon name="shield-check" class="w-4 h-4 text-emerald-600" />
                                 Standar Kepatuhan Privasi Data (UU PDP)
                             </div>
-                            <p>
-                                Vektor biometrik disimpan dalam bentuk enkripsi kriptografi satu arah di basis data PostgreSQL. Foto fisik wajah tidak disimpan di Google Drive maupun storage publik.
+                            <p>Vektor biometrik disimpan dalam bentuk enkripsi kriptografi.
+                                
                             </p>
                         </div>
 
