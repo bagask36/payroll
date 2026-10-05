@@ -7,13 +7,22 @@
                     Kembali ke Direktori
                 </flux:button>
             </a>
-            <div>
-                <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                    {{ $employee->name }}
-                </flux:heading>
-                <flux:subheading class="text-zinc-500 font-mono text-xs">
-                    NIP: {{ $employee->nip }}
-                </flux:subheading>
+            <div class="flex items-center gap-3">
+                @if($employee->profile_photo_url)
+                    <img src="{{ $employee->profile_photo_url }}" class="size-11 rounded-2xl object-cover ring-2 ring-emerald-500/20 shadow-xs" alt="{{ $employee->name }}" />
+                @else
+                    <div class="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 font-mono text-sm font-bold text-white shadow-xs">
+                        {{ strtoupper(substr($employee->name, 0, 2)) }}
+                    </div>
+                @endif
+                <div>
+                    <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                        {{ $employee->name }}
+                    </flux:heading>
+                    <flux:subheading class="text-zinc-500 font-mono text-xs">
+                        NIP: {{ $employee->nip }}
+                    </flux:subheading>
+                </div>
             </div>
         </div>
 
@@ -222,6 +231,24 @@
                     </span>
                 @endif
             </flux:button>
+
+            @if($canManageAccount || $canUploadPhoto)
+                <flux:button 
+                    size="sm" 
+                    icon="user-circle"
+                    :variant="$activeTab === 'account' ? 'primary' : 'subtle'" 
+                    wire:click="setTab('account')"
+                    data-active="{{ $activeTab === 'account' ? 'true' : 'false' }}"
+                    class="relative inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
+                >
+                    <span>Kelola Akun</span>
+                    @if(! $employee->user_id)
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white animate-pulse">
+                            Belum Ada Akun
+                        </span>
+                    @endif
+                </flux:button>
+            @endif
         </div>
     </div>
 
@@ -1460,6 +1487,272 @@
                     </table>
                 </div>
             </flux:card>
+        </div>
+    @endif
+
+    {{-- Tab 8: Kelola Akun & Kredensial (Account Management) --}}
+    @if($activeTab === 'account')
+        <div class="space-y-6">
+            {{-- Feedback & Error Banners --}}
+            @if($accountFeedback)
+                <div class="p-4 rounded-xl border border-emerald-300 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <flux:icon name="check-circle" class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span class="text-sm font-medium">{{ $accountFeedback }}</span>
+                    </div>
+                    <flux:button size="sm" variant="subtle" wire:click="$set('accountFeedback', null)">Tutup</flux:button>
+                </div>
+            @endif
+
+            @if($accountError)
+                <div class="p-4 rounded-xl border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-200 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <flux:icon name="exclamation-circle" class="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
+                        <span class="text-sm font-medium">{{ $accountError }}</span>
+                    </div>
+                    <flux:button size="sm" variant="subtle" wire:click="$set('accountError', null)">Tutup</flux:button>
+                </div>
+            @endif
+
+            @if(! $employee->user)
+                {{-- Pegawai Belum Memiliki Akun Pengguna --}}
+                <flux:card class="border-amber-200 dark:border-amber-800/80 bg-amber-50/50 dark:bg-amber-950/20 p-6 text-center space-y-4">
+                    <div class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400 shadow-xs">
+                        <flux:icon name="user-plus" class="size-7" />
+                    </div>
+                    <div class="max-w-md mx-auto space-y-1">
+                        <h3 class="text-lg font-bold text-zinc-900 dark:text-zinc-100">Pegawai Belum Memiliki Akun Pengguna</h3>
+                        <p class="text-sm text-zinc-600 dark:text-zinc-400">
+                            Pegawai ini terdaftar di master data kepegawaian namun belum memiliki kredensial untuk masuk ke aplikasi. Klik tombol di bawah untuk membuatkan akun pengguna secara otomatis.
+                        </p>
+                    </div>
+                    @if($canManageAccount)
+                        <div>
+                            <flux:button variant="primary" icon="sparkles" wire:click="provisionUserAccount" wire:loading.attr="disabled">
+                                <span wire:loading.remove wire:target="provisionUserAccount">Buat Akun Pengguna Sekarang</span>
+                                <span wire:loading wire:target="provisionUserAccount">Memproses Akun...</span>
+                            </flux:button>
+                        </div>
+                    @endif
+                </flux:card>
+            @else
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {{-- Kolom Kiri: Foto Profil & Info Akun --}}
+                    <div class="lg:col-span-5 space-y-6">
+                        {{-- Kartu Foto Profil --}}
+                        <flux:card class="space-y-5">
+                            <div>
+                                <flux:heading size="base" class="font-semibold text-zinc-900 dark:text-zinc-100">Foto Profil Pegawai</flux:heading>
+                                <flux:subheading class="text-xs text-zinc-500">Foto profil ditampilkan di navigasi dan kartu identitas pegawai.</flux:subheading>
+                            </div>
+
+                            <div class="flex flex-col items-center justify-center p-4 bg-zinc-50 dark:bg-zinc-800/40 rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-700/80 space-y-4">
+                                <div class="relative group">
+                                    @if($avatarUpload)
+                                        <img src="{{ $avatarUpload->temporaryUrl() }}" class="size-32 rounded-3xl object-cover ring-4 ring-emerald-500/30 shadow-md" alt="Preview Foto" />
+                                    @elseif($employee->user?->profile_photo_url)
+                                        <img src="{{ $employee->user->profile_photo_url }}" class="size-32 rounded-3xl object-cover ring-4 ring-emerald-500/20 shadow-md" alt="{{ $employee->full_name }}" />
+                                    @else
+                                        <div class="flex size-32 items-center justify-center rounded-3xl bg-gradient-to-tr from-emerald-600 to-teal-500 font-mono text-3xl font-bold text-white shadow-md">
+                                            {{ strtoupper(substr($employee->full_name, 0, 2)) }}
+                                        </div>
+                                    @endif
+
+                                    <div wire:loading wire:target="avatarUpload" class="absolute inset-0 rounded-3xl bg-black/50 flex items-center justify-center text-white text-xs font-semibold backdrop-blur-2xs">
+                                        Memuat...
+                                    </div>
+                                </div>
+
+                                <div class="w-full space-y-2 text-center">
+                                    @if($canUploadPhoto)
+                                        <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
+                                            <label class="cursor-pointer">
+                                                <input type="file" wire:model="avatarUpload" accept="image/jpeg,image/png,image/webp" class="hidden" />
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700/60 shadow-2xs transition-all">
+                                                    <flux:icon name="photo" class="size-4 text-emerald-600 dark:text-emerald-400" />
+                                                    Pilih Foto Baru
+                                                </span>
+                                            </label>
+
+                                            @if($avatarUpload)
+                                                <flux:button size="xs" variant="primary" icon="check" wire:click="uploadAvatar" wire:loading.attr="disabled">
+                                                    Simpan Foto
+                                                </flux:button>
+                                            @endif
+
+                                            @if($employee->user?->profile_photo_path)
+                                                <flux:button size="xs" variant="ghost" icon="trash" class="text-rose-600 hover:text-rose-700" wire:confirm="Hapus foto profil ini?" wire:click="deleteAvatar">
+                                                    Hapus Foto
+                                                </flux:button>
+                                            @endif
+                                        </div>
+                                        <p class="text-[11px] text-zinc-400">Format: JPG, PNG, atau WebP. Maksimal 2MB.</p>
+                                    @endif
+                                </div>
+                            </div>
+
+                            {{-- Ringkasan Akun --}}
+                            <div class="space-y-3 pt-3 border-t border-zinc-100 dark:border-zinc-800 text-xs">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-zinc-500 font-medium">Email Login:</span>
+                                    <span class="font-mono font-semibold text-zinc-900 dark:text-zinc-100">{{ $employee->user->email }}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-zinc-500 font-medium">Status Akun:</span>
+                                    <div>
+                                        @if($employee->user->is_active)
+                                            <flux:badge size="sm" color="emerald">Aktif</flux:badge>
+                                        @else
+                                            <flux:badge size="sm" color="rose">Dinonaktifkan</flux:badge>
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-zinc-500 font-medium">Tanggal Dibuat:</span>
+                                    <span class="text-zinc-700 dark:text-zinc-300">{{ $employee->user->created_at ? $employee->user->created_at->format('d M Y H:i') : '-' }}</span>
+                                </div>
+
+                                @if($canManageAccount && $employee->user->id !== auth()->id())
+                                    <div class="pt-2">
+                                        <flux:button 
+                                            size="sm" 
+                                            variant="{{ $employee->user->is_active ? 'subtle' : 'primary' }}" 
+                                            class="w-full text-xs" 
+                                            wire:confirm="Ubah status aktif akun ini?" 
+                                            wire:click="toggleUserStatus"
+                                        >
+                                            {{ $employee->user->is_active ? 'Nonaktifkan Akun Pengguna' : 'Aktifkan Akun Pengguna' }}
+                                        </flux:button>
+                                    </div>
+                                @endif
+                            </div>
+                        </flux:card>
+                    </div>
+
+                    {{-- Kolom Kanan: Reset Password & Kelola Roles --}}
+                    <div class="lg:col-span-7 space-y-6">
+                        {{-- Kartu Reset Password --}}
+                        <flux:card class="space-y-5">
+                            <div class="flex items-center justify-between gap-4">
+                                <div>
+                                    <flux:heading size="base" class="font-semibold text-zinc-900 dark:text-zinc-100">Reset Kata Sandi</flux:heading>
+                                    <flux:subheading class="text-xs text-zinc-500">Atur ulang kata sandi login untuk akun pegawai ini.</flux:subheading>
+                                </div>
+                                @if($canManageAccount)
+                                    <flux:button size="xs" variant="subtle" icon="arrow-path" wire:click="generateRandomPassword">
+                                        Buat Password Acak
+                                    </flux:button>
+                                @endif
+                            </div>
+
+                            @if($generatedPasswordNotice)
+                                <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 text-xs flex items-center justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <flux:icon name="key" class="size-4 text-amber-600 shrink-0" />
+                                        <span class="font-mono font-bold">{{ $generatedPasswordNotice }}</span>
+                                    </div>
+                                    <span class="text-[10px] text-amber-700 dark:text-amber-400">Klik "Simpan Password Baru" di bawah</span>
+                                </div>
+                            @endif
+
+                            @if($canManageAccount)
+                                <form wire:submit="resetPassword" class="space-y-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <flux:input 
+                                                wire:model="newPassword" 
+                                                label="Kata Sandi Baru" 
+                                                type="text" 
+                                                placeholder="Minimal 8 karakter..." 
+                                                required 
+                                            />
+                                            <flux:error name="newPassword" />
+                                        </div>
+
+                                        <div>
+                                            <flux:input 
+                                                wire:model="newPasswordConfirmation" 
+                                                label="Konfirmasi Kata Sandi Baru" 
+                                                type="text" 
+                                                placeholder="Ulangi kata sandi..." 
+                                                required 
+                                            />
+                                            <flux:error name="newPasswordConfirmation" />
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center justify-end">
+                                        <flux:button type="submit" variant="primary" icon="lock-closed" wire:loading.attr="disabled">
+                                            <span wire:loading.remove wire:target="resetPassword">Simpan Password Baru</span>
+                                            <span wire:loading wire:target="resetPassword">Menyimpan...</span>
+                                        </flux:button>
+                                    </div>
+                                </form>
+                            @else
+                                <p class="text-xs text-zinc-400 italic">Anda tidak memiliki wewenang untuk mereset kata sandi pegawai ini.</p>
+                            @endif
+                        </flux:card>
+
+                        {{-- Kartu Kelola Roles / Peran Akun --}}
+                        <flux:card class="space-y-5">
+                            <div>
+                                <flux:heading size="base" class="font-semibold text-zinc-900 dark:text-zinc-100">Peran &amp; Hak Akses Aplikasi (Roles)</flux:heading>
+                                <flux:subheading class="text-xs text-zinc-500">Tentukan wewenang yang dimiliki pegawai dalam sistem SIM SDM RS Juwita.</flux:subheading>
+                            </div>
+
+                            @if($canManageAccount)
+                                <form wire:submit="updateRoles" class="space-y-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        @foreach($availableRoles as $role)
+                                            @php
+                                                $isSuperRole = $role->name === 'super_admin';
+                                                $disabled = $isSuperRole && ! $isSuperAdmin;
+                                            @endphp
+                                            <label class="flex items-start gap-3 p-3 rounded-xl border border-zinc-200/80 dark:border-zinc-800 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/40 transition-colors cursor-pointer {{ $disabled ? 'opacity-50 cursor-not-allowed bg-zinc-100/40 dark:bg-zinc-900' : '' }}">
+                                                <input 
+                                                    type="checkbox" 
+                                                    value="{{ $role->name }}" 
+                                                    wire:model="selectedRoles" 
+                                                    class="mt-1 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500 dark:border-zinc-700 dark:bg-zinc-800"
+                                                    {{ $disabled ? 'disabled' : '' }}
+                                                />
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="flex items-center gap-1.5">
+                                                        <span class="text-xs font-bold text-zinc-900 dark:text-zinc-100">{{ $role->display_name ?? ucfirst(str_replace('_', ' ', $role->name)) }}</span>
+                                                        @if($isSuperRole)
+                                                            <flux:badge size="xs" color="rose">Root</flux:badge>
+                                                        @endif
+                                                    </div>
+                                                    <p class="text-[11px] text-zinc-500 mt-0.5 leading-snug">{{ $role->description }}</p>
+                                                </div>
+                                            </label>
+                                        @endforeach
+                                    </div>
+
+                                    <div class="flex items-center justify-between pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                                        <div class="text-xs text-zinc-500">
+                                            Role terpilih: <span class="font-bold text-zinc-800 dark:text-zinc-200">{{ count($selectedRoles) }} peran</span>
+                                        </div>
+
+                                        <flux:button type="submit" variant="primary" icon="shield-check" wire:loading.attr="disabled">
+                                            <span wire:loading.remove wire:target="updateRoles">Simpan Peran Akun</span>
+                                            <span wire:loading wire:target="updateRoles">Memproses...</span>
+                                        </flux:button>
+                                    </div>
+                                </form>
+                            @else
+                                <div class="flex flex-wrap gap-2">
+                                    @forelse($employee->user->roles as $role)
+                                        <flux:badge size="md" color="emerald">{{ $role->display_name ?? $role->name }}</flux:badge>
+                                    @empty
+                                        <span class="text-xs text-zinc-400 italic">Belum ada role yang diberikan.</span>
+                                    @endforelse
+                                </div>
+                            @endif
+                        </flux:card>
+                    </div>
+                </div>
+            @endif
         </div>
     @endif
 

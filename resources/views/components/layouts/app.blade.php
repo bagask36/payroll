@@ -300,9 +300,13 @@
                 <div class="px-1 py-2 border-t border-zinc-100 dark:border-zinc-800/80 pb-safe max-lg:pb-10">
                     <flux:dropdown position="top" align="start" class="w-full">
                         <button type="button" class="group flex w-full items-center gap-3 rounded-2xl p-2 text-left transition-all hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 cursor-pointer">
-                            <div class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 font-mono text-xs font-bold text-white shadow-xs">
-                                {{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 2)) }}
-                            </div>
+                            @if(auth()->user()?->profile_photo_url)
+                                <img src="{{ auth()->user()->profile_photo_url }}" class="size-9 shrink-0 rounded-xl object-cover ring-1 ring-zinc-200 dark:ring-zinc-700 shadow-xs" alt="{{ auth()->user()->name }}" />
+                            @else
+                                <div class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 font-mono text-xs font-bold text-white shadow-xs">
+                                    {{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 2)) }}
+                                </div>
+                            @endif
                             <div class="min-w-0 flex-1 in-data-flux-sidebar-collapsed-desktop:hidden">
                                 <div class="truncate text-xs font-bold text-zinc-800 dark:text-zinc-200">
                                     {{ auth()->user()?->name ?? 'Pengguna' }}
@@ -398,9 +402,13 @@
                 {{-- Executive User Profile Capsule --}}
                 <flux:dropdown position="bottom" align="end" class="max-md:hidden">
                     <button type="button" class="flex items-center gap-2.5 p-1 pe-2.5 rounded-xl border border-zinc-200/80 bg-zinc-50/60 hover:bg-zinc-100 hover:border-zinc-300 dark:border-zinc-800 dark:bg-zinc-800/40 dark:hover:bg-zinc-800 transition-all cursor-pointer shadow-2xs">
-                        <div class="size-7.5 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-bold text-xs flex items-center justify-center shadow-xs">
-                            {{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 2)) }}
-                        </div>
+                        @if(auth()->user()?->profile_photo_url)
+                            <img src="{{ auth()->user()->profile_photo_url }}" class="size-7.5 shrink-0 rounded-lg object-cover ring-1 ring-zinc-200 dark:ring-zinc-700 shadow-xs" alt="{{ auth()->user()->name }}" />
+                        @else
+                            <div class="size-7.5 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-500 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+                                {{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 2)) }}
+                            </div>
+                        @endif
                         <div class="text-left hidden lg:block leading-tight max-w-[130px]">
                             <div class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">
                                 {{ auth()->user()?->name ?? 'User' }}

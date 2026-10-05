@@ -7,9 +7,12 @@ use App\Models\Employee;
 use App\Models\EmployeeEmployment;
 use App\Models\Position;
 use App\Models\Unit;
+use App\Models\User;
 use App\Services\Audit\AuditService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
@@ -47,7 +50,7 @@ class EmployeeIndex extends Component
     #[Rule(['required', 'string', 'max:25'])]
     public string $phone = '';
 
-    #[Rule(['nullable', 'email', 'max:150', 'unique:employees,email'])]
+    #[Rule(['nullable', 'email', 'max:150', 'unique:employees,email', 'unique:users,email'])]
     public string $email = '';
 
     #[Rule(['required', 'in:male,female'])]
@@ -130,48 +133,91 @@ class EmployeeIndex extends Component
         $this->authorize('create', Employee::class);
         $this->validate();
 
-        $employee = Employee::create([
-            'nip' => $this->nip,
-            'full_name' => $this->name,
-            'phone_number' => $this->phone,
-            'email' => $this->email ?: null,
-            'gender' => $this->gender,
-            'birth_place' => $this->birthPlace,
-            'birth_date' => $this->birthDate,
-            'ktp_number' => $this->ktpNumber,
-            'residential_address' => $this->address,
-            'unit_id' => $this->unitId,
-            'position_id' => $this->positionId,
-            'schedule_type' => $this->scheduleType,
-            'status' => 'active',
-        ]);
+        $defaultPassword = 'Password123!';
 
-        EmployeeEmployment::create([
-            'employee_id' => $employee->id,
-            'unit_id' => $this->unitId,
-            'position_id' => $this->positionId,
-            'contract_type' => $this->contractType,
-            'contract_number' => 'KTR/RSJ/'.Carbon::now()->format('Ym').'/'.str_pad((string) $employee->id, 4, '0', STR_PAD_LEFT),
-            'start_date' => $this->joinDate,
-            'is_active' => true,
-        ]);
+        // Determine user email (use provided or generate based on NIP)
+        $cleanNip = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $this->nip));
+        $userEmail = ! empty($this->email) ? trim($this->email) : "{$cleanNip}@juwitahospital.com";
 
-        $auditService->log(
-            action: 'employee.created',
-            auditable: $employee,
-            oldValues: [],
-            newValues: [
-                'nip' => $this->nip,
+        // Ensure email uniqueness for user account
+        $counter = 1;
+        $baseEmail = $userEmail;
+        while (User::where('email', $userEmail)->exists()) {
+            $parts = explode('@', $baseEmail);
+            $userEmail = $parts[0].$counter.'@'.($parts[1] ?? 'juwitahospital.com');
+            $counter++;
+        }
+
+        DB::transaction(function () use ($userEmail, $defaultPassword, $auditService, &$employee, &$user) {
+            // 1. Create User account
+            $user = User::create([
                 'name' => $this->name,
-                'email' => $this->email ?: null,
+                'email' => $userEmail,
+                'password' => Hash::make($defaultPassword),
+                'is_active' => true,
+            ]);
+            $user->syncRoles(['employee']);
+
+            // 2. Create Employee profile linked to User
+            $employee = Employee::create([
+                'user_id' => $user->id,
+                'nip' => $this->nip,
+                'full_name' => $this->name,
+                'phone_number' => $this->phone,
+                'email' => $userEmail,
+                'gender' => $this->gender,
+                'birth_place' => $this->birthPlace,
+                'birth_date' => $this->birthDate,
+                'ktp_number' => $this->ktpNumber,
+                'residential_address' => $this->address,
                 'unit_id' => $this->unitId,
                 'position_id' => $this->positionId,
                 'schedule_type' => $this->scheduleType,
-            ]
-        );
+                'status' => 'active',
+            ]);
+
+            // 3. Create initial Employment
+            EmployeeEmployment::create([
+                'employee_id' => $employee->id,
+                'unit_id' => $this->unitId,
+                'position_id' => $this->positionId,
+                'contract_type' => $this->contractType,
+                'contract_number' => 'KTR/RSJ/'.Carbon::now()->format('Ym').'/'.str_pad((string) $employee->id, 4, '0', STR_PAD_LEFT),
+                'start_date' => $this->joinDate,
+                'is_active' => true,
+            ]);
+
+            // 4. Audit logs
+            $auditService->log(
+                action: 'user.created',
+                auditable: $user,
+                oldValues: [],
+                newValues: [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'roles' => ['employee'],
+                    'employee_id' => $employee->id,
+                ]
+            );
+
+            $auditService->log(
+                action: 'employee.created',
+                auditable: $employee,
+                oldValues: [],
+                newValues: [
+                    'nip' => $this->nip,
+                    'name' => $this->name,
+                    'email' => $userEmail,
+                    'user_id' => $user->id,
+                    'unit_id' => $this->unitId,
+                    'position_id' => $this->positionId,
+                    'schedule_type' => $this->scheduleType,
+                ]
+            );
+        });
 
         $this->showCreateModal = false;
-        $this->feedbackMessage = "Pegawai {$this->name} (NIP: {$this->nip}) berhasil didaftarkan.";
+        $this->feedbackMessage = "Pegawai {$this->name} (NIP: {$this->nip}) berhasil didaftarkan bersama akun pengguna ({$userEmail}) dengan kata sandi awal '{$defaultPassword}'.";
         $this->reset(['name', 'phone', 'email', 'ktpNumber']);
     }
 

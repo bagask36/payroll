@@ -459,5 +459,13 @@ class Employee extends Model
     {
         return $this->activeWarningLetters()->exists();
     }
+
+    /**
+     * Get the URL to the employee's user profile photo.
+     */
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        return $this->user?->profile_photo_url;
+    }
 }
 

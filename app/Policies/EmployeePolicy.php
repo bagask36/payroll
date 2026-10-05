@@ -165,5 +165,28 @@ class EmployeePolicy
 
         return $user->hasPermission('employee.view');
     }
+
+    /**
+     * Determine whether the user can manage the employee's user account (reset password, roles, etc.).
+     */
+    public function manageAccount(User $user, Employee $employee): bool
+    {
+        return $user->hasRole('super_admin')
+            || $user->hasRole('hr_admin')
+            || $user->hasRole('hr_manager')
+            || $user->hasPermission('employee.update');
+    }
+
+    /**
+     * Determine whether the user can upload/remove the profile photo.
+     */
+    public function uploadPhoto(User $user, Employee $employee): bool
+    {
+        if ($employee->user_id === $user->id) {
+            return true;
+        }
+
+        return $this->manageAccount($user, $employee);
+    }
 }
 

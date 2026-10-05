@@ -12,15 +12,19 @@ use App\Models\EmployeeSalaryComponent;
 use App\Models\EmployeeWarningLetter;
 use App\Models\FaceBiometricRegistration;
 use App\Models\Position;
+use App\Models\Role;
 use App\Models\SalaryComponent;
 use App\Models\Unit;
+use App\Models\User;
 use App\Models\WarningLetterType;
 use App\Services\Audit\AuditService;
 use App\Services\Document\DocumentService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -214,9 +218,27 @@ class EmployeeShow extends Component
 
     public string $revocationReason = '';
 
+    // --- ACCOUNT & PROFILE PHOTO MANAGEMENT STATE ---
+    public ?string $accountFeedback = null;
+
+    public ?string $accountError = null;
+
+    public string $newPassword = '';
+
+    public string $newPasswordConfirmation = '';
+
+    public ?string $generatedPasswordNotice = null;
+
+    public array $selectedRoles = [];
+
+    public $avatarUpload = null;
+
+    public bool $userIsActive = true;
+
     public function mount(int $id): void
     {
         $this->employee = Employee::with([
+            'user.roles',
             'unit',
             'position',
             'employments.unit',
@@ -233,9 +255,11 @@ class EmployeeShow extends Component
             'faceBiometricRegistrations.reviewedBy',
         ])->findOrFail($id);
 
-        if (request()->has('tab') && in_array(request()->query('tab'), ['bio', 'salary', 'employment', 'bank', 'documents', 'biometrics', 'disciplinary'])) {
+        if (request()->has('tab') && in_array(request()->query('tab'), ['bio', 'salary', 'employment', 'bank', 'documents', 'biometrics', 'disciplinary', 'account'])) {
             $this->activeTab = (string) request()->query('tab');
         }
+
+        $this->loadAccountData();
 
         $this->authorize('view', $this->employee);
     }
@@ -244,6 +268,9 @@ class EmployeeShow extends Component
     {
         $this->activeTab = $tab;
         $this->resetMessages();
+        if ($tab === 'account') {
+            $this->loadAccountData();
+        }
     }
 
     public function resetMessages(): void
@@ -262,6 +289,8 @@ class EmployeeShow extends Component
         $this->employmentError = null;
         $this->spFeedback = null;
         $this->spError = null;
+        $this->accountFeedback = null;
+        $this->accountError = null;
     }
 
     // =========================================================
@@ -1641,6 +1670,272 @@ class EmployeeShow extends Component
         $this->employee->refresh();
     }
 
+    // =========================================================
+    // KELOLA AKUN PENGGUNA & FOTO PROFIL (ACCOUNT MANAGEMENT)
+    // =========================================================
+
+    public function loadAccountData(): void
+    {
+        if ($this->employee->user) {
+            $this->selectedRoles = $this->employee->user->roles->pluck('name')->toArray();
+            $this->userIsActive = (bool) $this->employee->user->is_active;
+        }
+    }
+
+    public function uploadAvatar(AuditService $auditService): void
+    {
+        $this->authorize('uploadPhoto', $this->employee);
+        $this->resetMessages();
+
+        $this->validate([
+            'avatarUpload' => 'required|image|mimes:jpeg,png,jpg,webp|max:2048',
+        ], [
+            'avatarUpload.required' => 'Silakan pilih berkas foto terlebih dahulu.',
+            'avatarUpload.image' => 'Berkas harus berupa gambar.',
+            'avatarUpload.mimes' => 'Format foto harus berupa JPEG, PNG, atau WebP.',
+            'avatarUpload.max' => 'Ukuran foto maksimal adalah 2MB.',
+        ]);
+
+        $user = $this->employee->user;
+        if (! $user) {
+            $this->accountError = 'Pegawai belum memiliki akun pengguna. Silakan buat akun terlebih dahulu.';
+
+            return;
+        }
+
+        // Delete old photo if exists
+        if ($user->profile_photo_path && Storage::disk('public')->exists($user->profile_photo_path)) {
+            Storage::disk('public')->delete($user->profile_photo_path);
+        }
+
+        $path = $this->avatarUpload->store('avatars', 'public');
+        $oldPath = $user->profile_photo_path;
+
+        $user->update(['profile_photo_path' => $path]);
+
+        $auditService->log(
+            action: 'user.avatar_updated',
+            auditable: $user,
+            oldValues: ['profile_photo_path' => $oldPath],
+            newValues: ['profile_photo_path' => $path]
+        );
+
+        $this->avatarUpload = null;
+        $this->accountFeedback = 'Foto profil berhasil diperbarui.';
+        $this->employee->refresh();
+    }
+
+    public function deleteAvatar(AuditService $auditService): void
+    {
+        $this->authorize('uploadPhoto', $this->employee);
+        $this->resetMessages();
+
+        $user = $this->employee->user;
+        if (! $user || ! $user->profile_photo_path) {
+            return;
+        }
+
+        $oldPath = $user->profile_photo_path;
+        if (Storage::disk('public')->exists($oldPath)) {
+            Storage::disk('public')->delete($oldPath);
+        }
+
+        $user->update(['profile_photo_path' => null]);
+
+        $auditService->log(
+            action: 'user.avatar_deleted',
+            auditable: $user,
+            oldValues: ['profile_photo_path' => $oldPath],
+            newValues: ['profile_photo_path' => null]
+        );
+
+        $this->accountFeedback = 'Foto profil berhasil dihapus.';
+        $this->employee->refresh();
+    }
+
+    public function generateRandomPassword(): void
+    {
+        $this->authorize('manageAccount', $this->employee);
+        $randomPass = 'RSJ'.Str::random(6).rand(10, 99).'!';
+        $this->newPassword = $randomPass;
+        $this->newPasswordConfirmation = $randomPass;
+        $this->generatedPasswordNotice = "Kata sandi acak dibuat: {$randomPass}";
+    }
+
+    public function resetPassword(AuditService $auditService): void
+    {
+        $this->authorize('manageAccount', $this->employee);
+        $this->resetMessages();
+
+        $this->validate([
+            'newPassword' => 'required|string|min:8|same:newPasswordConfirmation',
+        ], [
+            'newPassword.required' => 'Kata sandi baru wajib diisi.',
+            'newPassword.min' => 'Kata sandi minimal 8 karakter.',
+            'newPassword.same' => 'Konfirmasi kata sandi tidak cocok.',
+        ]);
+
+        $user = $this->employee->user;
+        if (! $user) {
+            $this->accountError = 'Pegawai belum memiliki akun pengguna.';
+
+            return;
+        }
+
+        $user->update([
+            'password' => Hash::make($this->newPassword),
+        ]);
+
+        $auditService->log(
+            action: 'auth.password_reset_by_admin',
+            auditable: $user,
+            oldValues: [],
+            newValues: ['reset_by' => Auth::id(), 'employee_id' => $this->employee->id]
+        );
+
+        $savedPassword = $this->newPassword;
+        $this->newPassword = '';
+        $this->newPasswordConfirmation = '';
+        $this->generatedPasswordNotice = null;
+        $this->accountFeedback = "Kata sandi untuk akun {$user->email} berhasil direset menjadi: '{$savedPassword}'. Harap infokan ke pegawai terkait.";
+    }
+
+    public function updateRoles(AuditService $auditService): void
+    {
+        $this->authorize('manageAccount', $this->employee);
+        $this->resetMessages();
+
+        $user = $this->employee->user;
+        if (! $user) {
+            $this->accountError = 'Pegawai belum memiliki akun pengguna.';
+
+            return;
+        }
+
+        // Validate roles
+        if (empty($this->selectedRoles)) {
+            $this->accountError = 'Akun harus memiliki setidaknya satu role.';
+
+            return;
+        }
+
+        // Privilege escalation prevention
+        $currentUser = Auth::user();
+        if (in_array('super_admin', $this->selectedRoles, true) && ! $currentUser?->hasRole('super_admin')) {
+            $this->accountError = 'Hanya Super Administrator yang dapat menetapkan role Super Admin.';
+
+            return;
+        }
+
+        if ($user->hasRole('super_admin') && ! in_array('super_admin', $this->selectedRoles, true) && ! $currentUser?->hasRole('super_admin')) {
+            $this->accountError = 'Hanya Super Administrator yang dapat mencabut role Super Admin.';
+
+            return;
+        }
+
+        $oldRoles = $user->roles->pluck('name')->toArray();
+        $user->syncRoles($this->selectedRoles);
+
+        $auditService->log(
+            action: 'user.roles_updated',
+            auditable: $user,
+            oldValues: ['roles' => $oldRoles],
+            newValues: ['roles' => $this->selectedRoles, 'updated_by' => Auth::id()]
+        );
+
+        $this->accountFeedback = 'Peran / Role akun berhasil diperbarui.';
+        $this->employee->refresh();
+        $this->loadAccountData();
+    }
+
+    public function toggleUserStatus(AuditService $auditService): void
+    {
+        $this->authorize('manageAccount', $this->employee);
+        $this->resetMessages();
+
+        $user = $this->employee->user;
+        if (! $user) {
+            return;
+        }
+
+        if ($user->id === Auth::id()) {
+            $this->accountError = 'Anda tidak dapat menonaktifkan akun Anda sendiri.';
+
+            return;
+        }
+
+        $oldStatus = $user->is_active;
+        $user->update(['is_active' => ! $oldStatus]);
+        $this->userIsActive = $user->is_active;
+
+        $auditService->log(
+            action: 'user.status_toggled',
+            auditable: $user,
+            oldValues: ['is_active' => $oldStatus],
+            newValues: ['is_active' => $user->is_active, 'toggled_by' => Auth::id()]
+        );
+
+        $statusText = $user->is_active ? 'diaktifkan' : 'dinonaktifkan';
+        $this->accountFeedback = "Status akun pengguna berhasil {$statusText}.";
+        $this->employee->refresh();
+    }
+
+    public function provisionUserAccount(AuditService $auditService): void
+    {
+        $this->authorize('manageAccount', $this->employee);
+        $this->resetMessages();
+
+        if ($this->employee->user_id) {
+            $this->accountFeedback = 'Pegawai ini sudah memiliki akun pengguna.';
+
+            return;
+        }
+
+        $defaultPassword = 'Password123!';
+        $cleanNip = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $this->employee->nip));
+        $rawEmail = $this->employee->getRawOriginal('email');
+        $validEmail = (! empty($rawEmail) && filter_var($rawEmail, FILTER_VALIDATE_EMAIL)) ? $rawEmail : null;
+        $email = $validEmail ?: "{$cleanNip}@juwitahospital.com";
+
+        $counter = 1;
+        $baseEmail = $email;
+        while (User::where('email', $email)->exists()) {
+            $parts = explode('@', $baseEmail);
+            $email = $parts[0].$counter.'@'.($parts[1] ?? 'juwitahospital.com');
+            $counter++;
+        }
+
+        DB::transaction(function () use ($email, $defaultPassword, $auditService) {
+            $user = User::create([
+                'name' => $this->employee->full_name,
+                'email' => $email,
+                'password' => Hash::make($defaultPassword),
+                'is_active' => true,
+            ]);
+            $user->syncRoles(['employee']);
+
+            $this->employee->update([
+                'user_id' => $user->id,
+                'email' => $email,
+            ]);
+
+            $auditService->log(
+                action: 'user.provisioned',
+                auditable: $user,
+                oldValues: [],
+                newValues: [
+                    'employee_id' => $this->employee->id,
+                    'email' => $email,
+                    'roles' => ['employee'],
+                ]
+            );
+        });
+
+        $this->employee->refresh();
+        $this->loadAccountData();
+        $this->accountFeedback = "Akun pengguna baru ({$email}) berhasil dibuat dengan kata sandi awal '{$defaultPassword}'.";
+    }
+
     public function render()
     {
         $user = Auth::user();
@@ -1657,6 +1952,10 @@ class EmployeeShow extends Component
             'canUploadDoc' => $user?->can('uploadDocument', $this->employee),
             'canManageDisciplinary' => $user?->can('manageDisciplinary', $this->employee),
             'canViewDisciplinary' => $user?->can('viewDisciplinary', $this->employee),
+            'canManageAccount' => $user?->can('manageAccount', $this->employee),
+            'canUploadPhoto' => $user?->can('uploadPhoto', $this->employee),
+            'isSuperAdmin' => (bool) $user?->hasRole('super_admin'),
+            'availableRoles' => Role::orderBy('id')->get(),
             'availableUnits' => Unit::orderBy('name')->get(),
             'availablePositions' => Position::orderBy('title')->get(),
             'availableComponents' => SalaryComponent::where('is_active', true)->orderBy('type')->orderBy('name')->get(),
