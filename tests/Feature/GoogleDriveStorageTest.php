@@ -58,7 +58,7 @@ class GoogleDriveStorageTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('Kapasitas');
-        $response->assertSee('Limitasi Google Drive');
+        $response->assertSee('Direktori Google Drive');
         $response->assertSee('JUWITA-STORAGE');
         $response->assertSee('Sisa Kuota Folder');
     }
@@ -163,5 +163,72 @@ class GoogleDriveStorageTest extends TestCase
         $this->assertEquals('JUWITA-STORAGE', $metrics['folder']['name']);
         $this->assertEquals(1, $metrics['folder']['total_files']);
         $this->assertEquals(1048576, $metrics['folder']['total_bytes']);
+    }
+
+    public function test_superadmin_can_navigate_directory_folders_and_breadcrumbs(): void
+    {
+        Livewire::actingAs($this->superAdmin)
+            ->test(GoogleDriveStorageIndex::class)
+            ->assertSee('Penjelajah Direktori File')
+            ->assertSee('JUWITA-STORAGE')
+            // Open a subfolder
+            ->call('openFolder', 'folder_pegawai_123', 'Pegawai')
+            ->assertSet('currentFolderId', 'folder_pegawai_123')
+            ->assertCount('breadcrumbs', 2)
+            ->assertSee('Pegawai')
+            ->assertSee('Kembali ke folder induk')
+            // Open another nested subfolder
+            ->call('openFolder', 'folder_emp1_456', 'EMP1 - Dewi')
+            ->assertSet('currentFolderId', 'folder_emp1_456')
+            ->assertCount('breadcrumbs', 3)
+            // Navigate back up via goUp
+            ->call('goUp')
+            ->assertSet('currentFolderId', 'folder_pegawai_123')
+            ->assertCount('breadcrumbs', 2)
+            // Jump back to root via goToBreadcrumb
+            ->call('goToBreadcrumb', 0)
+            ->assertCount('breadcrumbs', 1)
+            ->assertDontSee('Kembali ke folder induk');
+    }
+
+    public function test_folder_files_returns_both_folders_and_files(): void
+    {
+        Http::fake([
+            'https://oauth2.googleapis.com/token' => Http::response([
+                'access_token' => 'fake-access-token',
+                'expires_in' => 3600,
+            ], 200),
+            'https://www.googleapis.com/drive/v3/files?*' => Http::response([
+                'files' => [
+                    [
+                        'id' => 'file_1',
+                        'name' => 'photo.jpg',
+                        'mimeType' => 'image/jpeg',
+                        'size' => '2048',
+                    ],
+                    [
+                        'id' => 'folder_1',
+                        'name' => 'Pegawai',
+                        'mimeType' => 'application/vnd.google-apps.folder',
+                    ],
+                ],
+            ], 200),
+        ]);
+
+        $provider = new GoogleDriveStorageProvider(
+            clientId: 'fake-client-id',
+            clientSecret: 'fake-secret',
+            refreshToken: 'fake-refresh-token'
+        );
+
+        $result = $provider->getFolderFiles('root_folder');
+
+        $this->assertCount(2, $result['files']);
+        // Folder should be first
+        $this->assertTrue($result['files'][0]['is_folder']);
+        $this->assertEquals('Pegawai', $result['files'][0]['name']);
+        // File should be second
+        $this->assertFalse($result['files'][1]['is_folder']);
+        $this->assertEquals('photo.jpg', $result['files'][1]['name']);
     }
 }

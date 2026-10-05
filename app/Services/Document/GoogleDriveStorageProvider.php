@@ -643,9 +643,9 @@ class GoogleDriveStorageProvider implements DocumentStorageProvider
     }
 
     /**
-     * Get paginated files inside folder for display.
+     * Get paginated files and folders inside folder for directory display.
      */
-    public function getFolderFiles(string $folderId, int $pageSize = 20, ?string $pageToken = null, ?string $search = null): array
+    public function getFolderFiles(string $folderId, int $pageSize = 50, ?string $pageToken = null, ?string $search = null): array
     {
         if (! $this->isConfigured()) {
             return ['files' => [], 'nextPageToken' => null];
@@ -656,7 +656,7 @@ class GoogleDriveStorageProvider implements DocumentStorageProvider
             return ['files' => [], 'nextPageToken' => null];
         }
 
-        $query = "'{$folderId}' in parents and mimeType != 'application/vnd.google-apps.folder' and trashed = false";
+        $query = "'{$folderId}' in parents and trashed = false";
         if (! empty($search)) {
             $escaped = str_replace("'", "\\'", $search);
             $query .= " and name contains '{$escaped}'";
@@ -666,7 +666,7 @@ class GoogleDriveStorageProvider implements DocumentStorageProvider
             'q' => $query,
             'fields' => 'nextPageToken,files(id,name,mimeType,size,createdTime,modifiedTime,webViewLink,thumbnailLink,iconLink)',
             'pageSize' => $pageSize,
-            'orderBy' => 'createdTime desc',
+            'orderBy' => 'folder,name',
             'supportsAllDrives' => 'true',
             'includeItemsFromAllDrives' => 'true',
         ];
@@ -678,8 +678,28 @@ class GoogleDriveStorageProvider implements DocumentStorageProvider
         try {
             $resp = Http::withToken($token)->timeout(15)->get('https://www.googleapis.com/drive/v3/files', $params);
             if ($resp->successful()) {
+                $rawItems = $resp->json('files') ?? [];
+
+                // Separate folders and files, ensure folders are on top
+                $folders = [];
+                $files = [];
+
+                foreach ($rawItems as $item) {
+                    $isFolder = ($item['mimeType'] ?? '') === 'application/vnd.google-apps.folder';
+                    $item['is_folder'] = $isFolder;
+
+                    if ($isFolder) {
+                        $folders[] = $item;
+                    } else {
+                        $files[] = $item;
+                    }
+                }
+
+                // Sort folders by name asc, files by name or modified time
+                usort($folders, fn ($a, $b) => strcasecmp($a['name'] ?? '', $b['name'] ?? ''));
+
                 return [
-                    'files' => $resp->json('files') ?? [],
+                    'files' => array_merge($folders, $files),
                     'nextPageToken' => $resp->json('nextPageToken'),
                 ];
             }

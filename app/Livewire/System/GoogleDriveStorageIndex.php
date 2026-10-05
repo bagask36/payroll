@@ -18,6 +18,13 @@ class GoogleDriveStorageIndex extends Component
 
     public string $searchQuery = '';
 
+    public string $currentFolderId = '';
+
+    /**
+     * @var array<int, array{id: string, name: string}>
+     */
+    public array $breadcrumbs = [];
+
     public ?string $feedbackMessage = null;
 
     public ?string $errorMessage = null;
@@ -31,6 +38,42 @@ class GoogleDriveStorageIndex extends Component
 
         $this->folderMaxLimitMb = (int) SystemSetting::get('gdrive_folder_max_size_mb', '10240');
         $this->warningThresholdPercent = (int) SystemSetting::get('gdrive_warning_threshold_percent', '80');
+
+        $rootFolderId = (string) config('services.google_drive.attendance_folder_id', '12O9c7YilU3hFOGLelYJJEUhp4SGoAF_z');
+        $this->currentFolderId = $rootFolderId;
+        $this->breadcrumbs = [
+            ['id' => $rootFolderId, 'name' => 'JUWITA-STORAGE'],
+        ];
+    }
+
+    public function openFolder(string $folderId, string $folderName): void
+    {
+        $this->currentFolderId = $folderId;
+        $this->breadcrumbs[] = [
+            'id' => $folderId,
+            'name' => $folderName,
+        ];
+        $this->searchQuery = '';
+    }
+
+    public function goToBreadcrumb(int $index): void
+    {
+        if (isset($this->breadcrumbs[$index])) {
+            $this->breadcrumbs = array_slice($this->breadcrumbs, 0, $index + 1);
+            $lastItem = end($this->breadcrumbs);
+            $this->currentFolderId = $lastItem['id'];
+            $this->searchQuery = '';
+        }
+    }
+
+    public function goUp(): void
+    {
+        if (count($this->breadcrumbs) > 1) {
+            array_pop($this->breadcrumbs);
+            $lastItem = end($this->breadcrumbs);
+            $this->currentFolderId = $lastItem['id'];
+            $this->searchQuery = '';
+        }
     }
 
     public function refreshMetrics(GoogleDriveStorageProvider $driveProvider): void
@@ -39,8 +82,9 @@ class GoogleDriveStorageIndex extends Component
         $this->errorMessage = null;
 
         try {
-            $driveProvider->getStorageMetrics(forceRefresh: true);
-            $this->feedbackMessage = 'Data metrik penyimpanan Google Drive berhasil diperbarui langsung dari cloud!';
+            $rootFolderId = $this->breadcrumbs[0]['id'] ?? (string) config('services.google_drive.attendance_folder_id', '');
+            $driveProvider->getStorageMetrics($rootFolderId, forceRefresh: true);
+            $this->feedbackMessage = 'Data metrik direktori Google Drive berhasil diperbarui langsung dari cloud!';
         } catch (\Throwable $e) {
             $this->errorMessage = 'Gagal memperbarui metrik: '.$e->getMessage();
         }
@@ -105,20 +149,20 @@ class GoogleDriveStorageIndex extends Component
 
     public function render(GoogleDriveStorageProvider $driveProvider)
     {
-        $metrics = $driveProvider->getStorageMetrics();
-        $folderId = $metrics['folder']['id'] ?? (string) config('services.google_drive.attendance_folder_id', '');
+        $rootFolderId = $this->breadcrumbs[0]['id'] ?? (string) config('services.google_drive.attendance_folder_id', '');
+        $metrics = $driveProvider->getStorageMetrics($rootFolderId);
 
-        $folderFiles = [];
-        if (! empty($folderId) && ($metrics['configured'] ?? false)) {
+        $folderItems = [];
+        if (! empty($this->currentFolderId) && ($metrics['configured'] ?? false)) {
             $filesResult = $driveProvider->getFolderFiles(
-                folderId: $folderId,
-                pageSize: 20,
+                folderId: $this->currentFolderId,
+                pageSize: 50,
                 search: trim($this->searchQuery) ?: null
             );
-            $folderFiles = $filesResult['files'] ?? [];
+            $folderItems = $filesResult['files'] ?? [];
         }
 
-        // Folder calculations
+        // Folder calculations (based on root folder JUWITA-STORAGE)
         $folderUsedBytes = (int) ($metrics['folder']['total_bytes'] ?? 0);
         $folderMaxBytes = (int) ($this->folderMaxLimitMb * 1024 * 1024);
         $folderRemainingBytes = max(0, $folderMaxBytes - $folderUsedBytes);
@@ -134,7 +178,7 @@ class GoogleDriveStorageIndex extends Component
 
         return view('livewire.system.google-drive-storage-index', [
             'metrics' => $metrics,
-            'folderFiles' => $folderFiles,
+            'folderItems' => $folderItems,
             'folderUsedBytes' => $folderUsedBytes,
             'folderMaxBytes' => $folderMaxBytes,
             'folderRemainingBytes' => $folderRemainingBytes,
