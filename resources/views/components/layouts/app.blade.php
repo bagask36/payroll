@@ -268,10 +268,17 @@
                 @php
                     $canSeeAudit = auth()->user()?->can('system.audit_view');
                     $canSeeSettings = auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasPermission('system.config_view');
+                    $canSeeCloudStorage = auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('super_admin');
                 @endphp
 
-                @if($canSeeAudit || $canSeeSettings)
+                @if($canSeeAudit || $canSeeSettings || $canSeeCloudStorage)
                     <flux:sidebar.group heading="ADMINISTRASI & SISTEM" class="mt-3">
+                        @if($canSeeCloudStorage)
+                            <flux:sidebar.item icon="cloud" href="{{ route('system.google-drive-storage') }}" :current="request()->routeIs('system.google-drive-storage')">
+                                Penyimpanan Cloud
+                            </flux:sidebar.item>
+                        @endif
+
                         @if($canSeeAudit)
                             <flux:sidebar.item icon="shield-check" href="{{ route('audit-logs.index') }}" :current="request()->routeIs('audit-logs.*')">
                                 Audit Trail
@@ -710,6 +717,9 @@
                     @endif
                     @if($cmdCanSettings)
                         { name: 'Pengaturan Sistem', category: 'Sistem', url: '{{ route('system.settings') }}', keywords: 'pengaturan konfigurasi aplikasi' },
+                    @endif
+                    @if(auth()->user()?->isSuperAdmin() || auth()->user()?->hasRole('super_admin'))
+                        { name: 'Penyimpanan Cloud (Google Drive)', category: 'Sistem', url: '{{ route('system.google-drive-storage') }}', keywords: 'google drive cloud storage kapasitas sisa kuota folder juwita-storage' },
                     @endif
                 ],
                 get filteredItems() {

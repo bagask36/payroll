@@ -456,10 +456,16 @@ class EmployeeShow extends Component
         $uploadedDocId = $this->employmentExistingDocumentId;
         if ($this->employmentDocumentFile) {
             $originalName = $this->employmentDocumentFile->getClientOriginalName();
+            $empCode = $this->employee->nik ?: ($this->employee->employee_id ?: 'EMP'.$this->employee->id);
+            $cleanName = trim(preg_replace('/[^\w\s\-\.]+/u', '', $this->employee->name));
+            $empFolder = "{$empCode} - {$cleanName}";
+            $cleanContractNumber = trim(preg_replace('/[^\w\-]+/u', '_', $this->employmentContractNumber));
+            $customFileName = "SK_Kontrak_{$cleanContractNumber}_{$originalName}";
+
             $stored = $documentService->upload(
-                category: 'compliance/contract',
+                category: "Pegawai/{$empFolder}/SK_Kontrak",
                 file: $this->employmentDocumentFile,
-                customFileName: $originalName,
+                customFileName: $customFileName,
             );
 
             $doc = Document::create([
@@ -933,11 +939,17 @@ class EmployeeShow extends Component
         ]);
 
         $originalName = $this->docUploadedFile->getClientOriginalName();
+        $empCode = $this->employee->nik ?: ($this->employee->employee_id ?: 'EMP'.$this->employee->id);
+        $cleanName = trim(preg_replace('/[^\w\s\-\.]+/u', '', $this->employee->name));
+        $empFolder = "{$empCode} - {$cleanName}";
+        $docFolder = strtoupper($this->docUploadType);
+        $category = "Pegawai/{$empFolder}/{$docFolder}";
+        $customFileName = "{$docFolder}_{$originalName}";
 
         $stored = $documentService->upload(
-            category: 'compliance/'.$this->docUploadType,
+            category: $category,
             file: $this->docUploadedFile,
-            customFileName: $originalName,
+            customFileName: $customFileName,
         );
 
         $document = Document::create([

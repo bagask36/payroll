@@ -32,7 +32,7 @@ class LocalStorageProvider implements DocumentStorageProvider
 
             return new StoredDocumentResult(
                 fileIdentifier: $filePath,
-                fileName: $file->getClientOriginalName(),
+                fileName: $customFileName ?? $file->getClientOriginalName(),
                 mimeType: $file->getClientMimeType() ?: 'application/octet-stream',
                 sizeBytes: (int) $file->getSize(),
                 provider: $this->name(),

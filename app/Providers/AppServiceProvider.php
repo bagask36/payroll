@@ -24,6 +24,11 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(DocumentStorageProvider::class, function () {
+            $gdrive = new \App\Services\Document\GoogleDriveStorageProvider;
+            if ($gdrive->isConfigured()) {
+                return $gdrive;
+            }
+
             return new LocalStorageProvider(disk: 'local');
         });
 

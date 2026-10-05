@@ -113,10 +113,14 @@ class PositionIndex extends Component
 
         if ($this->positionSkDocumentFile) {
             $originalName = $this->positionSkDocumentFile->getClientOriginalName();
+            $posName = trim(preg_replace('/[^\w\s\-\.]+/u', '', $this->positionName));
+            $category = "SK_Jabatan/{$posName}";
+            $customFileName = "SK_Jabatan_{$posName}_{$originalName}";
+
             $stored = $documentService->upload(
-                category: 'compliance/position',
+                category: $category,
                 file: $this->positionSkDocumentFile,
-                customFileName: $originalName,
+                customFileName: $customFileName,
             );
 
             $doc = Document::create([

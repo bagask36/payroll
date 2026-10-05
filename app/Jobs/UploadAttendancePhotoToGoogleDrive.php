@@ -57,16 +57,29 @@ class UploadAttendancePhotoToGoogleDrive implements ShouldQueue
         }
 
         $fileContent = Storage::disk($disk)->get($this->tempLocalPath);
-        $fileName = basename($this->tempLocalPath);
+
+        $event->loadMissing(['attendance.employee', 'attendance.doctor']);
+        $date = $event->attendance?->date ? $event->attendance->date->format('Y-m-d') : now()->format('Y-m-d');
+        $employee = $event->attendance?->employee;
+        $doctor = $event->attendance?->doctor;
+        $name = $employee?->name ?? $doctor?->name ?? 'Pegawai';
+        $nipOrId = $employee?->nip ?: ($doctor?->str_number ?: 'ID_'.$event->attendance_id);
+        $personFolder = trim(preg_replace('/[^\w\s\-\.]+/u', '', "{$nipOrId} - {$name}"));
+
+        $subDirectory = "{$date}/{$personFolder}";
+        $timeStr = $event->recorded_at ? $event->recorded_at->format('His') : now()->format('His');
+        $customFileName = "{$event->event_type}_{$timeStr}.jpg";
+
         $folderId = (string) config('services.google_drive.attendance_folder_id', '');
 
         // If Google Drive is configured or running in non-production mock
         if ($driveProvider->isConfigured() || ! app()->environment('production')) {
             try {
                 $result = $driveProvider->store(
-                    directory: $folderId,
+                    directory: $subDirectory,
                     file: $fileContent,
-                    customFileName: $fileName
+                    customFileName: $customFileName,
+                    options: ['root_folder_id' => $folderId]
                 );
 
                 // Update database with Google Drive file identifier

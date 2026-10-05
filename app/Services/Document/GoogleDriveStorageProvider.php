@@ -75,7 +75,12 @@ class GoogleDriveStorageProvider implements DocumentStorageProvider
         if ($this->isConfigured()) {
             $token = $this->getAccessToken();
             if ($token) {
-                $fileId = $this->uploadToDrive($token, $directory, $fileName, $mimeType, $fileContent);
+                $rootFolderId = $options['root_folder_id'] ?? (string) config('services.google_drive.attendance_folder_id', '');
+                $targetFolderId = ! empty($directory) && $directory !== $rootFolderId
+                    ? $this->resolveFolderHierarchy($token, $rootFolderId, $directory)
+                    : $rootFolderId;
+
+                $fileId = $this->uploadToDrive($token, $targetFolderId, $fileName, $mimeType, $fileContent);
                 if ($fileId) {
                     return new StoredDocumentResult(
                         fileIdentifier: $fileId,
@@ -86,6 +91,7 @@ class GoogleDriveStorageProvider implements DocumentStorageProvider
                         metadata: [
                             'shared_drive_id' => $this->sharedDriveId,
                             'directory' => $directory,
+                            'folder_id' => $targetFolderId,
                         ]
                     );
                 }
@@ -197,6 +203,84 @@ class GoogleDriveStorageProvider implements DocumentStorageProvider
     public function name(): string
     {
         return 'google_drive';
+    }
+
+    /**
+     * Resolve nested folder path into Google Drive folder ID, creating folders on the fly if needed.
+     */
+    public function resolveFolderHierarchy(string $token, string $rootFolderId, string $subPath): string
+    {
+        $subPath = trim($subPath, '/');
+        if (empty($subPath)) {
+            return $rootFolderId;
+        }
+
+        $segments = array_filter(explode('/', $subPath));
+        $currentParentId = $rootFolderId;
+
+        foreach ($segments as $segment) {
+            $segment = trim($segment);
+            if (empty($segment)) {
+                continue;
+            }
+
+            $currentParentId = $this->findOrCreateFolder($token, $currentParentId, $segment);
+        }
+
+        return $currentParentId;
+    }
+
+    /**
+     * Search or create a folder under a parent folder in Google Drive.
+     */
+    public function findOrCreateFolder(string $token, string $parentId, string $folderName): string
+    {
+        $cacheKey = 'gdrive_fld_'.md5($parentId.'_'.$folderName);
+
+        return Cache::remember($cacheKey, 86400, function () use ($token, $parentId, $folderName) {
+            // 1. Search existing folder
+            $escapedName = str_replace("'", "\\'", $folderName);
+            $query = "name = '{$escapedName}' and '{$parentId}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+
+            try {
+                $searchResp = Http::withToken($token)
+                    ->timeout(10)
+                    ->get('https://www.googleapis.com/drive/v3/files', [
+                        'q' => $query,
+                        'fields' => 'files(id, name)',
+                        'supportsAllDrives' => 'true',
+                        'includeItemsFromAllDrives' => 'true',
+                    ]);
+
+                if ($searchResp->successful()) {
+                    $files = $searchResp->json('files');
+                    if (! empty($files) && isset($files[0]['id'])) {
+                        return $files[0]['id'];
+                    }
+                }
+
+                // 2. Create new folder
+                $createResp = Http::withToken($token)
+                    ->timeout(10)
+                    ->post('https://www.googleapis.com/drive/v3/files?supportsAllDrives=true', [
+                        'name' => $folderName,
+                        'mimeType' => 'application/vnd.google-apps.folder',
+                        'parents' => [$parentId],
+                    ]);
+
+                if ($createResp->successful()) {
+                    return $createResp->json('id') ?? $parentId;
+                }
+
+                Log::warning('Google Drive create folder failed: '.$createResp->body());
+
+                return $parentId;
+            } catch (\Throwable $e) {
+                Log::error('Google Drive findOrCreateFolder exception: '.$e->getMessage());
+
+                return $parentId;
+            }
+        });
     }
 
     /**
@@ -330,6 +414,280 @@ class GoogleDriveStorageProvider implements DocumentStorageProvider
 
             return null;
         });
+    }
+
+    /**
+     * Retrieve storage metrics from Google Drive API: account quota & folder statistics.
+     *
+     * @return array{
+     *     configured: bool,
+     *     error: ?string,
+     *     account: array{
+     *         email: ?string,
+     *         name: ?string,
+     *         total_bytes: int,
+     *         used_bytes: int,
+     *         free_bytes: int,
+     *         usage_percentage: float,
+     *         drive_bytes: int,
+     *         trash_bytes: int
+     *     },
+     *     folder: array{
+     *         id: string,
+     *         name: string,
+     *         web_view_link: ?string,
+     *         total_files: int,
+     *         total_bytes: int
+     *     },
+     *     cached_at: ?string
+     * }
+     */
+    public function getStorageMetrics(?string $folderId = null, bool $forceRefresh = false): array
+    {
+        $folderId = $folderId ?: (string) config('services.google_drive.attendance_folder_id', '');
+
+        if (! $this->isConfigured()) {
+            return [
+                'configured' => false,
+                'error' => 'Kredensial Google Drive belum dikonfigurasi.',
+                'account' => [
+                    'email' => null,
+                    'name' => null,
+                    'total_bytes' => 0,
+                    'used_bytes' => 0,
+                    'free_bytes' => 0,
+                    'usage_percentage' => 0.0,
+                    'drive_bytes' => 0,
+                    'trash_bytes' => 0,
+                ],
+                'folder' => [
+                    'id' => $folderId,
+                    'name' => 'Unknown',
+                    'web_view_link' => null,
+                    'total_files' => 0,
+                    'total_bytes' => 0,
+                ],
+                'cached_at' => null,
+            ];
+        }
+
+        $cacheKey = 'gdrive_storage_metrics_'.md5($folderId);
+
+        if ($forceRefresh) {
+            Cache::forget($cacheKey);
+        }
+
+        return Cache::remember($cacheKey, 600, function () use ($folderId) {
+            $token = $this->getAccessToken();
+            if (! $token) {
+                return [
+                    'configured' => true,
+                    'error' => 'Gagal mendapatkan Google Drive access token.',
+                    'account' => [
+                        'email' => null,
+                        'name' => null,
+                        'total_bytes' => 0,
+                        'used_bytes' => 0,
+                        'free_bytes' => 0,
+                        'usage_percentage' => 0.0,
+                        'drive_bytes' => 0,
+                        'trash_bytes' => 0,
+                    ],
+                    'folder' => [
+                        'id' => $folderId,
+                        'name' => 'Unknown',
+                        'web_view_link' => null,
+                        'total_files' => 0,
+                        'total_bytes' => 0,
+                    ],
+                    'cached_at' => now()->toIso8601String(),
+                ];
+            }
+
+            // 1. Fetch Account Storage Quota
+            $accountData = [
+                'email' => null,
+                'name' => null,
+                'total_bytes' => 0,
+                'used_bytes' => 0,
+                'free_bytes' => 0,
+                'usage_percentage' => 0.0,
+                'drive_bytes' => 0,
+                'trash_bytes' => 0,
+            ];
+
+            try {
+                $aboutResp = Http::withToken($token)
+                    ->timeout(10)
+                    ->get('https://www.googleapis.com/drive/v3/about?fields=user(displayName,emailAddress),storageQuota(limit,usage,usageInDrive,usageInDriveTrash)');
+
+                if ($aboutResp->successful()) {
+                    $about = $aboutResp->json();
+                    $quota = $about['storageQuota'] ?? [];
+                    $user = $about['user'] ?? [];
+
+                    $totalLimit = isset($quota['limit']) ? (int) $quota['limit'] : 0;
+                    $totalUsage = isset($quota['usage']) ? (int) $quota['usage'] : 0;
+                    $freeBytes = $totalLimit > 0 ? max(0, $totalLimit - $totalUsage) : 0;
+                    $usagePercent = $totalLimit > 0 ? round(($totalUsage / $totalLimit) * 100, 2) : 0.0;
+
+                    $accountData = [
+                        'email' => $user['emailAddress'] ?? null,
+                        'name' => $user['displayName'] ?? null,
+                        'total_bytes' => $totalLimit,
+                        'used_bytes' => $totalUsage,
+                        'free_bytes' => $freeBytes,
+                        'usage_percentage' => $usagePercent,
+                        'drive_bytes' => (int) ($quota['usageInDrive'] ?? 0),
+                        'trash_bytes' => (int) ($quota['usageInDriveTrash'] ?? 0),
+                    ];
+                }
+            } catch (\Throwable $e) {
+                Log::error('Google Drive getStorageMetrics account error: '.$e->getMessage());
+            }
+
+            // 2. Fetch Folder Info & calculate folder file sizes (including subfolders)
+            $folderData = [
+                'id' => $folderId,
+                'name' => 'JUWITA-STORAGE',
+                'web_view_link' => ! empty($folderId) ? "https://drive.google.com/drive/folders/{$folderId}" : null,
+                'total_files' => 0,
+                'total_bytes' => 0,
+            ];
+
+            if (! empty($folderId)) {
+                try {
+                    $folderResp = Http::withToken($token)
+                        ->timeout(10)
+                        ->get("https://www.googleapis.com/drive/v3/files/{$folderId}?fields=id,name,webViewLink&supportsAllDrives=true");
+
+                    if ($folderResp->successful()) {
+                        $fInfo = $folderResp->json();
+                        $folderData['name'] = $fInfo['name'] ?? 'Folder';
+                        $folderData['web_view_link'] = $fInfo['webViewLink'] ?? $folderData['web_view_link'];
+                    }
+
+                    $folderStats = $this->calculateFolderStats($token, $folderId);
+                    $folderData['total_files'] = $folderStats['total_files'];
+                    $folderData['total_bytes'] = $folderStats['total_bytes'];
+                } catch (\Throwable $e) {
+                    Log::error('Google Drive getStorageMetrics folder error: '.$e->getMessage());
+                }
+            }
+
+            return [
+                'configured' => true,
+                'error' => null,
+                'account' => $accountData,
+                'folder' => $folderData,
+                'cached_at' => now()->toIso8601String(),
+            ];
+        });
+    }
+
+    /**
+     * Recursively calculate total files count and bytes in folder.
+     */
+    protected function calculateFolderStats(string $token, string $rootFolderId): array
+    {
+        $totalFiles = 0;
+        $totalBytes = 0;
+        $foldersToScan = [$rootFolderId];
+        $scannedFolders = [];
+
+        while (! empty($foldersToScan) && count($scannedFolders) < 100) {
+            $currentParent = array_shift($foldersToScan);
+            if (isset($scannedFolders[$currentParent])) {
+                continue;
+            }
+            $scannedFolders[$currentParent] = true;
+
+            $pageToken = null;
+            do {
+                $params = [
+                    'q' => "'{$currentParent}' in parents and trashed = false",
+                    'fields' => 'nextPageToken,files(id,mimeType,size)',
+                    'pageSize' => 1000,
+                    'supportsAllDrives' => 'true',
+                    'includeItemsFromAllDrives' => 'true',
+                ];
+                if ($pageToken) {
+                    $params['pageToken'] = $pageToken;
+                }
+
+                $resp = Http::withToken($token)->timeout(15)->get('https://www.googleapis.com/drive/v3/files', $params);
+                if (! $resp->successful()) {
+                    break;
+                }
+
+                $data = $resp->json();
+                $items = $data['files'] ?? [];
+
+                foreach ($items as $item) {
+                    if (($item['mimeType'] ?? '') === 'application/vnd.google-apps.folder') {
+                        $foldersToScan[] = $item['id'];
+                    } else {
+                        $totalFiles++;
+                        $totalBytes += (int) ($item['size'] ?? 0);
+                    }
+                }
+
+                $pageToken = $data['nextPageToken'] ?? null;
+            } while ($pageToken && $totalFiles < 50000);
+        }
+
+        return [
+            'total_files' => $totalFiles,
+            'total_bytes' => $totalBytes,
+        ];
+    }
+
+    /**
+     * Get paginated files inside folder for display.
+     */
+    public function getFolderFiles(string $folderId, int $pageSize = 20, ?string $pageToken = null, ?string $search = null): array
+    {
+        if (! $this->isConfigured()) {
+            return ['files' => [], 'nextPageToken' => null];
+        }
+
+        $token = $this->getAccessToken();
+        if (! $token) {
+            return ['files' => [], 'nextPageToken' => null];
+        }
+
+        $query = "'{$folderId}' in parents and mimeType != 'application/vnd.google-apps.folder' and trashed = false";
+        if (! empty($search)) {
+            $escaped = str_replace("'", "\\'", $search);
+            $query .= " and name contains '{$escaped}'";
+        }
+
+        $params = [
+            'q' => $query,
+            'fields' => 'nextPageToken,files(id,name,mimeType,size,createdTime,modifiedTime,webViewLink,thumbnailLink,iconLink)',
+            'pageSize' => $pageSize,
+            'orderBy' => 'createdTime desc',
+            'supportsAllDrives' => 'true',
+            'includeItemsFromAllDrives' => 'true',
+        ];
+
+        if ($pageToken) {
+            $params['pageToken'] = $pageToken;
+        }
+
+        try {
+            $resp = Http::withToken($token)->timeout(15)->get('https://www.googleapis.com/drive/v3/files', $params);
+            if ($resp->successful()) {
+                return [
+                    'files' => $resp->json('files') ?? [],
+                    'nextPageToken' => $resp->json('nextPageToken'),
+                ];
+            }
+        } catch (\Throwable $e) {
+            Log::error('Google Drive getFolderFiles error: '.$e->getMessage());
+        }
+
+        return ['files' => [], 'nextPageToken' => null];
     }
 
     protected function resolvePath(string $path): string

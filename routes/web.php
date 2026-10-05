@@ -35,17 +35,20 @@ use App\Livewire\Report\LeaveReportIndex;
 use App\Livewire\Report\PayrollReportIndex;
 use App\Livewire\Report\Pph21ReportIndex;
 use App\Livewire\Schedule\ScheduleRoster;
+use App\Livewire\System\GoogleDriveStorageIndex;
 use App\Livewire\System\SystemSettingIndex;
 use App\Services\Audit\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Mews\Captcha\CaptchaController;
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
 Route::get('/login', Login::class)->name('login')->middleware('guest');
+Route::get('/captcha/{config?}', [CaptchaController::class, 'getCaptcha'])->middleware('web')->name('captcha.image');
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
@@ -100,6 +103,7 @@ Route::middleware('auth')->group(function () {
 
     // System Settings & Hospital Config
     Route::get('/system/settings', SystemSettingIndex::class)->name('system.settings');
+    Route::get('/system/google-drive-storage', GoogleDriveStorageIndex::class)->name('system.google-drive-storage');
 
     // Attendance & Geofencing Routes
     Route::get('/attendance', AttendanceIndex::class)->name('attendance.index');
