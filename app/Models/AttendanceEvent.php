@@ -25,6 +25,7 @@ class AttendanceEvent extends Model
         'is_within_geofence',
         'device_info',
         'photo_path',
+        'storage_provider',
         'face_matched',
         'face_similarity',
         'liveness_score',
@@ -62,6 +63,6 @@ class AttendanceEvent extends Model
      */
     public function getPhotoUrlAttribute(): ?string
     {
-        return $this->photo_path ? asset('storage/'.$this->photo_path) : null;
+        return $this->photo_path ? route('attendance.photo', $this->id) : null;
     }
 }

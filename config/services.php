@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'google_drive' => [
+        'service_account_json' => env('GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON'),
+        'attendance_folder_id' => env('GOOGLE_DRIVE_ATTENDANCE_FOLDER_ID'),
+        'shared_drive_id' => env('GOOGLE_DRIVE_SHARED_DRIVE_ID'),
+    ],
+
 ];

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Contracts\FaceAiService;
 use App\DTOs\FaceAi\FaceVerificationResult;
 use App\DTOs\FaceAi\LivenessResult;
+use App\Jobs\UploadAttendancePhotoToGoogleDrive;
 use App\Livewire\Attendance\AttendanceIndex;
 use App\Livewire\Attendance\ClockInOut;
 use App\Models\Attendance;
@@ -17,6 +18,7 @@ use App\Models\User;
 use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -397,6 +399,7 @@ class AttendanceUiTest extends TestCase
             'schedule_date' => Carbon::today()->toDateString(),
         ]);
 
+        Queue::fake([UploadAttendancePhotoToGoogleDrive::class]);
         $this->actingAs($user);
 
         // Generate sample valid JPEG base64
@@ -439,6 +442,9 @@ class AttendanceUiTest extends TestCase
         $this->assertNotNull($clockOutEvent->photo_path);
         $this->assertStringContainsString('clock_out', $clockOutEvent->photo_path);
         Storage::disk('public')->assertExists($clockOutEvent->photo_path);
+
+        // Verify background job was queued for both clock in and clock out
+        Queue::assertPushed(UploadAttendancePhotoToGoogleDrive::class, 2);
     }
 
     public function test_authorized_user_can_view_attendance_detail_modal_with_photos(): void
@@ -478,7 +484,7 @@ class AttendanceUiTest extends TestCase
             ->call('openDetailModal', $attendance->id)
             ->assertSet('showDetailModal', true)
             ->assertSee('Detail &amp; Bukti Foto Presensi', false)
-            ->assertSee('fake_in.jpg')
+            ->assertSee(route('attendance.photo', $attendance->events->first()->id))
             ->call('closeDetailModal')
             ->assertSet('showDetailModal', false);
     }

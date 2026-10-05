@@ -3,6 +3,7 @@
 namespace App\Livewire\Attendance;
 
 use App\Contracts\FaceAiService;
+use App\Jobs\UploadAttendancePhotoToGoogleDrive;
 use App\Models\Attendance;
 use App\Models\GeofenceLocation;
 use App\Models\ScheduleAssignment;
@@ -10,6 +11,7 @@ use App\Models\Shift;
 use App\Services\Audit\AuditService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Title;
@@ -125,7 +127,7 @@ class ClockInOut extends Component
         $this->longitude = $lon;
         $this->resetMessages();
 
-        $activeGeofence = GeofenceLocation::active()->first();
+        $activeGeofence = $this->getActiveGeofence();
 
         if ($activeGeofence) {
             $this->distanceMeters = $activeGeofence->calculateDistanceMeters($lat, $lon);
@@ -159,7 +161,7 @@ class ClockInOut extends Component
             return;
         }
 
-        $activeGeofence = GeofenceLocation::active()->first();
+        $activeGeofence = $this->getActiveGeofence();
         $isWithin = $activeGeofence ? $activeGeofence->isWithinGeofence($this->latitude, $this->longitude) : true;
         $distance = $activeGeofence ? $activeGeofence->calculateDistanceMeters($this->latitude, $this->longitude) : 0;
 
@@ -217,17 +219,22 @@ class ClockInOut extends Component
             $photoPath = $this->storeCompressedPhoto($this->faceImageBase64, 'clock_in', $attendance->id);
         }
 
-        $attendance->recordClockIn($now, [
+        $clockInEvent = $attendance->recordClockIn($now, [
             'latitude' => $this->latitude,
             'longitude' => $this->longitude,
             'distance_meters' => $distance,
             'is_within_geofence' => true,
             'device_info' => request()->userAgent(),
             'photo_path' => $photoPath,
+            'storage_provider' => 'local',
             'face_matched' => $faceMatched,
             'face_similarity' => $similarity,
             'liveness_score' => $liveness,
         ]);
+
+        if ($photoPath) {
+            UploadAttendancePhotoToGoogleDrive::dispatch($clockInEvent->id, $photoPath);
+        }
 
         $auditService->log(
             action: 'attendance.clock_in',
@@ -267,7 +274,7 @@ class ClockInOut extends Component
             return;
         }
 
-        $activeGeofence = GeofenceLocation::active()->first();
+        $activeGeofence = $this->getActiveGeofence();
         $isWithin = $activeGeofence ? $activeGeofence->isWithinGeofence($this->latitude ?? 0.0, $this->longitude ?? 0.0) : true;
         $distance = $activeGeofence ? $activeGeofence->calculateDistanceMeters($this->latitude ?? 0.0, $this->longitude ?? 0.0) : 0;
 
@@ -304,17 +311,22 @@ class ClockInOut extends Component
             $photoPath = $this->storeCompressedPhoto($this->faceImageBase64, 'clock_out', $this->todayAttendance->id);
         }
 
-        $this->todayAttendance->recordClockOut($now, [
+        $clockOutEvent = $this->todayAttendance->recordClockOut($now, [
             'latitude' => $this->latitude ?? 0.0,
             'longitude' => $this->longitude ?? 0.0,
             'distance_meters' => $distance,
             'is_within_geofence' => $isWithin,
             'device_info' => request()->userAgent(),
             'photo_path' => $photoPath,
+            'storage_provider' => 'local',
             'face_matched' => $faceMatched,
             'face_similarity' => $similarity,
             'liveness_score' => $liveness,
         ]);
+
+        if ($photoPath) {
+            UploadAttendancePhotoToGoogleDrive::dispatch($clockOutEvent->id, $photoPath);
+        }
 
         $auditService->log(
             action: 'attendance.clock_out',
@@ -396,6 +408,13 @@ class ClockInOut extends Component
 
             return null;
         }
+    }
+
+    protected function getActiveGeofence(): ?GeofenceLocation
+    {
+        return Cache::remember('active_geofence_location', 3600, function () {
+            return GeofenceLocation::active()->first();
+        });
     }
 
     protected function resetMessages(): void

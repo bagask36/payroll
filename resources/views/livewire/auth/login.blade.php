@@ -63,11 +63,11 @@
                             <div class="relative overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-950 p-1 flex items-center justify-center shrink-0 shadow-xs">
                                 <img 
                                     x-ref="captchaImg" 
-                                    src="{{ captcha_src('hospital') }}&t={{ $captchaKey }}" 
+                                    src="{{ url('captcha/hospital') }}?t={{ $captchaKey }}" 
                                     alt="Kode Keamanan Captcha" 
                                     class="h-11 w-40 object-contain rounded select-none cursor-pointer hover:opacity-90 transition"
                                     title="Klik gambar untuk acak kode baru"
-                                    @click="$refs.captchaImg.src = '{{ captcha_src('hospital') }}&t=' + Date.now()"
+                                    @click="$refs.captchaImg.src = '{{ url('captcha/hospital') }}?t=' + Date.now()"
                                 />
                             </div>
 
@@ -76,7 +76,7 @@
                                 size="sm" 
                                 variant="subtle" 
                                 wire:click="reloadCaptcha"
-                                @click="$refs.captchaImg.src = '{{ captcha_src('hospital') }}&t=' + Date.now()"
+                                @click="$refs.captchaImg.src = '{{ url('captcha/hospital') }}?t=' + Date.now()"
                                 class="shrink-0 text-xs sm:text-sm px-3 py-2 cursor-pointer font-medium"
                                 title="Muat ulang kode keamanan"
                             >

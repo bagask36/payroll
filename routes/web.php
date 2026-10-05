@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendancePhotoController;
 use App\Http\Controllers\PayrollPrintController;
 use App\Livewire\Attendance\AttendanceIndex;
 use App\Livewire\Attendance\ClockInOut;
@@ -12,10 +13,29 @@ use App\Livewire\Employee\EmployeeIndex;
 use App\Livewire\Employee\EmployeeShow;
 use App\Livewire\Leave\LeaveApply;
 use App\Livewire\Leave\LeaveIndex;
+use App\Livewire\Master\BpjsIndex;
+use App\Livewire\Master\DeductionComponentIndex;
+use App\Livewire\Master\EarningComponentIndex;
+use App\Livewire\Master\GeofenceIndex;
+use App\Livewire\Master\LeaveTypeIndex;
 use App\Livewire\Master\MasterIndex;
+use App\Livewire\Master\PayrollPeriodIndex;
+use App\Livewire\Master\PositionIndex;
+use App\Livewire\Master\Pph21ParameterIndex;
+use App\Livewire\Master\ShiftIndex;
+use App\Livewire\Master\UnitIndex;
+use App\Livewire\Master\WarningLetterTypeIndex;
+use App\Livewire\Organization\OrgStructureIndex;
 use App\Livewire\Payroll\MyPayslips;
 use App\Livewire\Payroll\PayrollIndex;
+use App\Livewire\Report\AttendanceReportIndex;
+use App\Livewire\Report\DoctorReportIndex;
+use App\Livewire\Report\EmployeeReportIndex;
+use App\Livewire\Report\LeaveReportIndex;
+use App\Livewire\Report\PayrollReportIndex;
+use App\Livewire\Report\Pph21ReportIndex;
 use App\Livewire\Schedule\ScheduleRoster;
+use App\Livewire\System\SystemSettingIndex;
 use App\Services\Audit\AuditService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -55,35 +75,36 @@ Route::middleware('auth')->group(function () {
 
     // Master Data Hub & Breakdown Sub-menus
     Route::get('/master', MasterIndex::class)->name('master.index');
-    Route::get('/master/units', \App\Livewire\Master\UnitIndex::class)->name('master.units');
-    Route::get('/master/positions', \App\Livewire\Master\PositionIndex::class)->name('master.positions');
-    Route::get('/master/shifts', \App\Livewire\Master\ShiftIndex::class)->name('master.shifts');
-    Route::get('/master/leave-types', \App\Livewire\Master\LeaveTypeIndex::class)->name('master.leave-types');
-    Route::get('/master/geofences', \App\Livewire\Master\GeofenceIndex::class)->name('master.geofences');
-    Route::get('/master/payroll-periods', \App\Livewire\Master\PayrollPeriodIndex::class)->name('master.payroll-periods');
-    Route::get('/master/earnings', \App\Livewire\Master\EarningComponentIndex::class)->name('master.earnings');
-    Route::get('/master/deductions', \App\Livewire\Master\DeductionComponentIndex::class)->name('master.deductions');
-    Route::get('/master/bpjs', \App\Livewire\Master\BpjsIndex::class)->name('master.bpjs');
-    Route::get('/master/pph21', \App\Livewire\Master\Pph21ParameterIndex::class)->name('master.pph21');
-    Route::get('/master/warning-letter-types', \App\Livewire\Master\WarningLetterTypeIndex::class)->name('master.warning-letter-types');
+    Route::get('/master/units', UnitIndex::class)->name('master.units');
+    Route::get('/master/positions', PositionIndex::class)->name('master.positions');
+    Route::get('/master/shifts', ShiftIndex::class)->name('master.shifts');
+    Route::get('/master/leave-types', LeaveTypeIndex::class)->name('master.leave-types');
+    Route::get('/master/geofences', GeofenceIndex::class)->name('master.geofences');
+    Route::get('/master/payroll-periods', PayrollPeriodIndex::class)->name('master.payroll-periods');
+    Route::get('/master/earnings', EarningComponentIndex::class)->name('master.earnings');
+    Route::get('/master/deductions', DeductionComponentIndex::class)->name('master.deductions');
+    Route::get('/master/bpjs', BpjsIndex::class)->name('master.bpjs');
+    Route::get('/master/pph21', Pph21ParameterIndex::class)->name('master.pph21');
+    Route::get('/master/warning-letter-types', WarningLetterTypeIndex::class)->name('master.warning-letter-types');
 
     // Organization Structure
-    Route::get('/org/structure', \App\Livewire\Organization\OrgStructureIndex::class)->name('org.structure');
+    Route::get('/org/structure', OrgStructureIndex::class)->name('org.structure');
 
     // Executive & Operational Reports
-    Route::get('/reports/employees', \App\Livewire\Report\EmployeeReportIndex::class)->name('reports.employees');
-    Route::get('/reports/attendance', \App\Livewire\Report\AttendanceReportIndex::class)->name('reports.attendance');
-    Route::get('/reports/leaves', \App\Livewire\Report\LeaveReportIndex::class)->name('reports.leaves');
-    Route::get('/reports/payroll', \App\Livewire\Report\PayrollReportIndex::class)->name('reports.payroll');
-    Route::get('/reports/pph21', \App\Livewire\Report\Pph21ReportIndex::class)->name('reports.pph21');
-    Route::get('/reports/doctors', \App\Livewire\Report\DoctorReportIndex::class)->name('reports.doctors');
+    Route::get('/reports/employees', EmployeeReportIndex::class)->name('reports.employees');
+    Route::get('/reports/attendance', AttendanceReportIndex::class)->name('reports.attendance');
+    Route::get('/reports/leaves', LeaveReportIndex::class)->name('reports.leaves');
+    Route::get('/reports/payroll', PayrollReportIndex::class)->name('reports.payroll');
+    Route::get('/reports/pph21', Pph21ReportIndex::class)->name('reports.pph21');
+    Route::get('/reports/doctors', DoctorReportIndex::class)->name('reports.doctors');
 
     // System Settings & Hospital Config
-    Route::get('/system/settings', \App\Livewire\System\SystemSettingIndex::class)->name('system.settings');
+    Route::get('/system/settings', SystemSettingIndex::class)->name('system.settings');
 
     // Attendance & Geofencing Routes
     Route::get('/attendance', AttendanceIndex::class)->name('attendance.index');
     Route::get('/attendance/clock', ClockInOut::class)->name('attendance.clock');
+    Route::get('/attendance/events/{event}/photo', [AttendancePhotoController::class, 'show'])->name('attendance.photo');
 
     Route::post('/logout', function (Request $request, AuditService $auditService) {
         $user = Auth::user();
