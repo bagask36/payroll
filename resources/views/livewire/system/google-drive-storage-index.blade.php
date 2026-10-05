@@ -12,7 +12,7 @@
                 Kapasitas & Direktori Google Drive
             </h1>
             <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                Monitoring ruang penyimpanan cloud, sisa kuota folder <span class="font-semibold text-zinc-700 dark:text-zinc-300">JUWITA-STORAGE</span>, dan struktur direktori bersarang (*nested*).
+                Monitoring kapasitas penyimpanan cloud, sisa kuota folder <span class="font-semibold text-zinc-700 dark:text-zinc-300">JUWITA-STORAGE</span>, serta penjelajah direktori file.
             </p>
         </div>
 
@@ -89,8 +89,8 @@
         </div>
     @endif
 
-    {{-- 3 Main Stat Cards --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+    {{-- 2 Main Stat Cards --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
         {{-- Card 1: Sisa Kapasitas Folder --}}
         <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 shadow-xs flex flex-col justify-between">
             <div>
@@ -154,16 +154,15 @@
             </div>
 
             <div class="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-xs text-zinc-500">
-                <span class="truncate max-w-[170px]" title="{{ $metrics['folder']['id'] ?? '-' }}">
-                    ID: {{ substr($metrics['folder']['id'] ?? '-', 0, 16) }}...
+                <span class="truncate max-w-[220px] font-mono text-[11px]" title="{{ $metrics['folder']['id'] ?? '-' }}">
+                    ID: {{ substr($metrics['folder']['id'] ?? '-', 0, 20) }}...
                 </span>
-                <span class="inline-flex items-center gap-1 text-emerald-600 font-medium">
+                <span class="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-medium">
                     <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                     Aktif
                 </span>
             </div>
         </div>
-
     </div>
 
     {{-- Form Konfigurasi Limitasi Folder (Redesigned) --}}
@@ -363,7 +362,7 @@
         </form>
     </div>
 
-    {{-- Nested Directory Tree Explorer --}}
+    {{-- Directory Tree Explorer --}}
     <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xs overflow-hidden">
         {{-- Explorer Header & Controls --}}
         <div class="p-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -428,7 +427,7 @@
             </div>
         </div>
 
-        {{-- Nested Tree Table --}}
+        {{-- Directory Tree Table --}}
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
                 <thead class="bg-zinc-50/50 dark:bg-zinc-800/30 text-zinc-500 dark:text-zinc-400 text-xs uppercase tracking-wider font-semibold border-b border-zinc-200 dark:border-zinc-800">

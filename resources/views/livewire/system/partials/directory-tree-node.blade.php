@@ -23,7 +23,7 @@
         class="transition-colors border-b border-zinc-100 dark:border-zinc-800/80 hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50 {{ $isFolder ? 'cursor-pointer select-none bg-zinc-50/30 dark:bg-zinc-800/20' : '' }}"
         @if($isFolder) wire:click="toggleFolder('{{ $itemId }}')" @endif
     >
-        {{-- Name Column with Nested Indentation --}}
+        {{-- Name Column with Tree Indentation --}}
         <td class="py-2.5 pr-4 text-zinc-900 dark:text-zinc-100" style="padding-left: {{ $paddingLeft }}px;">
             <div class="flex items-center gap-2 min-w-0">
                 @if($isFolder)
@@ -188,7 +188,7 @@
         </tr>
     @endif
 
-    {{-- Render Nested Children if Expanded --}}
+    {{-- Render Subfolder Children if Expanded --}}
     @if($isFolder && $isExpanded)
         @if(count($children) > 0)
             @include('livewire.system.partials.directory-tree-node', [
