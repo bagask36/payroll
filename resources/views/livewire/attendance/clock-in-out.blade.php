@@ -175,7 +175,6 @@
                 </div>
                 <div>
                     <h4 class="font-semibold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100">Kamera Presensi &amp; Liveness</h4>
-                    <p class="text-[11px] text-zinc-500">Anti-spoofing gerak hidup (anti foto kertas)</p>
                 </div>
             </div>
 
