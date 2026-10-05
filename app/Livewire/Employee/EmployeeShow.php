@@ -10,6 +10,7 @@ use App\Models\EmployeeEmployment;
 use App\Models\EmployeeSalary;
 use App\Models\EmployeeSalaryComponent;
 use App\Models\EmployeeWarningLetter;
+use App\Models\FaceBiometricRegistration;
 use App\Models\Position;
 use App\Models\SalaryComponent;
 use App\Models\Unit;
@@ -41,6 +42,13 @@ class EmployeeShow extends Component
     public ?string $enrollStatusMessage = null;
 
     public ?string $enrollErrorMessage = null;
+
+    // --- FACE REGISTRATION REVIEW STATE ---
+    public ?int $selectedRegistrationId = null;
+
+    public string $registrationRejectionReason = '';
+
+    public bool $showRejectRegistrationModal = false;
 
     // --- BIODATA MODAL STATE ---
     public bool $showBioModal = false;
@@ -221,7 +229,13 @@ class EmployeeShow extends Component
             'documents',
             'warningLetters.warningLetterType',
             'warningLetters.revoker',
+            'faceBiometricRegistrations.requestedBy',
+            'faceBiometricRegistrations.reviewedBy',
         ])->findOrFail($id);
+
+        if (request()->has('tab') && in_array(request()->query('tab'), ['bio', 'salary', 'employment', 'bank', 'documents', 'biometrics', 'disciplinary'])) {
+            $this->activeTab = (string) request()->query('tab');
+        }
 
         $this->authorize('view', $this->employee);
     }
@@ -1238,8 +1252,8 @@ class EmployeeShow extends Component
 
         // 2. Extract feature vector
         $embeddingResult = $faceAiService->extractEmbedding($imageContent);
-        if (! $embeddingResult->success) {
-            $this->enrollErrorMessage = 'Ekstraksi fitur biometrik gagal: '.$embeddingResult->message;
+        if (! $embeddingResult->isSuccessful) {
+            $this->enrollErrorMessage = 'Ekstraksi fitur biometrik gagal: '.$embeddingResult->errorMessage;
 
             return;
         }
@@ -1285,6 +1299,118 @@ class EmployeeShow extends Component
 
         $this->employee->refresh();
         $this->enrollStatusMessage = 'Data biometrik wajah pegawai berhasil dihapus.';
+    }
+
+    public function approveFaceRegistration(int $registrationId, FaceAiService $faceAiService, AuditService $auditService): void
+    {
+        $this->authorize('manageBiometrics', $this->employee);
+        $this->resetMessages();
+
+        $registration = FaceBiometricRegistration::where('employee_id', $this->employee->id)->findOrFail($registrationId);
+
+        if (! $registration->isPending()) {
+            $this->enrollErrorMessage = 'Pengajuan pendaftaran biometrik ini sudah diproses.';
+
+            return;
+        }
+
+        if (! Storage::disk('local')->exists($registration->photo_path)) {
+            $this->enrollErrorMessage = 'Berkas foto registrasi tidak ditemukan di server.';
+
+            return;
+        }
+
+        $imageContent = Storage::disk('local')->get($registration->photo_path);
+
+        // Extract facial embedding
+        $embeddingResult = $faceAiService->extractEmbedding($imageContent);
+        if (! $embeddingResult->isSuccessful) {
+            $this->enrollErrorMessage = 'Ekstraksi fitur biometrik gagal: '.$embeddingResult->errorMessage;
+
+            return;
+        }
+
+        $hadPrevious = ! empty($this->employee->face_biometric_vector);
+
+        // Save encrypted vector
+        $this->employee->face_biometric_vector = $embeddingResult->embedding;
+        $this->employee->save();
+
+        // Mark registration as approved
+        $registration->update([
+            'status' => 'approved',
+            'reviewed_by' => Auth::id(),
+            'reviewed_at' => now(),
+        ]);
+
+        $auditService->log(
+            action: 'employee.face_registration_approved',
+            auditable: $this->employee,
+            oldValues: ['has_biometric' => $hadPrevious],
+            newValues: [
+                'has_biometric' => true,
+                'registration_id' => $registration->id,
+                'vector_dimensions' => count($embeddingResult->embedding),
+            ]
+        );
+
+        $this->employee->refresh();
+        $this->enrollStatusMessage = 'Pengajuan biometrik wajah berhasil disetujui. Vektor biometrik wajah pegawai telah aktif untuk presensi mandiri.';
+    }
+
+    public function openRejectRegistrationModal(int $registrationId): void
+    {
+        $this->authorize('manageBiometrics', $this->employee);
+        $this->resetMessages();
+        $this->selectedRegistrationId = $registrationId;
+        $this->registrationRejectionReason = '';
+        $this->showRejectRegistrationModal = true;
+    }
+
+    public function closeRejectRegistrationModal(): void
+    {
+        $this->selectedRegistrationId = null;
+        $this->registrationRejectionReason = '';
+        $this->showRejectRegistrationModal = false;
+    }
+
+    public function rejectFaceRegistration(AuditService $auditService): void
+    {
+        $this->authorize('manageBiometrics', $this->employee);
+        $this->validate([
+            'registrationRejectionReason' => 'required|string|min:3|max:500',
+        ]);
+
+        $registration = FaceBiometricRegistration::where('employee_id', $this->employee->id)->findOrFail($this->selectedRegistrationId);
+
+        if (! $registration->isPending()) {
+            $this->enrollErrorMessage = 'Pengajuan pendaftaran biometrik ini sudah diproses.';
+            $this->closeRejectRegistrationModal();
+
+            return;
+        }
+
+        $registration->update([
+            'status' => 'rejected',
+            'rejection_reason' => $this->registrationRejectionReason,
+            'reviewed_by' => Auth::id(),
+            'reviewed_at' => now(),
+        ]);
+
+        $auditService->log(
+            action: 'employee.face_registration_rejected',
+            auditable: $this->employee,
+            oldValues: ['status' => 'pending'],
+            newValues: [
+                'status' => 'rejected',
+                'registration_id' => $registration->id,
+                'rejection_reason' => $this->registrationRejectionReason,
+            ]
+        );
+
+        $this->closeRejectRegistrationModal();
+        $this->employee->refresh();
+        $this->enrollStatusMessage = 'Pengajuan pendaftaran biometrik wajah telah ditolak.';
     }
 
     // =========================================================
@@ -1375,7 +1501,7 @@ class EmployeeShow extends Component
 
         $filePath = null;
         if ($this->spDocumentFile) {
-            $fileName = 'SP_' . $this->employee->nip . '_' . time() . '.' . $this->spDocumentFile->getClientOriginalExtension();
+            $fileName = 'SP_'.$this->employee->nip.'_'.time().'.'.$this->spDocumentFile->getClientOriginalExtension();
             $filePath = $this->spDocumentFile->storeAs('warning_letters', $fileName, 'public');
         }
 
@@ -1489,6 +1615,7 @@ class EmployeeShow extends Component
 
         if (! $sp->document_path || ! Storage::disk('public')->exists($sp->document_path)) {
             $this->spError = 'Berkas fisik surat peringatan tidak ditemukan di penyimpanan server.';
+
             return null;
         }
 
@@ -1537,7 +1664,8 @@ class EmployeeShow extends Component
             'availableWarningLetterTypes' => WarningLetterType::active()->orderBy('level')->get(),
             'warningLetters' => $this->employee->warningLetters()->with(['warningLetterType', 'revoker'])->get(),
             'hasActiveSp' => $this->employee->hasActiveWarningLetter(),
+            'faceRegistrations' => $this->employee->faceBiometricRegistrations()->with(['requestedBy', 'reviewedBy'])->get(),
+            'pendingFaceRegistrationsCount' => $this->employee->faceBiometricRegistrations()->pending()->count(),
         ]);
     }
 }
-

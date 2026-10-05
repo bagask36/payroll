@@ -2,23 +2,28 @@
 
 namespace App\Livewire\Attendance;
 
+use App\Contracts\FaceAiService;
 use App\Livewire\Concerns\WithDataTable;
 use App\Models\Attendance;
 use App\Models\AttendanceAdjustment;
+use App\Models\FaceBiometricRegistration;
 use App\Models\User;
 use App\Services\Audit\AuditService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 #[Title('Riwayat Presensi - RS Juwita')]
 class AttendanceIndex extends Component
 {
-    use WithDataTable;
+    use WithDataTable, WithFileUploads;
 
     #[Url(except: 'all')]
     public string $statusFilter = 'all';
@@ -69,6 +74,115 @@ class AttendanceIndex extends Component
     public string $adjustmentReason = '';
 
     public ?string $feedbackMessage = null;
+
+    // Face Biometric Registration Modal State
+    public bool $showFaceRegistrationModal = false;
+
+    public $facePhotoUpload = null;
+
+    public ?string $faceWebcamCapture = null;
+
+    public string $faceRegistrationNotes = '';
+
+    public ?string $faceRegistrationError = null;
+
+    public function openFaceRegistrationModal(): void
+    {
+        $user = Auth::user();
+        if (! $user->employee) {
+            $this->feedbackMessage = 'Akun Anda tidak terhubung dengan data pegawai untuk pendaftaran biometrik.';
+
+            return;
+        }
+
+        $this->resetFaceRegistrationForm();
+        $this->showFaceRegistrationModal = true;
+    }
+
+    public function closeFaceRegistrationModal(): void
+    {
+        $this->resetFaceRegistrationForm();
+        $this->showFaceRegistrationModal = false;
+    }
+
+    public function resetFaceRegistrationForm(): void
+    {
+        $this->facePhotoUpload = null;
+        $this->faceWebcamCapture = null;
+        $this->faceRegistrationNotes = '';
+        $this->faceRegistrationError = null;
+    }
+
+    public function submitFaceRegistration(FaceAiService $faceAiService, AuditService $auditService): void
+    {
+        $user = Auth::user();
+        $employee = $user->employee;
+
+        if (! $employee) {
+            $this->faceRegistrationError = 'Profil pegawai tidak ditemukan.';
+
+            return;
+        }
+
+        $imageBinary = null;
+
+        if ($this->facePhotoUpload) {
+            $this->validate([
+                'facePhotoUpload' => 'image|max:5120',
+            ]);
+            $imageBinary = file_get_contents($this->facePhotoUpload->getRealPath());
+        } elseif ($this->faceWebcamCapture) {
+            $base64 = $this->faceWebcamCapture;
+            if (preg_match('/^data:image\/(\w+);base64,/', $base64)) {
+                $base64 = substr($base64, strpos($base64, ',') + 1);
+            }
+            $decoded = base64_decode($base64, true);
+            if ($decoded !== false) {
+                $imageBinary = $decoded;
+            }
+        }
+
+        if (empty($imageBinary)) {
+            $this->faceRegistrationError = 'Silakan ambil foto wajah dengan kamera atau unggah berkas foto resmi.';
+
+            return;
+        }
+
+        // Anti-spoofing liveness verification
+        $liveness = $faceAiService->checkLiveness($imageBinary);
+        if (! $liveness->isLive) {
+            $this->faceRegistrationError = 'Deteksi keaslian wajah gagal (kemungkinan foto kertas / layar): '.$liveness->message;
+
+            return;
+        }
+
+        // Store into local private storage
+        $filename = 'biometrics/registrations/reg_'.$employee->id.'_'.time().'_'.Str::random(8).'.jpg';
+        Storage::disk('local')->put($filename, $imageBinary);
+
+        // Record registration request
+        $registration = FaceBiometricRegistration::create([
+            'employee_id' => $employee->id,
+            'requested_by' => $user->id,
+            'photo_path' => $filename,
+            'status' => 'pending',
+            'notes' => $this->faceRegistrationNotes ?: 'Pengajuan biometrik wajah mandiri presensi',
+        ]);
+
+        $auditService->log(
+            action: 'employee.face_registration_requested',
+            auditable: $registration,
+            oldValues: [],
+            newValues: [
+                'employee_id' => $employee->id,
+                'registration_id' => $registration->id,
+                'notes' => $registration->notes,
+            ]
+        );
+
+        $this->closeFaceRegistrationModal();
+        $this->feedbackMessage = 'Pengajuan pendaftaran biometrik wajah berhasil dikirimkan. Menunggu persetujuan dari HRD.';
+    }
 
     public function mount(): void
     {
@@ -225,10 +339,25 @@ class AttendanceIndex extends Component
                 ->get()
             : collect();
 
+        $myEmployee = $user->employee;
+        $myPendingFaceRegistration = $myEmployee
+            ? FaceBiometricRegistration::where('employee_id', $myEmployee->id)->pending()->latest()->first()
+            : null;
+        $isFaceEnrolled = ! empty($myEmployee?->face_biometric_vector);
+
+        $canManageBiometrics = $user->hasPermission('employee.update') || $user->hasRole('hr_admin') || $user->hasRole('hr_manager');
+        $allPendingFaceRegistrations = $canManageBiometrics
+            ? FaceBiometricRegistration::with(['employee.unit', 'requestedBy'])->pending()->latest()->get()
+            : collect();
+
         return view('livewire.attendance.attendance-index', [
             'attendances' => $attendances,
             'pendingAdjustments' => $pendingAdjustments,
             'stats' => $stats,
+            'myEmployee' => $myEmployee,
+            'myPendingFaceRegistration' => $myPendingFaceRegistration,
+            'isFaceEnrolled' => $isFaceEnrolled,
+            'allPendingFaceRegistrations' => $allPendingFaceRegistrations,
         ]);
     }
 }

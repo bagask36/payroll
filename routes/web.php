@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AttendancePhotoController;
+use App\Http\Controllers\FaceBiometricPhotoController;
 use App\Http\Controllers\PayrollPrintController;
 use App\Livewire\Attendance\AttendanceIndex;
 use App\Livewire\Attendance\ClockInOut;
@@ -109,6 +110,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/attendance', AttendanceIndex::class)->name('attendance.index');
     Route::get('/attendance/clock', ClockInOut::class)->name('attendance.clock');
     Route::get('/attendance/events/{event}/photo', [AttendancePhotoController::class, 'show'])->name('attendance.photo');
+    Route::get('/biometrics/registrations/{registration}/photo', [FaceBiometricPhotoController::class, 'show'])->name('biometrics.registrations.photo');
 
     Route::post('/logout', function (Request $request, AuditService $auditService) {
         $user = Auth::user();

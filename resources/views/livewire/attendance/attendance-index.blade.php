@@ -6,6 +6,26 @@
     >
         @can('attendance.check_in_out')
             <x-slot:actions>
+                @if($myEmployee)
+                    <flux:button 
+                        variant="{{ $isFaceEnrolled ? 'subtle' : 'primary' }}" 
+                        icon="camera" 
+                        wire:click="openFaceRegistrationModal"
+                        class="relative"
+                    >
+                        @if($myPendingFaceRegistration)
+                            <span class="inline-flex items-center gap-1.5">
+                                <span class="size-2 rounded-full bg-amber-500 animate-pulse"></span>
+                                <span>Biometrik (Menunggu HRD)</span>
+                            </span>
+                        @elseif($isFaceEnrolled)
+                            <span>Perbarui Wajah Presensi</span>
+                        @else
+                            <span>Daftarkan Wajah Presensi</span>
+                        @endif
+                    </flux:button>
+                @endif
+
                 <a href="{{ route('attendance.clock') }}">
                     <flux:button variant="primary" icon="clock">
                         Presensi Mandiri Hari Ini
@@ -17,6 +37,45 @@
 
     {{-- Feedback Message --}}
     <x-flash-message :message="$feedbackMessage" />
+
+    {{-- Pending Biometric Face Registrations for HR --}}
+    @if($allPendingFaceRegistrations->isNotEmpty())
+        <flux:card class="border-l-4 border-l-purple-500 space-y-3 bg-purple-50/20 dark:bg-purple-950/20">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 font-semibold text-zinc-900 dark:text-zinc-100">
+                    <flux:icon name="identification" class="size-5 text-purple-600 dark:text-purple-400" />
+                    <span>Permohonan Pendaftaran Biometrik Wajah Menunggu Persetujuan HRD ({{ $allPendingFaceRegistrations->count() }})</span>
+                </div>
+            </div>
+
+            <div class="divide-y divide-zinc-100 dark:divide-zinc-800 text-sm">
+                @foreach($allPendingFaceRegistrations as $reg)
+                    <div class="py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div class="flex items-center gap-3">
+                            <img src="{{ route('biometrics.registrations.photo', $reg->id) }}" class="size-10 rounded-full object-cover border border-purple-200" alt="Preview" />
+                            <div>
+                                <div class="font-semibold text-zinc-900 dark:text-zinc-100">
+                                    {{ $reg->employee?->name }}
+                                    <span class="text-xs font-normal text-zinc-500">({{ $reg->employee?->nip }})</span>
+                                </div>
+                                <div class="text-xs text-zinc-500">
+                                    Unit: {{ $reg->employee?->unit?->name ?? '-' }} &bull; Diajukan: {{ $reg->created_at->diffForHumans() }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <a href="{{ route('employees.show', $reg->employee_id) }}?tab=biometrics">
+                                <flux:button size="sm" variant="subtle" icon="arrow-top-right-on-square">
+                                    Buka di Tab Biometrik Pegawai
+                                </flux:button>
+                            </a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </flux:card>
+    @endif
 
     {{-- Pending Approvals for Supervisors/HR --}}
     @if($pendingAdjustments->isNotEmpty())
@@ -208,7 +267,7 @@
             <div>
                 <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-3 flex items-center gap-1.5">
                     <flux:icon name="camera" class="w-4 h-4 text-purple-600" />
-                    Bukti Foto Wajah Verifikasi (Anti-Spoofing)
+                    Bukti Foto Wajah
                 </h4>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -292,4 +351,180 @@
             </div>
         </flux:modal>
     @endif
+
+    {{-- Modal Pendaftaran Biometrik Wajah Presensi --}}
+    <flux:modal wire:model="showFaceRegistrationModal" class="md:w-[540px] space-y-4">
+        <div>
+            <div class="flex items-center gap-2">
+                <div class="p-2 rounded-lg bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400">
+                    <flux:icon name="camera" class="size-5" />
+                </div>
+                <div>
+                    <flux:heading size="lg">Pendaftaran Biometrik Wajah</flux:heading>
+                    <flux:subheading>Daftarkan wajah Anda untuk presensi mandiri (Face AI).</flux:subheading>
+                </div>
+            </div>
+        </div>
+
+        @if($myPendingFaceRegistration)
+            <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300 space-y-1">
+                <div class="font-semibold flex items-center gap-1.5">
+                    <flux:icon name="clock" class="size-4 text-amber-600" />
+                    Permohonan Sedang Ditinjau HRD
+                </div>
+                <p>
+                    Anda telah mengajukan pendaftaran wajah pada {{ $myPendingFaceRegistration->created_at->format('d M Y H:i') }}. Mengirim foto baru akan memperbarui permohonan yang menunggu persetujuan.
+                </p>
+            </div>
+        @endif
+
+        @if($faceRegistrationError)
+            <div class="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 text-xs text-rose-800 dark:text-rose-300 flex items-center gap-2">
+                <flux:icon name="exclamation-circle" class="size-4 shrink-0" />
+                <span>{{ $faceRegistrationError }}</span>
+            </div>
+        @endif
+
+        {{-- Camera and Upload Interface --}}
+        <div class="space-y-3" x-data="faceRegistrationCapture()">
+            {{-- Camera Viewport --}}
+            <div class="relative rounded-2xl overflow-hidden bg-zinc-950 border border-zinc-800 flex flex-col items-center justify-center min-h-[220px]">
+                <video x-ref="regVideo" class="w-full h-52 object-cover" autoplay playsinline x-show="isStreaming"></video>
+                <canvas x-ref="regCanvas" class="hidden"></canvas>
+
+                <template x-if="!isStreaming && !$wire.faceWebcamCapture && !$wire.facePhotoUpload">
+                    <div class="p-6 text-center space-y-2">
+                        <flux:icon name="camera" class="size-10 text-zinc-600 mx-auto" />
+                        <p class="text-xs text-zinc-400">Kamera belum aktif. Klik tombol di bawah untuk membuka kamera atau unggah foto.</p>
+                    </div>
+                </template>
+
+                <template x-if="$wire.faceWebcamCapture">
+                    <div class="p-2 w-full text-center">
+                        <img :src="$wire.faceWebcamCapture" class="h-48 mx-auto rounded-xl object-cover border-2 border-emerald-500 shadow-md" alt="Captured Face" />
+                        <span class="text-xs text-emerald-400 mt-1.5 block font-medium">Foto Wajah Berhasil Diambil</span>
+                    </div>
+                </template>
+            </div>
+
+            {{-- Controls --}}
+            <div class="flex items-center gap-2">
+                <button 
+                    type="button"
+                    x-show="!isStreaming"
+                    @click="startCamera()"
+                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 transition"
+                >
+                    <flux:icon name="video-camera" class="size-4" />
+                    <span>Buka Kamera</span>
+                </button>
+
+                <button 
+                    type="button"
+                    x-show="isStreaming"
+                    @click="captureFrame()"
+                    class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-purple-600 hover:bg-purple-700 text-white transition shadow-sm"
+                >
+                    <flux:icon name="camera" class="size-4" />
+                    <span>Ambil Foto Wajah</span>
+                </button>
+
+                <button 
+                    type="button"
+                    x-show="isStreaming"
+                    @click="stopCamera()"
+                    class="inline-flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-medium text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+                >
+                    Tutup Kamera
+                </button>
+            </div>
+
+            {{-- File Upload Alternative --}}
+            <div class="pt-2 border-t border-zinc-100 dark:border-zinc-800 space-y-1.5">
+                <flux:field>
+                    <flux:label class="text-xs">Atau Unggah Berkas Foto Wajah (JPG/PNG)</flux:label>
+                    <input 
+                        type="file" 
+                        wire:model="facePhotoUpload" 
+                        accept="image/jpeg,image/png,image/webp" 
+                        class="block w-full text-xs text-zinc-500 file:mr-4 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 dark:file:bg-zinc-800 dark:file:text-zinc-300"
+                    />
+                    <flux:error name="facePhotoUpload" />
+                </flux:field>
+                @if($facePhotoUpload)
+                    <div class="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <flux:icon name="check-circle" class="size-4" />
+                        Berkas foto dipilih
+                    </div>
+                @endif
+            </div>
+
+            <flux:input 
+                wire:model="faceRegistrationNotes" 
+                label="Catatan Pengajuan (Opsional)" 
+                placeholder="Contoh: Pendaftaran wajah awal pegawai..." 
+            />
+
+            <script>
+                function faceRegistrationCapture() {
+                    return {
+                        isStreaming: false,
+                        mediaStream: null,
+                        startCamera() {
+                            const video = this.$refs.regVideo;
+                            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                                navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+                                    .then(stream => {
+                                        this.mediaStream = stream;
+                                        video.srcObject = stream;
+                                        this.isStreaming = true;
+                                    })
+                                    .catch(err => {
+                                        alert('Gagal mengakses kamera: ' + err.message);
+                                    });
+                            } else {
+                                alert('Peramban tidak mendukung akses kamera.');
+                            }
+                        },
+                        stopCamera() {
+                            if (this.mediaStream) {
+                                this.mediaStream.getTracks().forEach(track => track.stop());
+                                this.mediaStream = null;
+                            }
+                            this.isStreaming = false;
+                        },
+                        captureFrame() {
+                            const video = this.$refs.regVideo;
+                            const canvas = this.$refs.regCanvas;
+                            canvas.width = video.videoWidth || 640;
+                            canvas.height = video.videoHeight || 480;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+                            @this.set('faceWebcamCapture', dataUrl);
+                            this.stopCamera();
+                        }
+                    };
+                }
+            </script>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-zinc-100 dark:border-zinc-800">
+            <flux:button variant="subtle" wire:click="closeFaceRegistrationModal">
+                Batal
+            </flux:button>
+            <flux:button 
+                variant="primary" 
+                wire:click="submitFaceRegistration" 
+                wire:loading.attr="disabled"
+            >
+                <span wire:loading.remove wire:target="submitFaceRegistration">
+                    Kirim untuk Persetujuan HRD
+                </span>
+                <span wire:loading wire:target="submitFaceRegistration">
+                    Mengirim Pengajuan...
+                </span>
+            </flux:button>
+        </div>
+    </flux:modal>
 </div>

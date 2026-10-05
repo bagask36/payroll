@@ -80,7 +80,7 @@
                 <flux:icon name="shield-check" class="size-5 text-rose-600" />
                 <div>
                     <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100">Parameter Keamanan & Biometrik Face AI</h3>
-                    <p class="text-xs text-zinc-500">Ketentuan audit kepatuhan sesi dan algoritma verifikasi liveness anti-spoofing.</p>
+                    <p class="text-xs text-zinc-500">Ketentuan audit kepatuhan sesi dan algoritma verifikasi liveness.</p>
                 </div>
             </div>
 

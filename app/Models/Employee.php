@@ -231,6 +231,16 @@ class Employee extends Model
     }
 
     /**
+     * Face biometric registration submissions.
+     *
+     * @return HasMany<FaceBiometricRegistration, $this>
+     */
+    public function faceBiometricRegistrations(): HasMany
+    {
+        return $this->hasMany(FaceBiometricRegistration::class)->latest();
+    }
+
+    /**
      * Associated compliance and personal documents.
      *
      * @return MorphMany<Document, $this>

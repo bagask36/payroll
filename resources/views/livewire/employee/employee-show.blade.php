@@ -197,9 +197,14 @@
                 :variant="$activeTab === 'biometrics' ? 'primary' : 'subtle'" 
                 wire:click="setTab('biometrics')"
                 data-active="{{ $activeTab === 'biometrics' ? 'true' : 'false' }}"
-                class="shrink-0 whitespace-nowrap cursor-pointer"
+                class="relative inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
             >
-                Biometrik Wajah
+                <span>Biometrik Wajah</span>
+                @if($pendingFaceRegistrationsCount > 0)
+                    <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-600 text-white animate-pulse">
+                        {{ $pendingFaceRegistrationsCount }} Baru
+                    </span>
+                @endif
             </flux:button>
 
             <flux:button 
@@ -922,6 +927,139 @@
                     <flux:icon name="exclamation-circle" class="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
                     <span class="text-sm font-medium">{{ $enrollErrorMessage }}</span>
                 </div>
+            @endif
+
+            {{-- Pending Biometric Registrations Card --}}
+            @php
+                $pendingRegistrations = $faceRegistrations->where('status', 'pending');
+                $historicalRegistrations = $faceRegistrations->where('status', '!=', 'pending');
+            @endphp
+
+            @if($pendingRegistrations->isNotEmpty())
+                <flux:card class="border-l-4 border-l-purple-500 space-y-4 bg-purple-50/20 dark:bg-purple-950/20">
+                    <div class="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="p-2 rounded-xl bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300">
+                                <flux:icon name="identification" class="size-5" />
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
+                                    Permohonan Pendaftaran Biometrik Wajah (Menunggu Persetujuan HRD)
+                                </h4>
+                                <p class="text-xs text-zinc-500">
+                                    Pegawai telah mengajukan foto wajah untuk presensi mandiri. Harap verifikasi keaslian foto sebelum menyetujui.
+                                </p>
+                            </div>
+                        </div>
+                        <flux:badge color="amber" size="sm">
+                            {{ $pendingRegistrations->count() }} Menunggu Tindakan
+                        </flux:badge>
+                    </div>
+
+                    <div class="space-y-4">
+                        @foreach($pendingRegistrations as $reg)
+                            <div class="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div class="flex items-start gap-4">
+                                    <div class="relative shrink-0">
+                                        <img 
+                                            src="{{ route('biometrics.registrations.photo', $reg->id) }}" 
+                                            class="w-24 h-28 object-cover rounded-xl border border-zinc-200 dark:border-zinc-700 shadow-sm" 
+                                            alt="Foto Pendaftaran Wajah" 
+                                        />
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
+                                                Foto Diajukan Oleh: {{ $reg->requestedBy?->name ?? 'Pegawai' }}
+                                            </span>
+                                            <flux:badge size="sm" color="amber">Pending</flux:badge>
+                                        </div>
+                                        <p class="text-xs text-zinc-500">
+                                            Waktu Pengajuan: {{ $reg->created_at->format('d M Y, H:i') }} ({{ $reg->created_at->diffForHumans() }})
+                                        </p>
+                                        @if($reg->notes)
+                                            <div class="text-xs bg-zinc-50 dark:bg-zinc-800/60 p-2.5 rounded-lg border border-zinc-100 dark:border-zinc-700/60 text-zinc-600 dark:text-zinc-300">
+                                                <span class="font-medium text-zinc-700 dark:text-zinc-200">Catatan Pegawai:</span>
+                                                "{{ $reg->notes }}"
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                @if($canManageBiometrics)
+                                    <div class="flex flex-wrap items-center gap-2 shrink-0">
+                                        <flux:button 
+                                            variant="primary" 
+                                            icon="check" 
+                                            size="sm"
+                                            wire:click="approveFaceRegistration({{ $reg->id }})"
+                                            wire:loading.attr="disabled"
+                                        >
+                                            <span wire:loading.remove wire:target="approveFaceRegistration({{ $reg->id }})">
+                                                Setujui &amp; Aktifkan Biometrik
+                                            </span>
+                                            <span wire:loading wire:target="approveFaceRegistration({{ $reg->id }})">
+                                                Memproses Face AI...
+                                            </span>
+                                        </flux:button>
+
+                                        <flux:button 
+                                            variant="danger" 
+                                            icon="x-mark" 
+                                            size="sm"
+                                            wire:click="openRejectRegistrationModal({{ $reg->id }})"
+                                            wire:loading.attr="disabled"
+                                        >
+                                            Tolak
+                                        </flux:button>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                </flux:card>
+            @endif
+
+            {{-- Riwayat Pengajuan Biometrik --}}
+            @if($historicalRegistrations->isNotEmpty())
+                <flux:card class="space-y-3">
+                    <div class="flex items-center gap-2 border-b border-zinc-100 dark:border-zinc-800 pb-2.5">
+                        <flux:icon name="clock" class="size-4 text-zinc-400" />
+                        <h4 class="font-semibold text-xs text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                            Riwayat Pengajuan Biometrik Wajah
+                        </h4>
+                    </div>
+
+                    <div class="divide-y divide-zinc-100 dark:divide-zinc-800 text-xs">
+                        @foreach($historicalRegistrations as $hist)
+                            <div class="py-2.5 flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-3">
+                                    <img 
+                                        src="{{ route('biometrics.registrations.photo', $hist->id) }}" 
+                                        class="size-9 rounded-lg object-cover border border-zinc-200 dark:border-zinc-700" 
+                                        alt="Thumbnail" 
+                                    />
+                                    <div>
+                                        <div class="flex items-center gap-1.5 font-medium text-zinc-800 dark:text-zinc-200">
+                                            <span>Diajukan {{ $hist->created_at->format('d M Y H:i') }}</span>
+                                            @if($hist->isApproved())
+                                                <flux:badge size="sm" color="emerald">Disetujui</flux:badge>
+                                            @else
+                                                <flux:badge size="sm" color="red">Ditolak</flux:badge>
+                                            @endif
+                                        </div>
+                                        <div class="text-[11px] text-zinc-500">
+                                            Ditinjau oleh: {{ $hist->reviewedBy?->name ?? 'HR Admin' }} ({{ $hist->reviewed_at?->format('d M Y H:i') ?? '-' }})
+                                            @if($hist->rejection_reason)
+                                                <span class="text-rose-500 ml-1">&bull; Alasan: "{{ $hist->rejection_reason }}"</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </flux:card>
             @endif
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1826,6 +1964,39 @@
             <div class="flex justify-end gap-2 pt-2">
                 <flux:button variant="ghost" wire:click="$set('showComponentModal', false)">Batal</flux:button>
                 <flux:button type="submit" variant="primary">Simpan Komponen</flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    {{-- Modal Tolak Pengajuan Biometrik Wajah --}}
+    <flux:modal wire:model="showRejectRegistrationModal" class="md:w-[480px] space-y-4">
+        <div>
+            <flux:heading size="lg">Tolak Pengajuan Biometrik Wajah</flux:heading>
+            <flux:subheading>Masukkan alasan penolakan foto wajah pegawai.</flux:subheading>
+        </div>
+
+        <form wire:submit="rejectFaceRegistration" class="space-y-4">
+            <flux:textarea 
+                wire:model="registrationRejectionReason" 
+                label="Alasan Penolakan" 
+                placeholder="Contoh: Foto buram, tidak menghadap kamera, atau pencahayaan kurang jelas..." 
+                rows="3" 
+                required 
+            />
+            <flux:error name="registrationRejectionReason" />
+
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
+                <flux:button variant="subtle" wire:click="closeRejectRegistrationModal">
+                    Batal
+                </flux:button>
+                <flux:button type="submit" variant="danger" wire:loading.attr="disabled">
+                    <span wire:loading.remove wire:target="rejectFaceRegistration">
+                        Tolak Pengajuan
+                    </span>
+                    <span wire:loading wire:target="rejectFaceRegistration">
+                        Menolak...
+                    </span>
+                </flux:button>
             </div>
         </form>
     </flux:modal>
