@@ -19,24 +19,36 @@ class GoogleDriveStorageProvider implements DocumentStorageProvider
      */
     public function __construct(
         protected ?string $sharedDriveId = null,
-        protected ?string $serviceAccountKeyPath = null
+        protected ?string $serviceAccountKeyPath = null,
+        protected ?string $clientId = null,
+        protected ?string $clientSecret = null,
+        protected ?string $refreshToken = null
     ) {
         $this->sharedDriveId = $sharedDriveId ?? config('services.google_drive.shared_drive_id');
         $this->serviceAccountKeyPath = $serviceAccountKeyPath ?? config('services.google_drive.service_account_json');
+        $this->clientId = $clientId ?? config('services.google_drive.client_id');
+        $this->clientSecret = $clientSecret ?? config('services.google_drive.client_secret');
+        $this->refreshToken = $refreshToken ?? config('services.google_drive.refresh_token');
     }
 
     /**
-     * Determine if Google Drive Service Account credentials are valid and present.
+     * Determine if Google Drive credentials (OAuth 2.0 or Service Account) are valid and present.
      */
     public function isConfigured(): bool
     {
-        if (empty($this->serviceAccountKeyPath)) {
-            return false;
+        // 1. OAuth 2.0 Refresh Token (for personal @gmail.com accounts)
+        if (! empty($this->refreshToken) && ! empty($this->clientId) && ! empty($this->clientSecret)) {
+            return true;
         }
 
-        $fullPath = $this->resolvePath($this->serviceAccountKeyPath);
+        // 2. Service Account (for Google Workspace Shared Drives)
+        if (! empty($this->serviceAccountKeyPath)) {
+            $fullPath = $this->resolvePath($this->serviceAccountKeyPath);
 
-        return file_exists($fullPath) && is_readable($fullPath);
+            return file_exists($fullPath) && is_readable($fullPath);
+        }
+
+        return false;
     }
 
     public function store(
@@ -240,10 +252,33 @@ class GoogleDriveStorageProvider implements DocumentStorageProvider
     }
 
     /**
-     * Retrieve or generate OAuth2 access token for Google Service Account using RS256 JWT.
+     * Retrieve or generate OAuth2 access token (via OAuth Refresh Token or Service Account RS256 JWT).
      */
     public function getAccessToken(): ?string
     {
+        // 1. If OAuth 2.0 Refresh Token is configured (for personal @gmail.com accounts)
+        if (! empty($this->refreshToken) && ! empty($this->clientId) && ! empty($this->clientSecret)) {
+            return Cache::remember('gdrive_oauth_access_token', 3300, function () {
+                $response = Http::asForm()
+                    ->timeout(10)
+                    ->post('https://oauth2.googleapis.com/token', [
+                        'client_id' => $this->clientId,
+                        'client_secret' => $this->clientSecret,
+                        'refresh_token' => $this->refreshToken,
+                        'grant_type' => 'refresh_token',
+                    ]);
+
+                if ($response->successful()) {
+                    return $response->json('access_token');
+                }
+
+                Log::error('Google OAuth2 refresh token exchange failed: '.$response->body());
+
+                return null;
+            });
+        }
+
+        // 2. If Service Account is configured (for Google Workspace Shared Drives)
         return Cache::remember('gdrive_service_access_token', 3300, function () {
             if (! $this->isConfigured()) {
                 return null;
