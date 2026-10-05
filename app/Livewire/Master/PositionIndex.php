@@ -113,7 +113,7 @@ class PositionIndex extends Component
 
         if ($this->positionSkDocumentFile) {
             $originalName = $this->positionSkDocumentFile->getClientOriginalName();
-            $posName = trim(preg_replace('/[^\w\s\-\.]+/u', '', $this->positionName));
+            $posName = trim(preg_replace('/[^\w\s\-\.]+/u', '', $this->positionTitle ?: 'Jabatan'));
             $category = "SK_Jabatan/{$posName}";
             $customFileName = "SK_Jabatan_{$posName}_{$originalName}";
 
