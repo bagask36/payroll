@@ -12,7 +12,7 @@
                 Kapasitas & Direktori Google Drive
             </h1>
             <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                Monitoring ruang penyimpanan cloud, sisa kuota folder <span class="font-semibold text-zinc-700 dark:text-zinc-300">JUWITA-STORAGE</span>, dan penjelajah direktori file.
+                Monitoring ruang penyimpanan cloud, sisa kuota folder <span class="font-semibold text-zinc-700 dark:text-zinc-300">JUWITA-STORAGE</span>, dan struktur direktori bersarang (*nested*).
             </p>
         </div>
 
@@ -31,9 +31,9 @@
 
             <flux:button 
                 wire:click="refreshMetrics" 
+                wire:target="refreshMetrics"
                 icon="arrow-path" 
                 variant="primary" 
-                wire:loading.attr="disabled"
                 class="cursor-pointer"
             >
                 <span wire:loading.remove wire:target="refreshMetrics">Perbarui Data</span>
@@ -164,97 +164,196 @@
             </div>
         </div>
 
-        {{-- Card 3: Storage Akun Google Drive Utama --}}
-        <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5 shadow-xs flex flex-col justify-between">
-            <div>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                        Akun Google Cloud
-                    </span>
-                    <flux:badge size="xs" color="sky" class="font-bold">Cloud Quota</flux:badge>
-                </div>
-                <div class="mt-3 flex items-baseline gap-2">
-                    <span class="text-3xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
-                        {{ self::formatBytes($accountFreeBytes) }}
-                    </span>
-                    <span class="text-xs text-zinc-500">sisa akun</span>
-                </div>
-                <p class="text-xs text-zinc-500 dark:text-zinc-400 mt-1 truncate" title="{{ $metrics['account']['email'] ?? '-' }}">
-                    {{ $metrics['account']['email'] ?? 'Google Account' }} ({{ $metrics['account']['name'] ?? 'User' }})
-                </p>
-            </div>
-
-            <div class="mt-4 pt-4 border-t border-zinc-100 dark:border-zinc-800">
-                <div class="flex justify-between text-[11px] font-medium text-zinc-500 mb-1.5">
-                    <span>Terpakai: {{ self::formatBytes($accountUsedBytes) }} / {{ self::formatBytes($accountTotalBytes) }}</span>
-                    <span class="font-bold text-sky-600">{{ $accountUsagePercent }}%</span>
-                </div>
-                <div class="w-full bg-zinc-100 dark:bg-zinc-800 h-2.5 rounded-full overflow-hidden">
-                    <div 
-                        class="h-full rounded-full bg-sky-500 transition-all duration-500"
-                        style="width: {{ min(100, $accountUsagePercent) }}%"
-                    ></div>
-                </div>
-            </div>
-        </div>
     </div>
 
-    {{-- Form Konfigurasi Limitasi Folder --}}
+    {{-- Form Konfigurasi Limitasi Folder (Redesigned) --}}
     <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 shadow-xs">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-4 mb-5">
+        {{-- Card Header --}}
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 dark:border-zinc-800 pb-4 mb-6">
             <div class="flex items-center gap-3">
-                <div class="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 border border-emerald-200/60 dark:border-emerald-800">
+                <div class="size-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800 flex items-center justify-center shrink-0">
                     <flux:icon name="adjustments-horizontal" class="size-5" />
                 </div>
                 <div>
-                    <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100">Konfigurasi Batas Limit Folder</h3>
-                    <p class="text-xs text-zinc-500">Atur batas maksimal kapasitas penyimpanan folder dan threshold peringatan sistem.</p>
+                    <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                        Kebijakan & Batas Kuota Penyimpanan
+                    </h3>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400">
+                        Atur batas maksimal kuota folder <span class="font-semibold text-zinc-700 dark:text-zinc-300">JUWITA-STORAGE</span> serta ambang batas peringatan sistem.
+                    </p>
                 </div>
             </div>
 
             @if(!empty($metrics['cached_at']))
-                <span class="text-[11px] text-zinc-400">
-                    Terakhir disinkronkan: {{ \Carbon\Carbon::parse($metrics['cached_at'])->timezone('Asia/Jakarta')->format('d M Y, H:i:s') }} WIB
-                </span>
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200/80 dark:border-zinc-700">
+                    <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                    <span>Disinkronkan: {{ \Carbon\Carbon::parse($metrics['cached_at'])->timezone('Asia/Jakarta')->format('d M Y, H:i') }} WIB</span>
+                </div>
             @endif
         </div>
 
-        <form wire:submit.prevent="saveSettings" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <div>
-                    <flux:input 
-                        wire:model="folderMaxLimitMb" 
-                        type="number" 
-                        label="Batas Maksimal Folder (MB)" 
-                        description="Contoh: 5120 (5 GB), 10240 (10 GB), 51200 (50 GB)"
-                        required 
-                    />
-                    <div class="text-[11px] text-zinc-400 mt-1 font-mono">
-                        ≈ {{ round($folderMaxLimitMb / 1024, 2) }} GB
+        <form wire:submit.prevent="saveSettings" class="space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {{-- Left: Inputs & Quick Presets (Col 7) --}}
+                <div class="lg:col-span-7 space-y-6">
+                    {{-- 1. Batas Maksimal Kuota Folder --}}
+                    <div>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                            <label class="text-xs font-bold text-zinc-800 dark:text-zinc-200 uppercase tracking-wider">
+                                Batas Maksimal Folder
+                            </label>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800 font-mono">
+                                ≈ {{ round($folderMaxLimitMb / 1024, 2) }} GB ({{ number_format($folderMaxLimitMb) }} MB)
+                            </span>
+                        </div>
+
+                        {{-- Quick Presets Chips --}}
+                        <div class="flex flex-wrap items-center gap-1.5 mb-3">
+                            <span class="text-[11px] font-medium text-zinc-400 mr-1">Pilihan Cepat:</span>
+                            @foreach([10 => '10 GB', 50 => '50 GB', 100 => '100 GB', 500 => '500 GB', 1024 => '1 TB'] as $gbValue => $label)
+                                @php
+                                    $mbEquiv = $gbValue * 1024;
+                                    $isActive = (int)$folderMaxLimitMb === $mbEquiv;
+                                @endphp
+                                <button 
+                                    type="button" 
+                                    wire:click="setPreset({{ $gbValue }})"
+                                    class="px-2.5 py-1 text-xs font-semibold rounded-lg border transition-all cursor-pointer {{ $isActive ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs' : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-emerald-400 hover:text-emerald-600' }}"
+                                >
+                                    {{ $label }}
+                                </button>
+                            @endforeach
+                        </div>
+
+                        <div class="relative">
+                            <flux:input 
+                                wire:model.live.debounce.300ms="folderMaxLimitMb" 
+                                type="number" 
+                                placeholder="Masukkan nilai kuota (MB)..."
+                                required
+                            />
+                        </div>
+                        <p class="text-[11px] text-zinc-400 mt-1">
+                            Minimal 100 MB. Nilai disimpan dalam Megabytes (1 GB = 1024 MB).
+                        </p>
+                    </div>
+
+                    {{-- 2. Ambang Batas Peringatan (%) --}}
+                    <div>
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                            <label class="text-xs font-bold text-zinc-800 dark:text-zinc-200 uppercase tracking-wider">
+                                Ambang Batas Peringatan (Warning Threshold)
+                            </label>
+                            <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800 font-mono">
+                                {{ $warningThresholdPercent }}% (Aktif pada {{ round(($folderMaxLimitMb * ($warningThresholdPercent / 100)) / 1024, 2) }} GB)
+                            </span>
+                        </div>
+
+                        {{-- Quick Percentage Pills --}}
+                        <div class="flex flex-wrap items-center gap-1.5 mb-3">
+                            <span class="text-[11px] font-medium text-zinc-400 mr-1">Rekomendasi:</span>
+                            @foreach([70 => '70%', 80 => '80% (Standar)', 90 => '90%', 95 => '95% (Kritis)'] as $pct => $label)
+                                @php
+                                    $isActive = (int)$warningThresholdPercent === $pct;
+                                @endphp
+                                <button 
+                                    type="button" 
+                                    wire:click="setThresholdPreset({{ $pct }})"
+                                    class="px-2.5 py-1 text-xs font-semibold rounded-lg border transition-all cursor-pointer {{ $isActive ? 'bg-amber-600 text-white border-amber-600 shadow-xs' : 'bg-zinc-50 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700 hover:border-amber-400 hover:text-amber-600' }}"
+                                >
+                                    {{ $label }}
+                                </button>
+                            @endforeach
+                        </div>
+
+                        <div class="relative">
+                            <flux:input 
+                                wire:model.live.debounce.300ms="warningThresholdPercent" 
+                                type="number" 
+                                min="50" 
+                                max="99" 
+                                placeholder="Persentase peringatan..."
+                                required
+                            />
+                        </div>
+                        <p class="text-[11px] text-zinc-400 mt-1">
+                            Sistem akan menampilkan banner waspada jika penggunaan folder melewati persentase ini.
+                        </p>
                     </div>
                 </div>
 
-                <div>
-                    <flux:input 
-                        wire:model="warningThresholdPercent" 
-                        type="number" 
-                        label="Ambang Batas Peringatan (%)" 
-                        description="Kirim notifikasi waspada ketika terpakai mencapai nilai ini"
-                        min="50"
-                        max="99"
-                        required 
-                    />
-                    <div class="text-[11px] text-zinc-400 mt-1 font-mono">
-                        Peringatan aktif pada {{ round(($folderMaxLimitMb * ($warningThresholdPercent / 100)) / 1024, 2) }} GB
+                {{-- Right: Live Policy Summary Card (Col 5) --}}
+                <div class="lg:col-span-5 bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200/80 dark:border-zinc-800 rounded-2xl p-5 space-y-4">
+                    <div class="flex items-center justify-between border-b border-zinc-200/80 dark:border-zinc-700/60 pb-3">
+                        <div class="flex items-center gap-2">
+                            <flux:icon name="shield-check" class="size-4.5 text-emerald-600 dark:text-emerald-400" />
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200">
+                                Ringkasan Kebijakan
+                            </h4>
+                        </div>
+                        <flux:badge size="xs" color="emerald" class="font-bold">Aktif</flux:badge>
+                    </div>
+
+                    <div class="space-y-3 text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="text-zinc-500">Maksimal Folder:</span>
+                            <span class="font-bold text-zinc-900 dark:text-zinc-100 font-mono text-sm">
+                                {{ round($folderMaxLimitMb / 1024, 2) }} GB
+                            </span>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <span class="text-zinc-500">Ambang Waspada ({{ $warningThresholdPercent }}%):</span>
+                            <span class="font-bold text-amber-600 dark:text-amber-400 font-mono text-sm">
+                                {{ round(($folderMaxLimitMb * ($warningThresholdPercent / 100)) / 1024, 2) }} GB
+                            </span>
+                        </div>
+
+                        <div class="flex items-center justify-between">
+                            <span class="text-zinc-500">Terpakai Saat Ini:</span>
+                            <span class="font-semibold text-zinc-700 dark:text-zinc-300 font-mono">
+                                {{ self::formatBytes($folderUsedBytes) }}
+                            </span>
+                        </div>
+
+                        {{-- Visual Indicator Bar --}}
+                        <div class="pt-2">
+                            <div class="flex justify-between text-[10px] text-zinc-400 font-mono mb-1">
+                                <span>0 GB</span>
+                                <span class="text-amber-600 font-bold">Waspada {{ $warningThresholdPercent }}%</span>
+                                <span>Limit {{ round($folderMaxLimitMb / 1024, 2) }} GB</span>
+                            </div>
+                            <div class="w-full bg-zinc-200 dark:bg-zinc-700 h-3 rounded-full overflow-hidden flex relative">
+                                <div 
+                                    class="h-full bg-emerald-500 transition-all duration-300" 
+                                    style="width: {{ $warningThresholdPercent }}%"
+                                    title="Zona Aman (0 - {{ $warningThresholdPercent }}%)"
+                                ></div>
+                                <div 
+                                    class="h-full bg-amber-500 transition-all duration-300" 
+                                    style="width: {{ 100 - $warningThresholdPercent }}%"
+                                    title="Zona Waspada ({{ $warningThresholdPercent }}% - 100%)"
+                                ></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="flex items-end">
+            {{-- Action Footer --}}
+            <div class="border-t border-zinc-100 dark:border-zinc-800 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                    <flux:icon name="information-circle" class="size-4 text-zinc-400 shrink-0" />
+                    <span>Perubahan limit akan otomatis disimpan ke database konfigurasi sistem dan dicatat pada audit log.</span>
+                </div>
+
+                <div class="flex items-center gap-2 justify-end">
                     <flux:button 
                         type="submit" 
                         variant="primary" 
-                        class="w-full sm:w-auto cursor-pointer"
-                        wire:loading.attr="disabled"
+                        icon="check"
+                        wire:target="saveSettings"
+                        class="cursor-pointer font-semibold shadow-xs"
                     >
                         <span wire:loading.remove wire:target="saveSettings">Simpan Perubahan Limit</span>
                         <span wire:loading wire:target="saveSettings">Menyimpan...</span>
@@ -264,230 +363,101 @@
         </form>
     </div>
 
-    {{-- File & Directory Explorer --}}
+    {{-- Nested Directory Tree Explorer --}}
     <div class="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xs overflow-hidden">
-        {{-- Explorer Header & Search --}}
+        {{-- Explorer Header & Controls --}}
         <div class="p-5 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
                 <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                     <flux:icon name="folder-open" class="size-5 text-emerald-600" />
-                    Penjelajah Direktori File
+                    Direktori Penyimpanan
                 </h3>
-                <p class="text-xs text-zinc-500 mt-0.5">Struktur folder dan file yang tersimpan pada cloud Google Drive.</p>
+                <p class="text-xs text-zinc-500 mt-0.5">
+                    Klik nama atau panah folder untuk membuka dan menutup isi direktori secara bertingkat.
+                </p>
             </div>
 
-            <div class="w-full sm:w-72">
-                <flux:input 
-                    wire:model.live.debounce.300ms="searchQuery" 
-                    placeholder="Cari folder atau file..." 
-                    icon="magnifying-glass"
-                    size="sm"
-                />
-            </div>
-        </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <flux:button 
+                    wire:click="expandAll" 
+                    wire:target="expandAll"
+                    size="xs" 
+                    variant="subtle" 
+                    icon="arrows-pointing-out"
+                    class="cursor-pointer"
+                    title="Buka semua folder"
+                >
+                    <span wire:loading.remove wire:target="expandAll">Buka Semua</span>
+                    <span wire:loading wire:target="expandAll">Membuka...</span>
+                </flux:button>
 
-        {{-- Breadcrumb Navigation Bar & Actions --}}
-        <div class="bg-zinc-50 dark:bg-zinc-800/60 px-4 py-2.5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between gap-3 text-xs">
-            <div class="flex items-center gap-1.5 overflow-x-auto py-1">
-                @if(count($breadcrumbs) > 1)
-                    <button 
-                        type="button" 
-                        wire:click="goUp" 
-                        class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold text-zinc-700 dark:text-zinc-200 bg-white dark:bg-zinc-700 border border-zinc-200 dark:border-zinc-600 hover:bg-zinc-100 dark:hover:bg-zinc-600 cursor-pointer shadow-2xs mr-1 shrink-0"
-                        title="Kembali ke folder sebelumnya"
-                    >
-                        <flux:icon name="arrow-up" class="size-3.5" />
-                        <span>Kembali</span>
-                    </button>
-                @endif
+                <flux:button 
+                    wire:click="collapseAll" 
+                    wire:target="collapseAll"
+                    size="xs" 
+                    variant="subtle" 
+                    icon="arrows-pointing-in"
+                    class="cursor-pointer"
+                    title="Tutup semua folder"
+                >
+                    <span wire:loading.remove wire:target="collapseAll">Tutup Semua</span>
+                    <span wire:loading wire:target="collapseAll">Menutup...</span>
+                </flux:button>
 
-                <div class="flex items-center gap-1 text-zinc-600 dark:text-zinc-300 font-medium">
-                    @foreach($breadcrumbs as $index => $crumb)
-                        @if($index > 0)
-                            <flux:icon name="chevron-right" class="size-3.5 text-zinc-400 shrink-0" />
-                        @endif
-
-                        @if($index === count($breadcrumbs) - 1)
-                            <span class="font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800 shrink-0 flex items-center gap-1">
-                                @if($index === 0)
-                                    <flux:icon name="home" class="size-3.5" />
-                                @else
-                                    <flux:icon name="folder-open" class="size-3.5" />
-                                @endif
-                                {{ $crumb['name'] }}
-                            </span>
-                        @else
-                            <button 
-                                type="button" 
-                                wire:click="goToBreadcrumb({{ $index }})" 
-                                class="hover:text-emerald-600 dark:hover:text-emerald-400 hover:underline px-1.5 py-0.5 rounded cursor-pointer shrink-0 flex items-center gap-1"
-                            >
-                                @if($index === 0)
-                                    <flux:icon name="home" class="size-3.5 text-zinc-400" />
-                                @else
-                                    <flux:icon name="folder" class="size-3.5 text-zinc-400" />
-                                @endif
-                                {{ $crumb['name'] }}
-                            </button>
-                        @endif
-                    @endforeach
+                <div class="w-full sm:w-56">
+                    <flux:input 
+                        wire:model.live.debounce.300ms="searchQuery" 
+                        placeholder="Saring folder / file..." 
+                        icon="magnifying-glass"
+                        size="xs"
+                    />
                 </div>
             </div>
+        </div>
 
-            <div class="text-[11px] text-zinc-400 shrink-0 font-medium hidden sm:block">
-                {{ count($folderItems) }} item
+        {{-- Tree Root Badge Bar --}}
+        <div class="bg-zinc-50/80 dark:bg-zinc-800/60 px-4 py-2 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-xs">
+            <div class="flex items-center gap-2 font-semibold text-zinc-700 dark:text-zinc-200">
+                <flux:icon name="home" class="size-4 text-emerald-600" />
+                <span>Root: <strong>JUWITA-STORAGE</strong></span>
+                <flux:badge size="xs" color="emerald" class="font-mono text-[10px]">Utama</flux:badge>
+            </div>
+
+            <div class="text-[11px] text-zinc-400 font-mono">
+                Total Root: {{ count($rootItems) }} item
             </div>
         </div>
 
-        {{-- Directory Items Table --}}
+        {{-- Nested Tree Table --}}
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm">
-                <thead class="bg-zinc-50/80 dark:bg-zinc-800/40 text-zinc-500 dark:text-zinc-400 text-xs uppercase tracking-wider font-semibold border-b border-zinc-200 dark:border-zinc-800">
+                <thead class="bg-zinc-50/50 dark:bg-zinc-800/30 text-zinc-500 dark:text-zinc-400 text-xs uppercase tracking-wider font-semibold border-b border-zinc-200 dark:border-zinc-800">
                     <tr>
-                        <th class="py-3 px-4">Nama</th>
-                        <th class="py-3 px-4">Tipe</th>
-                        <th class="py-3 px-4">Ukuran</th>
-                        <th class="py-3 px-4">Waktu Modifikasi</th>
-                        <th class="py-3 px-4 text-right">Aksi</th>
+                        <th class="py-2.5 pl-6 pr-4">Struktur Direktori & File</th>
+                        <th class="py-2.5 px-3">Tipe</th>
+                        <th class="py-2.5 px-3">Ukuran</th>
+                        <th class="py-2.5 px-3">Waktu Modifikasi</th>
+                        <th class="py-2.5 px-4 text-right">Aksi</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
-                    {{-- Up One Level Row --}}
-                    @if(count($breadcrumbs) > 1)
-                        <tr wire:click="goUp" class="hover:bg-zinc-50/80 dark:hover:bg-zinc-800/50 cursor-pointer transition-colors group">
-                            <td class="py-2.5 px-4 font-semibold text-zinc-600 dark:text-zinc-300" colspan="5">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="p-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-500 group-hover:text-emerald-600 transition-colors">
-                                        <flux:icon name="arrow-uturn-left" class="size-4" />
-                                    </div>
-                                    <span class="text-xs font-mono">.. (Kembali ke folder induk)</span>
-                                </div>
-                            </td>
-                        </tr>
-                    @endif
-
-                    @forelse ($folderItems as $item)
-                        @php
-                            $isFolder = $item['is_folder'] ?? false;
-                            $mimeType = $item['mimeType'] ?? '';
-                            $isImage = str_starts_with($mimeType, 'image/');
-                            $isPdf = $mimeType === 'application/pdf';
-                        @endphp
-                        <tr 
-                            class="hover:bg-zinc-50/70 dark:hover:bg-zinc-800/50 transition-colors {{ $isFolder ? 'cursor-pointer bg-zinc-50/30 dark:bg-zinc-800/20' : '' }}"
-                            @if($isFolder) wire:click="openFolder('{{ $item['id'] }}', '{{ addslashes($item['name']) }}')" @endif
-                        >
-                            {{-- Item Name --}}
-                            <td class="py-3 px-4 font-medium text-zinc-900 dark:text-zinc-100">
-                                <div class="flex items-center gap-2.5">
-                                    @if($isFolder)
-                                        <div class="size-8 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 border border-amber-200/60 dark:border-amber-800/60 shadow-2xs">
-                                            <flux:icon name="folder" class="size-4.5" />
-                                        </div>
-                                        <div class="min-w-0">
-                                            <span class="font-bold text-zinc-900 dark:text-zinc-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors truncate block max-w-xs sm:max-w-md" title="{{ $item['name'] }}">
-                                                {{ $item['name'] }}
-                                            </span>
-                                            <span class="text-[10px] text-zinc-400">Klik untuk membuka folder</span>
-                                        </div>
-                                    @else
-                                        <div class="size-8 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-200/60 dark:border-emerald-800/60 shadow-2xs">
-                                            @if($isImage)
-                                                <flux:icon name="photo" class="size-4.5" />
-                                            @elseif($isPdf)
-                                                <flux:icon name="document-text" class="size-4.5 text-rose-500" />
-                                            @else
-                                                <flux:icon name="document" class="size-4.5" />
-                                            @endif
-                                        </div>
-                                        <div class="min-w-0">
-                                            <span class="truncate block max-w-xs sm:max-w-md font-medium text-zinc-800 dark:text-zinc-200" title="{{ $item['name'] }}">
-                                                {{ $item['name'] }}
-                                            </span>
-                                        </div>
-                                    @endif
-                                </div>
-                            </td>
-
-                            {{-- Type --}}
-                            <td class="py-3 px-4 text-xs">
-                                @if($isFolder)
-                                    <flux:badge size="xs" color="amber" class="font-semibold">Direktori</flux:badge>
-                                @else
-                                    <flux:badge size="xs" color="zinc" class="font-mono text-[10px]">
-                                        {{ $isImage ? 'Gambar' : ($isPdf ? 'PDF' : 'File') }}
-                                    </flux:badge>
-                                @endif
-                            </td>
-
-                            {{-- Size --}}
-                            <td class="py-3 px-4 text-zinc-600 dark:text-zinc-300 font-mono text-xs">
-                                @if($isFolder)
-                                    <span class="text-zinc-400">—</span>
-                                @else
-                                    {{ self::formatBytes((int) ($item['size'] ?? 0)) }}
-                                @endif
-                            </td>
-
-                            {{-- Modified / Created Time --}}
-                            <td class="py-3 px-4 text-zinc-500 dark:text-zinc-400 text-xs">
-                                @php
-                                    $time = $item['modifiedTime'] ?? $item['createdTime'] ?? null;
-                                @endphp
-                                @if(!empty($time))
-                                    {{ \Carbon\Carbon::parse($time)->timezone('Asia/Jakarta')->format('d M Y, H:i') }}
-                                @else
-                                    -
-                                @endif
-                            </td>
-
-                            {{-- Action --}}
-                            <td class="py-3 px-4 text-right">
-                                <div class="flex items-center justify-end gap-1.5" @if($isFolder) onclick="event.stopPropagation()" @endif>
-                                    @if($isFolder)
-                                        <flux:button 
-                                            wire:click="openFolder('{{ $item['id'] }}', '{{ addslashes($item['name']) }}')" 
-                                            size="xs" 
-                                            variant="subtle"
-                                            icon="arrow-right"
-                                            class="cursor-pointer"
-                                        >
-                                            Masuk
-                                        </flux:button>
-                                    @endif
-
-                                    @if(!empty($item['webViewLink']))
-                                        <flux:button 
-                                            href="{{ $item['webViewLink'] }}" 
-                                            target="_blank" 
-                                            icon="arrow-top-right-on-square" 
-                                            size="xs" 
-                                            variant="subtle"
-                                            class="cursor-pointer"
-                                            title="Buka di Google Drive"
-                                        >
-                                            Drive
-                                        </flux:button>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
+                <tbody class="divide-y divide-zinc-200/60 dark:divide-zinc-800/60">
+                    @if(count($rootItems) > 0)
+                        @include('livewire.system.partials.directory-tree-node', [
+                            'items' => $rootItems,
+                            'level' => 0,
+                            'expandedFolders' => $expandedFolders,
+                            'folderItemsMap' => $folderItemsMap,
+                            'loadingFolderId' => null,
+                        ])
+                    @else
                         <tr>
                             <td colspan="5" class="py-12 text-center text-zinc-400 text-sm">
                                 <flux:icon name="folder-minus" class="size-9 mx-auto text-zinc-300 dark:text-zinc-600 mb-2" />
                                 <p class="font-medium text-zinc-600 dark:text-zinc-300">Direktori ini kosong</p>
-                                <p class="text-xs text-zinc-400 mt-0.5">Tidak ada file atau subfolder yang tersimpan di dalam folder ini.</p>
-                                @if(count($breadcrumbs) > 1)
-                                    <div class="mt-3">
-                                        <flux:button wire:click="goUp" size="xs" variant="subtle" icon="arrow-up" class="cursor-pointer">
-                                            Kembali ke folder sebelumnya
-                                        </flux:button>
-                                    </div>
-                                @endif
+                                <p class="text-xs text-zinc-400 mt-0.5">Tidak ada item yang ditemukan pada tingkat direktori ini.</p>
                             </td>
                         </tr>
-                    @endforelse
+                    @endif
                 </tbody>
             </table>
         </div>

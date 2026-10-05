@@ -99,6 +99,16 @@ class GoogleDriveStorageTest extends TestCase
         ]);
     }
 
+    public function test_superadmin_can_use_quick_presets_for_limit_and_threshold(): void
+    {
+        Livewire::actingAs($this->superAdmin)
+            ->test(GoogleDriveStorageIndex::class)
+            ->call('setPreset', 500)
+            ->assertSet('folderMaxLimitMb', 512000)
+            ->call('setThresholdPreset', 90)
+            ->assertSet('warningThresholdPercent', 90);
+    }
+
     public function test_folder_limit_validation_requires_minimum_values(): void
     {
         Livewire::actingAs($this->superAdmin)
@@ -165,30 +175,24 @@ class GoogleDriveStorageTest extends TestCase
         $this->assertEquals(1048576, $metrics['folder']['total_bytes']);
     }
 
-    public function test_superadmin_can_navigate_directory_folders_and_breadcrumbs(): void
+    public function test_superadmin_can_expand_and_collapse_nested_folders(): void
     {
         Livewire::actingAs($this->superAdmin)
             ->test(GoogleDriveStorageIndex::class)
-            ->assertSee('Penjelajah Direktori File')
+            ->assertSee('Direktori Penyimpanan')
             ->assertSee('JUWITA-STORAGE')
-            // Open a subfolder
-            ->call('openFolder', 'folder_pegawai_123', 'Pegawai')
-            ->assertSet('currentFolderId', 'folder_pegawai_123')
-            ->assertCount('breadcrumbs', 2)
-            ->assertSee('Pegawai')
-            ->assertSee('Kembali ke folder induk')
-            // Open another nested subfolder
-            ->call('openFolder', 'folder_emp1_456', 'EMP1 - Dewi')
-            ->assertSet('currentFolderId', 'folder_emp1_456')
-            ->assertCount('breadcrumbs', 3)
-            // Navigate back up via goUp
-            ->call('goUp')
-            ->assertSet('currentFolderId', 'folder_pegawai_123')
-            ->assertCount('breadcrumbs', 2)
-            // Jump back to root via goToBreadcrumb
-            ->call('goToBreadcrumb', 0)
-            ->assertCount('breadcrumbs', 1)
-            ->assertDontSee('Kembali ke folder induk');
+            // Toggle expand a folder
+            ->call('toggleFolder', 'folder_pegawai_123')
+            ->assertSet('expandedFolders.folder_pegawai_123', true)
+            // Toggle collapse
+            ->call('toggleFolder', 'folder_pegawai_123')
+            ->assertSet('expandedFolders.folder_pegawai_123', false)
+            // Call expand all
+            ->call('expandAll')
+            ->assertSet('expandedFolders.' . config('services.google_drive.attendance_folder_id', '12O9c7YilU3hFOGLelYJJEUhp4SGoAF_z'), true)
+            // Call collapse all
+            ->call('collapseAll')
+            ->assertSet('expandedFolders', []);
     }
 
     public function test_folder_files_returns_both_folders_and_files(): void

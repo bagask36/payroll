@@ -18,12 +18,21 @@ class GoogleDriveStorageIndex extends Component
 
     public string $searchQuery = '';
 
-    public string $currentFolderId = '';
+    public string $rootFolderId = '';
 
     /**
-     * @var array<int, array{id: string, name: string}>
+     * Set of expanded folder IDs [folderId => bool]
+     *
+     * @var array<string, bool>
      */
-    public array $breadcrumbs = [];
+    public array $expandedFolders = [];
+
+    /**
+     * Map of child items for each folder [folderId => array<int, array>]
+     *
+     * @var array<string, array<int, array>>
+     */
+    public array $folderItemsMap = [];
 
     public ?string $feedbackMessage = null;
 
@@ -39,41 +48,63 @@ class GoogleDriveStorageIndex extends Component
         $this->folderMaxLimitMb = (int) SystemSetting::get('gdrive_folder_max_size_mb', '10240');
         $this->warningThresholdPercent = (int) SystemSetting::get('gdrive_warning_threshold_percent', '80');
 
-        $rootFolderId = (string) config('services.google_drive.attendance_folder_id', '12O9c7YilU3hFOGLelYJJEUhp4SGoAF_z');
-        $this->currentFolderId = $rootFolderId;
-        $this->breadcrumbs = [
-            ['id' => $rootFolderId, 'name' => 'JUWITA-STORAGE'],
-        ];
+        $this->rootFolderId = (string) config('services.google_drive.attendance_folder_id', '12O9c7YilU3hFOGLelYJJEUhp4SGoAF_z');
     }
 
-    public function openFolder(string $folderId, string $folderName): void
+    public function toggleFolder(string $folderId, GoogleDriveStorageProvider $driveProvider): void
     {
-        $this->currentFolderId = $folderId;
-        $this->breadcrumbs[] = [
-            'id' => $folderId,
-            'name' => $folderName,
-        ];
-        $this->searchQuery = '';
-    }
+        $isCurrentlyExpanded = ! empty($this->expandedFolders[$folderId]);
 
-    public function goToBreadcrumb(int $index): void
-    {
-        if (isset($this->breadcrumbs[$index])) {
-            $this->breadcrumbs = array_slice($this->breadcrumbs, 0, $index + 1);
-            $lastItem = end($this->breadcrumbs);
-            $this->currentFolderId = $lastItem['id'];
-            $this->searchQuery = '';
+        if ($isCurrentlyExpanded) {
+            $this->expandedFolders[$folderId] = false;
+        } else {
+            $this->expandedFolders[$folderId] = true;
+
+            // Load child items if not loaded yet
+            if (! isset($this->folderItemsMap[$folderId])) {
+                $result = $driveProvider->getFolderFiles($folderId, pageSize: 100);
+                $this->folderItemsMap[$folderId] = $result['files'] ?? [];
+            }
         }
     }
 
-    public function goUp(): void
+    public function expandAll(GoogleDriveStorageProvider $driveProvider): void
     {
-        if (count($this->breadcrumbs) > 1) {
-            array_pop($this->breadcrumbs);
-            $lastItem = end($this->breadcrumbs);
-            $this->currentFolderId = $lastItem['id'];
-            $this->searchQuery = '';
+        // Expand root folder
+        $this->expandedFolders[$this->rootFolderId] = true;
+        if (! isset($this->folderItemsMap[$this->rootFolderId])) {
+            $result = $driveProvider->getFolderFiles($this->rootFolderId, pageSize: 100);
+            $this->folderItemsMap[$this->rootFolderId] = $result['files'] ?? [];
         }
+
+        // Expand any child folders discovered so far
+        foreach ($this->folderItemsMap as $parentFolderId => $items) {
+            foreach ($items as $item) {
+                if (! empty($item['is_folder']) && ! empty($item['id'])) {
+                    $childId = $item['id'];
+                    $this->expandedFolders[$childId] = true;
+                    if (! isset($this->folderItemsMap[$childId])) {
+                        $childResult = $driveProvider->getFolderFiles($childId, pageSize: 100);
+                        $this->folderItemsMap[$childId] = $childResult['files'] ?? [];
+                    }
+                }
+            }
+        }
+    }
+
+    public function collapseAll(): void
+    {
+        $this->expandedFolders = [];
+    }
+
+    public function setPreset(int $gb): void
+    {
+        $this->folderMaxLimitMb = $gb * 1024;
+    }
+
+    public function setThresholdPreset(int $percent): void
+    {
+        $this->warningThresholdPercent = $percent;
     }
 
     public function refreshMetrics(GoogleDriveStorageProvider $driveProvider): void
@@ -82,9 +113,14 @@ class GoogleDriveStorageIndex extends Component
         $this->errorMessage = null;
 
         try {
-            $rootFolderId = $this->breadcrumbs[0]['id'] ?? (string) config('services.google_drive.attendance_folder_id', '');
-            $driveProvider->getStorageMetrics($rootFolderId, forceRefresh: true);
-            $this->feedbackMessage = 'Data metrik direktori Google Drive berhasil diperbarui langsung dari cloud!';
+            $driveProvider->getStorageMetrics($this->rootFolderId, forceRefresh: true);
+            // Clear cached tree items to force fresh re-fetch
+            $this->folderItemsMap = [];
+
+            $result = $driveProvider->getFolderFiles($this->rootFolderId, pageSize: 100);
+            $this->folderItemsMap[$this->rootFolderId] = $result['files'] ?? [];
+
+            $this->feedbackMessage = 'Data metrik & struktur direktori Google Drive berhasil diperbarui langsung dari cloud!';
         } catch (\Throwable $e) {
             $this->errorMessage = 'Gagal memperbarui metrik: '.$e->getMessage();
         }
@@ -149,20 +185,25 @@ class GoogleDriveStorageIndex extends Component
 
     public function render(GoogleDriveStorageProvider $driveProvider)
     {
-        $rootFolderId = $this->breadcrumbs[0]['id'] ?? (string) config('services.google_drive.attendance_folder_id', '');
-        $metrics = $driveProvider->getStorageMetrics($rootFolderId);
+        $metrics = $driveProvider->getStorageMetrics($this->rootFolderId);
 
-        $folderItems = [];
-        if (! empty($this->currentFolderId) && ($metrics['configured'] ?? false)) {
-            $filesResult = $driveProvider->getFolderFiles(
-                folderId: $this->currentFolderId,
-                pageSize: 50,
-                search: trim($this->searchQuery) ?: null
-            );
-            $folderItems = $filesResult['files'] ?? [];
+        // Fetch root folder items if not yet loaded in folderItemsMap
+        if (! isset($this->folderItemsMap[$this->rootFolderId]) && ($metrics['configured'] ?? false)) {
+            $result = $driveProvider->getFolderFiles($this->rootFolderId, pageSize: 100);
+            $this->folderItemsMap[$this->rootFolderId] = $result['files'] ?? [];
         }
 
-        // Folder calculations (based on root folder JUWITA-STORAGE)
+        $rootItems = $this->folderItemsMap[$this->rootFolderId] ?? [];
+
+        // Apply search query filter if typed
+        if (! empty(trim($this->searchQuery))) {
+            $query = strtolower(trim($this->searchQuery));
+            $rootItems = array_values(array_filter($rootItems, function ($item) use ($query) {
+                return str_contains(strtolower($item['name'] ?? ''), $query);
+            }));
+        }
+
+        // Folder calculations
         $folderUsedBytes = (int) ($metrics['folder']['total_bytes'] ?? 0);
         $folderMaxBytes = (int) ($this->folderMaxLimitMb * 1024 * 1024);
         $folderRemainingBytes = max(0, $folderMaxBytes - $folderUsedBytes);
@@ -178,7 +219,7 @@ class GoogleDriveStorageIndex extends Component
 
         return view('livewire.system.google-drive-storage-index', [
             'metrics' => $metrics,
-            'folderItems' => $folderItems,
+            'rootItems' => $rootItems,
             'folderUsedBytes' => $folderUsedBytes,
             'folderMaxBytes' => $folderMaxBytes,
             'folderRemainingBytes' => $folderRemainingBytes,
