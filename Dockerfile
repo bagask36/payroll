@@ -54,7 +54,8 @@ FROM php:8.4-fpm-alpine AS app
 LABEL maintainer="RS Juwita IT Team"
 LABEL description="SIM SDM RS Juwita Production Container"
 
-# Install php extension installer helper
+# Install composer binary & php extension installer helper
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 
 # Install essential PHP extensions for Laravel 13, PostgreSQL, Redis, and media/export
