@@ -1,7 +1,7 @@
 <div class="app-page-container">
     {{-- Header --}}
     <x-page-header 
-        title="Riwayat &amp; Log Presensi" 
+        title="Riwayat Log Presensi" 
         subtitle="Rekapitulasi jam kerja, ketepatan waktu, dan pengajuan koreksi presensi."
     >
         @can('attendance.check_in_out')

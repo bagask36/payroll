@@ -410,11 +410,21 @@ class ClockInOut extends Component
         }
     }
 
+    protected ?GeofenceLocation $activeGeofence = null;
+
+    protected bool $hasLoadedActiveGeofence = false;
+
     protected function getActiveGeofence(): ?GeofenceLocation
     {
-        return Cache::remember('active_geofence_location', 3600, function () {
-            return GeofenceLocation::active()->first();
-        });
+        if (! $this->hasLoadedActiveGeofence) {
+            // Evict any corrupted or legacy serialized cache entry that produced __PHP_Incomplete_Class
+            Cache::forget('active_geofence_location');
+
+            $this->activeGeofence = GeofenceLocation::active()->first();
+            $this->hasLoadedActiveGeofence = true;
+        }
+
+        return $this->activeGeofence;
     }
 
     protected function resetMessages(): void

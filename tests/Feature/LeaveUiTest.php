@@ -264,4 +264,37 @@ class LeaveUiTest extends TestCase
         $leaveRequest->refresh();
         $this->assertEquals('pending_tier1', $leaveRequest->status);
     }
+
+    public function test_authorized_user_can_open_leave_detail_modal_with_approval_chain(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('employee');
+
+        $employee = Employee::factory()->create([
+            'user_id' => $user->id,
+            'status' => 'active',
+        ]);
+
+        $annualType = LeaveType::where('code', 'ANNUAL')->firstOrFail();
+
+        $leaveRequest = LeaveRequest::factory()->create([
+            'employee_id' => $employee->id,
+            'leave_type_id' => $annualType->id,
+            'total_days' => 2.0,
+            'reason' => 'Keperluan keluarga penting',
+            'status' => 'pending_tier1',
+            'created_by' => $user->id,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(LeaveIndex::class)
+            ->call('openDetailModal', $leaveRequest->id)
+            ->assertSet('showDetailModal', true)
+            ->assertSee('Detail Permohonan Cuti')
+            ->assertSee('Keperluan keluarga penting')
+            ->assertSee('Alur Persetujuan Hierarkis')
+            ->assertOk();
+    }
 }
+

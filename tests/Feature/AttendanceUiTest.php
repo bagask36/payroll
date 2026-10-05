@@ -18,6 +18,7 @@ use App\Models\User;
 use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
@@ -511,5 +512,23 @@ class AttendanceUiTest extends TestCase
         Livewire::test(AttendanceIndex::class)
             ->call('openDetailModal', $attendanceB->id)
             ->assertForbidden();
+    }
+
+    public function test_clock_in_out_evicts_corrupted_geofence_cache_safely(): void
+    {
+        $user = User::factory()->create(['is_active' => true]);
+        $user->assignRole('employee');
+        Employee::factory()->create(['user_id' => $user->id, 'status' => 'ACTIVE']);
+
+        // Simulate corrupted / incomplete class object stored in cache
+        Cache::put('active_geofence_location', 'corrupted_or_incomplete_class_stub', 3600);
+
+        $this->actingAs($user);
+
+        Livewire::test(ClockInOut::class)
+            ->call('updateCoordinates', -6.195000, 106.820000)
+            ->assertSet('isWithinGeofence', true);
+
+        $this->assertFalse(Cache::has('active_geofence_location'));
     }
 }

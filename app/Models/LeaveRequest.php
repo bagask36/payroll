@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Leave\LeaveApprovalChainService;
 use Database\Factories\LeaveRequestFactory;
 use DomainException;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
