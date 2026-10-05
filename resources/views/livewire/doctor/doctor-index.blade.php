@@ -1,7 +1,7 @@
 <div class="app-page-container">
     {{-- Page Header --}}
     <x-page-header 
-        title="Direktori Tenaga Medis &amp; Dokter Spesialis" 
+        title="Direktori Tenaga Medis" 
         subtitle="Pemantauan kredensial praktik medis, Surat Tanda Registrasi (STR), dan Surat Izin Praktik (SIP) RS Juwita."
     >
         @can('create', App\Models\Doctor::class)
