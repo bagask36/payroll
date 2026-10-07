@@ -74,7 +74,7 @@
             Regulasi Tarif BPJS
         </flux:button>
         <flux:button size="sm" :variant="$activeTab === 'warning_letter_types' ? 'primary' : 'subtle'" wire:click="setTab('warning_letter_types')" class="shrink-0 whitespace-nowrap cursor-pointer">
-            Tingkat &amp; Jenis SP
+            Tingkat & Jenis SP
         </flux:button>
     </div>
 
@@ -787,7 +787,7 @@
             <div class="space-y-2">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <span class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
-                        Pilih Titik Pinpoint &amp; Pantau Radius pada Peta:
+                        Pilih Titik Pinpoint & Pantau Radius pada Peta:
                     </span>
                     <div class="flex items-center gap-2">
                         <button 

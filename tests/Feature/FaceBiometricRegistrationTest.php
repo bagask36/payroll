@@ -132,7 +132,7 @@ class FaceBiometricRegistrationTest extends TestCase
         Livewire::test(EmployeeShow::class, ['id' => $employee->id])
             ->set('activeTab', 'biometrics')
             ->assertSee('Permohonan Pendaftaran Biometrik Wajah (Menunggu Persetujuan HRD)')
-            ->assertSee('Setujui &amp; Aktifkan Biometrik', false)
+            ->assertSee('Setujui & Aktifkan Biometrik', false)
             ->call('approveFaceRegistration', $registration->id)
             ->assertSee('Pengajuan biometrik wajah berhasil disetujui');
 

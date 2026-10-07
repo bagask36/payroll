@@ -1,7 +1,7 @@
 <div class="app-page-container">
     {{-- Header --}}
     <x-page-header 
-        title="Master Data: Regulasi Tarif BPJS &amp; Iuran Wajib" 
+        title="Master Data: Regulasi Tarif BPJS & Iuran Wajib" 
         subtitle="Tarif persentase iuran BPJS Kesehatan dan BPJS Ketenagakerjaan (JKK, JKM, JHT, JP) serta batas plafon upah."
     />
 
@@ -11,7 +11,7 @@
     <div class="p-4 rounded-xl bg-blue-50/75 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-900 flex items-start gap-3">
         <flux:icon name="information-circle" class="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
         <div class="text-xs text-blue-900 dark:text-blue-200 space-y-1">
-            <p class="font-semibold">Kepatuhan Regulasi Ketenagakerjaan &amp; Penggajian Indonesia</p>
+            <p class="font-semibold">Kepatuhan Regulasi Ketenagakerjaan & Penggajian Indonesia</p>
             <p class="text-blue-700 dark:text-blue-300">
                 Tarif BPJS mengacu pada PP No. 44/2015, PP No. 45/2015, dan Perpres No. 64/2020. Setiap perubahan tarif atau plafon akan otomatis berdampak pada kalkulasi slip gaji berikutnya tanpa mengubah riwayat batch yang telah difinalisasi.
             </p>

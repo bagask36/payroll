@@ -215,7 +215,7 @@
             <div class="flex items-start justify-between border-b border-zinc-100 dark:border-zinc-800 pb-4">
                 <div>
                     <flux:heading size="lg" class="font-bold text-zinc-900 dark:text-zinc-100">
-                        Detail &amp; Bukti Foto Presensi
+                        Detail & Bukti Foto Presensi
                     </flux:heading>
                     <flux:subheading class="text-xs text-zinc-500 mt-1">
                         {{ $personName }} ({{ $personId }}) &bull; {{ $detailAttendance->date?->translatedFormat('l, d F Y') }}

@@ -484,7 +484,7 @@ class AttendanceUiTest extends TestCase
         Livewire::test(AttendanceIndex::class)
             ->call('openDetailModal', $attendance->id)
             ->assertSet('showDetailModal', true)
-            ->assertSee('Detail &amp; Bukti Foto Presensi', false)
+            ->assertSee('Detail & Bukti Foto Presensi', false)
             ->assertSee(route('attendance.photo', $attendance->events->first()->id))
             ->call('closeDetailModal')
             ->assertSet('showDetailModal', false);

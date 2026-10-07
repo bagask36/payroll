@@ -57,7 +57,7 @@
                             <flux:button type="submit" variant="primary" class="w-full justify-center py-2.5 font-semibold cursor-pointer shadow-sm shadow-emerald-600/20">
                                 <span wire:loading.remove wire:target="unlock" class="flex items-center gap-2">
                                     <flux:icon name="lock-open" class="size-4" />
-                                    <span>Verifikasi &amp; Buka Slip Gaji</span>
+                                    <span>Verifikasi & Buka Slip Gaji</span>
                                 </span>
                                 <span wire:loading wire:target="unlock" class="flex items-center gap-2">
                                     <flux:icon name="arrow-path" class="size-4 animate-spin" />

@@ -75,7 +75,7 @@
             <div class="p-3.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 space-y-3">
                 <div class="flex items-center justify-between">
                     <div class="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
-                        SK Formasi &amp; Dasar Penetapan Jabatan
+                        SK Formasi & Dasar Penetapan Jabatan
                     </div>
                     <span class="text-[11px] text-zinc-400">Otomatis ditarik ke Penugasan Pegawai</span>
                 </div>

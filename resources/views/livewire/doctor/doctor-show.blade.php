@@ -438,7 +438,7 @@
             <div class="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                        Jadwal Praktik &amp; Shift Medis
+                        Jadwal Praktik & Shift Medis
                     </h3>
                     <p class="text-xs text-zinc-500 mt-0.5">
                         Daftar penugasan roster jadwal praktik klinik dan jaga dokter di RS Permata Bunda.
@@ -513,7 +513,7 @@
             <div class="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                        Riwayat Presensi &amp; Kehadiran Medis
+                        Riwayat Presensi & Kehadiran Medis
                     </h3>
                     <p class="text-xs text-zinc-500 mt-0.5">
                         Log kehadiran waktu masuk (clock-in) dan pulang (clock-out) dokter.
@@ -589,7 +589,7 @@
             {{-- Kuota Cuti --}}
             <flux:card class="space-y-4">
                 <div class="border-b border-zinc-100 dark:border-zinc-800 pb-3">
-                    <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Alokasi &amp; Saldo Hak Cuti Dokter</h3>
+                    <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Alokasi & Saldo Hak Cuti Dokter</h3>
                     <p class="text-xs text-zinc-400 mt-0.5">Saldo hak cuti tahunan dan kuota izin medis yang dialokasikan.</p>
                 </div>
 
@@ -615,7 +615,7 @@
                 <div class="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                            Riwayat Pengajuan Cuti &amp; Izin
+                            Riwayat Pengajuan Cuti & Izin
                         </h3>
                         <p class="text-xs text-zinc-500 mt-0.5">
                             Permohonan izin dan disposisi persetujuan berjenjang medis.
@@ -831,7 +831,7 @@
     @if($showBioModal)
         <flux:modal wire:model="showBioModal" class="w-full max-w-xl space-y-6">
             <div>
-                <flux:heading size="lg">Perbarui Biodata &amp; Kontak Dokter</flux:heading>
+                <flux:heading size="lg">Perbarui Biodata & Kontak Dokter</flux:heading>
                 <flux:subheading class="text-xs text-zinc-500">Edit identitas klinis dan data komunikasi.</flux:subheading>
             </div>
 
@@ -882,7 +882,7 @@
     @if($showCredentialModal)
         <flux:modal wire:model="showCredentialModal" class="w-full max-w-xl space-y-6">
             <div>
-                <flux:heading size="lg">Perbarui Kredensial STR &amp; SIP</flux:heading>
+                <flux:heading size="lg">Perbarui Kredensial STR & SIP</flux:heading>
                 <flux:subheading class="text-xs text-zinc-500">Pembaruan nomor dan masa berlaku izin lisensi medis.</flux:subheading>
             </div>
 
@@ -1029,7 +1029,7 @@
                         <flux:button variant="subtle">Batal</flux:button>
                     </flux:modal.close>
                     <flux:button type="submit" variant="primary">
-                        Buat &amp; Aktifkan Akun
+                        Buat & Aktifkan Akun
                     </flux:button>
                 </div>
             </form>

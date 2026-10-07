@@ -360,7 +360,7 @@
                         <flux:icon name="clock" class="size-6" />
                     </div>
                     <div class="min-w-0">
-                        <div class="truncate text-xs font-bold text-zinc-900 dark:text-zinc-100">Presensi &amp; Geofence</div>
+                        <div class="truncate text-xs font-bold text-zinc-900 dark:text-zinc-100">Presensi & Geofence</div>
                         <div class="text-[11px] text-zinc-400 font-medium">Clock-in / History</div>
                     </div>
                 </a>
@@ -380,7 +380,7 @@
                         <flux:icon name="calendar" class="size-6" />
                     </div>
                     <div class="min-w-0">
-                        <div class="truncate text-xs font-bold text-zinc-900 dark:text-zinc-100">Shift &amp; Roster</div>
+                        <div class="truncate text-xs font-bold text-zinc-900 dark:text-zinc-100">Shift & Roster</div>
                         <div class="text-[11px] text-zinc-400 font-medium">Jadwal Bulanan</div>
                     </div>
                 </a>
@@ -697,7 +697,7 @@
                             </flux:heading>
                             <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/40">
                                 <span class="size-1.5 rounded-full bg-emerald-500"></span>
-                                Finance &amp; Payroll
+                                Finance & Payroll
                             </span>
                         </div>
                         <flux:subheading class="mt-1.5 text-xs text-zinc-500 dark:text-zinc-400 sm:text-sm font-medium">
@@ -753,7 +753,7 @@
                             </div>
                         </div>
                         <div class="mt-4 border-t border-zinc-100 pt-3 text-xs text-zinc-400 dark:border-zinc-800">
-                            <span>Akumulasi gaji pokok &amp; tunjangan</span>
+                            <span>Akumulasi gaji pokok & tunjangan</span>
                         </div>
                     </div>
 
@@ -762,7 +762,7 @@
                         <div class="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-rose-500 to-red-500"></div>
                         <div>
                             <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Potongan &amp; Pajak</span>
+                                <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Potongan & Pajak</span>
                                 <div class="flex size-10 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400 shadow-2xs">
                                     <flux:icon name="receipt-refund" class="size-5" />
                                 </div>
@@ -772,7 +772,7 @@
                             </div>
                         </div>
                         <div class="mt-4 border-t border-zinc-100 pt-3 text-xs text-zinc-400 dark:border-zinc-800">
-                            <span>PPh 21, BPJS, &amp; potongan kas</span>
+                            <span>PPh 21, BPJS, & potongan kas</span>
                         </div>
                     </div>
 
@@ -828,7 +828,7 @@
                                 </div>
                                 <div>
                                     <div class="text-xs font-bold text-zinc-800 dark:text-zinc-200">BPJS Kesehatan</div>
-                                    <div class="text-[11px] text-zinc-400">Total beban premi perusahaan &amp; pegawai</div>
+                                    <div class="text-[11px] text-zinc-400">Total beban premi perusahaan & pegawai</div>
                                 </div>
                             </div>
                             <span class="font-mono text-base font-extrabold text-zinc-900 dark:text-zinc-100">
@@ -845,7 +845,7 @@
                                 </div>
                                 <div>
                                     <div class="text-xs font-bold text-zinc-800 dark:text-zinc-200">BPJS Ketenagakerjaan</div>
-                                    <div class="text-[11px] text-zinc-400">JKK, JKM, JHT, &amp; JP</div>
+                                    <div class="text-[11px] text-zinc-400">JKK, JKM, JHT, & JP</div>
                                 </div>
                             </div>
                             <span class="font-mono text-base font-extrabold text-zinc-900 dark:text-zinc-100">
@@ -908,7 +908,7 @@
                     <div>
                         <div class="flex flex-wrap items-center gap-2.5">
                             <flux:heading size="xl" class="font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100 text-xl sm:text-2xl">
-                                Dashboard Operasional &amp; SDM
+                                Dashboard Operasional & SDM
                             </flux:heading>
                             <flux:badge size="sm" color="emerald" class="shadow-2xs font-semibold">
                                 RS Permata Bunda Executive
@@ -964,7 +964,7 @@
                             <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                             <span class="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
                         </span>
-                        <span>Sistem SDM &amp; Geofence Aktif</span>
+                        <span>Sistem SDM & Geofence Aktif</span>
                     </div>
                 </div>
 
@@ -1046,7 +1046,7 @@
                                 <flux:icon name="chevron-right" class="size-3 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all hidden sm:block" />
                             </div>
                             <p class="truncate text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
-                                Proses gaji &amp; slip
+                                Proses gaji & slip
                             </p>
                         </div>
                     </a>
@@ -1140,7 +1140,7 @@
                     </div>
                     <div class="min-w-0">
                         <div class="flex items-center gap-2">
-                            <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Dokter &amp; Spesialis Aktif</span>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Dokter & Spesialis Aktif</span>
                             <flux:badge size="xs" color="emerald">Medis</flux:badge>
                         </div>
                         <div class="mt-1 font-mono text-3xl font-extrabold tracking-tight text-emerald-600 dark:text-emerald-400">
@@ -1359,11 +1359,11 @@
                     </div>
 
                     <div class="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 transition-all hover:shadow-sm">
-                        <div class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Potongan &amp; Pajak</div>
+                        <div class="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">Total Potongan & Pajak</div>
                         <div class="mt-2 font-mono text-xl font-extrabold tracking-tight text-rose-600 dark:text-rose-400">
                             - Rp {{ number_format((float) ($payroll['total_deductions'] ?? 0), 0, ',', '.') }}
                         </div>
-                        <div class="mt-2 text-[11px] text-zinc-400">BPJS, PPh 21, &amp; potongan</div>
+                        <div class="mt-2 text-[11px] text-zinc-400">BPJS, PPh 21, & potongan</div>
                     </div>
 
                     <div class="rounded-3xl border border-zinc-200/80 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 transition-all hover:shadow-sm">
@@ -1396,7 +1396,7 @@
                     <div>
                         <div class="flex items-center gap-2.5">
                             <h3 class="text-sm font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
-                                Statistik &amp; Demografi SDM Rumah Sakit
+                                Statistik & Demografi SDM Rumah Sakit
                             </h3>
                             <flux:badge size="sm" color="emerald" class="font-semibold shadow-2xs">
                                 Terverifikasi
@@ -1506,7 +1506,7 @@
                             </div>
                         </div>
                         <div class="mt-4 border-t border-zinc-100 pt-3 text-[11px] text-zinc-400 dark:border-zinc-800 flex items-center justify-between">
-                            <span>Kesejahteraan &amp; Hak Istirahat</span>
+                            <span>Kesejahteraan & Hak Istirahat</span>
                             <span class="font-semibold text-amber-600 dark:text-amber-400">Tahun {{ now()->year }}</span>
                         </div>
                     </div>
@@ -1625,7 +1625,7 @@
 
                         <div class="mt-5 pt-3.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-[11px] text-zinc-400">
                             <span>Keseimbangan lingkungan kerja</span>
-                            <span class="font-semibold text-zinc-600 dark:text-zinc-300">Inklusif &amp; Terbuka</span>
+                            <span class="font-semibold text-zinc-600 dark:text-zinc-300">Inklusif & Terbuka</span>
                         </div>
                     </div>
 

@@ -260,7 +260,7 @@
                 data-active="{{ $activeTab === 'disciplinary' ? 'true' : 'false' }}"
                 class="relative inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap cursor-pointer"
             >
-                <span>Sanksi &amp; SP</span>
+                <span>Sanksi & SP</span>
                 @if($hasActiveSp)
                     <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white animate-pulse">
                         Aktif
@@ -419,7 +419,7 @@
             <flux:card class="space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-100 dark:border-zinc-800 pb-3">
                     <div>
-                        <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Riwayat Ikatan Kerja &amp; Penempatan Unit</h3>
+                        <h3 class="text-sm font-semibold uppercase tracking-wider text-zinc-500">Riwayat Ikatan Kerja & Penempatan Unit</h3>
                         <p class="text-xs text-zinc-400 mt-0.5">Catatan historis mutasi unit, promosi jabatan, dan pembaharuan ikatan kerja.</p>
                     </div>
                     @if($canUpdateEmployment)
@@ -516,11 +516,11 @@
                     <div class="flex items-center gap-2">
                         <flux:icon name="exclamation-triangle" class="size-4 text-amber-500" />
                         <h4 class="text-xs font-semibold uppercase tracking-wider text-zinc-600 dark:text-zinc-300">
-                            Catatan Kedisiplinan &amp; Sanksi Disiplin Pegawai
+                            Catatan Kedisiplinan & Sanksi Disiplin Pegawai
                         </h4>
                     </div>
                     <flux:button size="xs" variant="subtle" icon="arrow-right" wire:click="setTab('disciplinary')">
-                        Buka Tab Sanksi &amp; SP
+                        Buka Tab Sanksi & SP
                     </flux:button>
                 </div>
                 @if($hasActiveSp)
@@ -1059,7 +1059,7 @@
                                             wire:loading.attr="disabled"
                                         >
                                             <span wire:loading.remove wire:target="approveFaceRegistration({{ $reg->id }})">
-                                                Setujui &amp; Aktifkan Biometrik
+                                                Setujui & Aktifkan Biometrik
                                             </span>
                                             <span wire:loading wire:target="approveFaceRegistration({{ $reg->id }})">
                                                 Memproses Face AI...
@@ -1142,7 +1142,7 @@
                         <div class="flex items-center justify-between">
                             <span class="text-xs text-zinc-500">Status Pendaftaran:</span>
                             @if(!empty($employee->face_biometric_vector))
-                                <flux:badge size="sm" color="emerald">Terdaftar &amp; Aktif</flux:badge>
+                                <flux:badge size="sm" color="emerald">Terdaftar & Aktif</flux:badge>
                             @else
                                 <flux:badge size="sm" color="zinc">Belum Terdaftar</flux:badge>
                             @endif
@@ -1281,7 +1281,7 @@
                                     wire:loading.attr="disabled"
                                 >
                                     <span wire:loading.remove wire:target="enrollBiometrics">
-                                        Proses &amp; Simpan Biometrik Wajah
+                                        Proses & Simpan Biometrik Wajah
                                     </span>
                                     <span wire:loading wire:target="enrollBiometrics">
                                         Mengekstrak Vektor Face AI...
@@ -1390,7 +1390,7 @@
                 <div class="p-4 sm:p-5 border-b border-zinc-100 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                            Riwayat Surat Peringatan &amp; Sanksi Disiplin
+                            Riwayat Surat Peringatan & Sanksi Disiplin
                         </h3>
                         <p class="text-xs text-zinc-500 mt-0.5">
                             Dokumentasi resmi surat teguran, SP I, SP II, SP III, dan riwayat sanksi kerja lainnya.
@@ -1730,7 +1730,7 @@
                         {{-- Kartu Kelola Roles / Peran Akun --}}
                         <flux:card class="space-y-5">
                             <div>
-                                <flux:heading size="base" class="font-semibold text-zinc-900 dark:text-zinc-100">Peran &amp; Hak Akses Aplikasi (Roles)</flux:heading>
+                                <flux:heading size="base" class="font-semibold text-zinc-900 dark:text-zinc-100">Peran & Hak Akses Aplikasi (Roles)</flux:heading>
                                 <flux:subheading class="text-xs text-zinc-500">Tentukan wewenang yang dimiliki pegawai dalam sistem SIM SDM RS Permata Bunda.</flux:subheading>
                             </div>
 
@@ -1841,7 +1841,7 @@
 
             <div class="flex items-center justify-end gap-2 pt-2">
                 <flux:modal.close><flux:button variant="subtle">Batal</flux:button></flux:modal.close>
-                <flux:button type="submit" variant="primary">Simpan &amp; Terbitkan SP</flux:button>
+                <flux:button type="submit" variant="primary">Simpan & Terbitkan SP</flux:button>
             </div>
         </form>
     </flux:modal>
@@ -1858,7 +1858,7 @@
         <form wire:submit="revokeWarningLetter" class="space-y-4">
             <flux:textarea 
                 wire:model="revocationReason" 
-                label="Alasan &amp; Pertimbangan Pencabutan Sanksi" 
+                label="Alasan & Pertimbangan Pencabutan Sanksi" 
                 placeholder="Tuliskan dasar pertimbangan pencabutan SP (misal: perbaikan absensi dan kepatuhan SOP selama 3 bulan pemantauan)..." 
                 rows="4" 
                 required 
@@ -1909,7 +1909,7 @@
                     <div class="flex items-center justify-between mb-1">
                         <label class="text-sm font-medium text-zinc-800 dark:text-zinc-200">Nomor SK / SPK / Kontrak</label>
                         @if($employmentPositionId)
-                            <button type="button" wire:click="pullSkFromPosition" class="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 font-medium inline-flex items-center gap-1 cursor-pointer" title="Tarik nomor SK &amp; berkas dari standar master jabatan">
+                            <button type="button" wire:click="pullSkFromPosition" class="text-xs text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 font-medium inline-flex items-center gap-1 cursor-pointer" title="Tarik nomor SK & berkas dari standar master jabatan">
                                 <flux:icon name="arrow-path" class="size-3" />
                                 <span>Tarik SK Jabatan</span>
                             </button>

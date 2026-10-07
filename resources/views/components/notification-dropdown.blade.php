@@ -75,10 +75,10 @@
                     </div>
                     <div class="min-w-0">
                         <h4 class="text-xs sm:text-sm font-bold text-zinc-900 dark:text-zinc-100 leading-tight">
-                            Pemberitahuan &amp; Peringatan
+                            Pemberitahuan & Peringatan
                         </h4>
                         <p class="text-[10px] sm:text-[11px] text-zinc-400 sm:text-zinc-500 dark:text-zinc-400 leading-tight truncate mt-0.5">
-                            Aktivitas &amp; tugas penting
+                            Aktivitas & tugas penting
                         </p>
                     </div>
                 </div>

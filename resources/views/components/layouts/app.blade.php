@@ -44,7 +44,7 @@
                             <span class="truncate text-xs font-black tracking-tight text-zinc-900 dark:text-zinc-100 uppercase">RS PERMATA BUNDA</span>
                             <span class="shrink-0 rounded-full bg-emerald-500/10 px-1.5 py-0.2 text-[9px] font-bold text-emerald-700 dark:text-emerald-300">ONLINE</span>
                         </div>
-                        <p class="truncate text-[11px] font-medium text-zinc-400 mt-0.5">SIM SDM &amp; Payroll</p>
+                        <p class="truncate text-[11px] font-medium text-zinc-400 mt-0.5">SIM SDM & Payroll</p>
                     </div>
                 </a>
 
@@ -92,7 +92,7 @@
 
                         @if(auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('hr_manager'))
                             <flux:sidebar.item icon="exclamation-triangle" href="{{ route('master.warning-letter-types') }}" :current="request()->routeIs('master.warning-letter-types')">
-                                Tingkat &amp; Jenis SP
+                                Tingkat & Jenis SP
                             </flux:sidebar.item>
                         @endif
 
@@ -620,7 +620,7 @@
                 <div class="flex-1 min-w-0">
                     <p class="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">Pasang SIM SDM di Layar Utama</p>
                     <p class="text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed">
-                        Akses cepat &amp; tampilan layar penuh seperti aplikasi mobile tanpa bilah browser.
+                        Akses cepat & tampilan layar penuh seperti aplikasi mobile tanpa bilah browser.
                     </p>
                     
                     <div x-show="showInstructions" x-cloak class="mt-2.5 pt-2.5 border-t border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 space-y-1.5 bg-zinc-50 dark:bg-zinc-800/60 p-2.5 rounded-lg">

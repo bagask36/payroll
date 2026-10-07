@@ -243,7 +243,7 @@ class SidebarAndModulesTest extends TestCase
         $response->assertSee('in-data-flux-sidebar-collapsed-desktop:justify-center');
         $response->assertSee('in-data-flux-sidebar-collapsed-desktop:inset-0');
         $response->assertSee('in-data-flux-sidebar-collapsed-desktop:size-10');
-        $response->assertSee('Pegawai &amp; Staf', false);
+        $response->assertSee('Pegawai & Staf', false);
         $response->assertSee('Presensi');
         $response->assertSee('Penggajian (Payroll)');
     }

@@ -1,7 +1,7 @@
 <div class="app-page-container space-y-6">
     {{-- Header --}}
     <x-page-header 
-        title="Profil Pengguna &amp; Akun" 
+        title="Profil Pengguna & Akun" 
         subtitle="Kelola informasi akun pengguna, foto profil, keamanan kata sandi, dan status hak akses sistem RS Permata Bunda."
     />
 
@@ -166,7 +166,7 @@
                 <div>
                     <h3 class="text-sm font-bold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider flex items-center gap-2">
                         <flux:icon name="key" class="size-4 text-emerald-600" />
-                        Keamanan &amp; Kata Sandi
+                        Keamanan & Kata Sandi
                     </h3>
                     <p class="text-xs text-zinc-500 mt-0.5">Pastikan kata sandi Anda menggunakan kombinasi yang kuat dan unik (minimal 8 karakter).</p>
                 </div>
@@ -282,7 +282,7 @@
 
             {{-- Peran & Hak Akses Sistem --}}
             <flux:card class="p-5 shadow-xs border border-zinc-200/80 dark:border-zinc-800 space-y-3">
-                <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-500">Peran &amp; Akses Sistem</h4>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-500">Peran & Akses Sistem</h4>
                 <div class="flex flex-wrap gap-1.5 pt-1">
                     @foreach($user->roles as $role)
                         <flux:badge size="sm" color="emerald" class="font-semibold capitalize">
@@ -291,7 +291,7 @@
                     @endforeach
                 </div>
                 <p class="text-[11px] text-zinc-400 leading-relaxed pt-1">
-                    Peran dan izin akses diatur oleh Tim HRD &amp; Administrator SIM SDM RS Permata Bunda sesuai regulasi rumah sakit.
+                    Peran dan izin akses diatur oleh Tim HRD & Administrator SIM SDM RS Permata Bunda sesuai regulasi rumah sakit.
                 </p>
             </flux:card>
         </div>

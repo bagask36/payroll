@@ -1,7 +1,7 @@
 <div class="app-page-container">
     {{-- Header --}}
     <x-page-header 
-        title="Master Data: Jenis Cuti &amp; Kebijakan" 
+        title="Master Data: Jenis Cuti & Kebijakan" 
         subtitle="Aturan kuota tahunan cuti tahunan, cuti sakit, melahirkan, serta syarat lampiran dokumen medis."
     >
         <x-slot:actions>

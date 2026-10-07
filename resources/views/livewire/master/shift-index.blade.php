@@ -1,7 +1,7 @@
 <div class="app-page-container">
     {{-- Header --}}
     <x-page-header 
-        title="Master Data: Shift Kerja &amp; Jam Dinas" 
+        title="Master Data: Shift Kerja & Jam Dinas" 
         subtitle="Konfigurasi jadwal rotasi shift pagi, siang, malam, dan toleransi keterlambatan presensi."
     >
         <x-slot:actions>

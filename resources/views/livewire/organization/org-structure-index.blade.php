@@ -116,7 +116,7 @@
                 Struktur Organisasi RS Permata Bunda
             </h1>
             <p class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                Bagan hierarki faskes (Departemen &bull; Unit Kerja &bull; Jabatan). Klik baris untuk melipat/membuka, atau seret (drag &amp; drop) untuk memindahkan.
+                Bagan hierarki faskes (Departemen &bull; Unit Kerja &bull; Jabatan). Klik baris untuk melipat/membuka, atau seret (drag & drop) untuk memindahkan.
             </p>
         </div>
 

@@ -8,7 +8,7 @@
                 <span class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Tingkat & Jenis SP</span>
             </div>
             <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                Master Tingkat &amp; Jenis Surat Peringatan (SP)
+                Master Tingkat & Jenis Surat Peringatan (SP)
             </flux:heading>
             <flux:subheading class="mt-1 text-zinc-500 dark:text-zinc-400">
                 Konfigurasi tingkatan sanksi disiplin pegawai, standar durasi masa berlaku (default 6 bulan), dan deskripsi pelanggaran.

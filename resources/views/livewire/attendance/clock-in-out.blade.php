@@ -174,7 +174,7 @@
                     <flux:icon name="camera" class="w-4 h-4" />
                 </div>
                 <div>
-                    <h4 class="font-semibold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100">Kamera Presensi &amp; Liveness</h4>
+                    <h4 class="font-semibold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100">Kamera Presensi & Liveness</h4>
                 </div>
             </div>
 
@@ -258,7 +258,7 @@
                     <img :src="$wire.faceImageBase64" class="max-h-64 sm:max-h-72 rounded-xl object-contain border-2 border-emerald-500 shadow-xl" alt="Foto Presensi" />
                     <div class="mt-3 flex items-center gap-2">
                         <span class="px-3 py-1 rounded-full text-[11px] font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                            ✓ Foto Terkompresi &amp; Wajah Terverifikasi
+                            ✓ Foto Terkompresi & Wajah Terverifikasi
                         </span>
                         <button 
                             type="button" 
@@ -279,7 +279,7 @@
                     </div>
                     <div>
                         <p class="text-xs sm:text-sm font-semibold text-zinc-200">Kamera Belum Aktif</p>
-                        <p class="text-[11px] text-zinc-500 mt-0.5">Aktifkan kamera untuk menyelesaikan verifikasi wajah &amp; foto bukti</p>
+                        <p class="text-[11px] text-zinc-500 mt-0.5">Aktifkan kamera untuk menyelesaikan verifikasi wajah & foto bukti</p>
                     </div>
                 </div>
             </template>

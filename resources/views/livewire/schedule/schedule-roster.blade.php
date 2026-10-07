@@ -367,7 +367,7 @@
                     </flux:modal.close>
                     <flux:button type="submit" variant="primary" wire:loading.attr="disabled">
                         <span wire:loading.remove wire:target="assignShift">
-                            Simpan &amp; Terbitkan Jadwal
+                            Simpan & Terbitkan Jadwal
                         </span>
                         <span wire:loading wire:target="assignShift">
                             Menerbitkan Jadwal...

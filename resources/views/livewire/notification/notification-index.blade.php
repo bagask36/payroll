@@ -53,7 +53,7 @@
         {{-- Card 3: Informasi & Payroll --}}
         <div class="p-4 sm:p-5 rounded-2xl border border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900 shadow-2xs">
             <div class="flex items-center justify-between">
-                <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Informasi &amp; Gaji</span>
+                <span class="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Informasi & Gaji</span>
                 <div class="flex size-8 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
                     <flux:icon name="information-circle" class="size-4" />
                 </div>
@@ -105,7 +105,7 @@
                     <option value="all">Semua Tingkat</option>
                     <option value="danger">Penting / Kritis</option>
                     <option value="warning">Perlu Tindakan (Peringatan)</option>
-                    <option value="info">Informasi &amp; Pengingat</option>
+                    <option value="info">Informasi & Pengingat</option>
                     <option value="success">Berhasil / Diterbitkan</option>
                 </select>
             </div>
