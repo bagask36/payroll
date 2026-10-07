@@ -57,7 +57,7 @@
                 wire:click="setTab('approvals')"
                 class="shrink-0 whitespace-nowrap cursor-pointer"
             >
-                Persetujuan Cuti (Hierarkis)
+                Persetujuan Cuti
                 @if($pendingApprovalsCount > 0)
                     <flux:badge size="xs" color="amber" class="ml-1.5">{{ $pendingApprovalsCount }}</flux:badge>
                 @endif

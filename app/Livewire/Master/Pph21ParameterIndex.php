@@ -65,6 +65,19 @@ class Pph21ParameterIndex extends Component
 
     public function save(AuditService $auditService): void
     {
+        if (is_string($this->paramAmount)) {
+            $cleaned = preg_replace('/[^\d]/', '', $this->paramAmount);
+            $this->paramAmount = $cleaned !== '' ? (float) $cleaned : null;
+        }
+        if (is_string($this->paramThresholdMin)) {
+            $cleaned = preg_replace('/[^\d]/', '', $this->paramThresholdMin);
+            $this->paramThresholdMin = $cleaned !== '' ? (float) $cleaned : null;
+        }
+        if (is_string($this->paramThresholdMax)) {
+            $cleaned = preg_replace('/[^\d]/', '', $this->paramThresholdMax);
+            $this->paramThresholdMax = $cleaned !== '' ? (float) $cleaned : null;
+        }
+
         $this->validate([
             'paramAmount' => $this->paramCategory === 'ptkp' ? 'required|numeric|min:0' : 'nullable|numeric',
             'paramRate' => $this->paramCategory === 'tarif_pasal_17' ? 'required|numeric|min:0|max:100' : 'nullable|numeric',

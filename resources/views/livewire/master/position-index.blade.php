@@ -58,21 +58,15 @@
                     Nilai ini akan terisi otomatis saat membuat SK Penetapan / Penugasan pegawai baru pada jabatan ini.
                 </p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <flux:input 
+                    <flux:input.currency 
                         wire:model="positionDefaultBasicSalary" 
                         label="Standar Gaji Pokok (Rp)" 
-                        type="number" 
-                        step="0.01" 
-                        min="0" 
-                        placeholder="misal: 6500000" 
+                        placeholder="Rp. 0" 
                     />
-                    <flux:input 
+                    <flux:input.currency 
                         wire:model="positionDefaultPositionalAllowance" 
                         label="Standar Tunjangan Jabatan (Rp)" 
-                        type="number" 
-                        step="0.01" 
-                        min="0" 
-                        placeholder="misal: 1500000" 
+                        placeholder="Rp. 0" 
                     />
                 </div>
             </div>

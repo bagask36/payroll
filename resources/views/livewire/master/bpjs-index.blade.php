@@ -35,7 +35,7 @@
                 <flux:input wire:model="bpjsEmployeeRate" type="number" step="0.0001" label="Tarif Pegawai (Desimal)" placeholder="Contoh: 0.01" required />
                 <flux:input wire:model="bpjsEmployerRate" type="number" step="0.0001" label="Tarif RS (Desimal)" placeholder="Contoh: 0.04" required />
             </div>
-            <flux:input wire:model="bpjsWageCeiling" type="number" step="1000" label="Plafon Maksimal Upah (Kosongkan jika tanpa batas)" placeholder="Misal: 12000000" />
+            <flux:input.currency wire:model="bpjsWageCeiling" label="Plafon Maksimal Upah (Kosongkan jika tanpa batas)" placeholder="Rp. 0" />
             <div class="flex items-center gap-2 pt-1">
                 <input type="checkbox" wire:model="bpjsIsActive" id="bpjsActive" class="rounded text-emerald-600 focus:ring-emerald-500">
                 <label for="bpjsActive" class="text-sm font-medium text-zinc-800 dark:text-zinc-200">Status Aturan Aktif</label>

@@ -34,7 +34,7 @@
             <div class="space-y-3">
                 <flux:input wire:model="code" label="Kode Potongan" placeholder="Contoh: KOPERASI_RS" required />
                 <flux:input wire:model="name" label="Nama Potongan" placeholder="Contoh: Iuran Koperasi Karyawan Sejahtera" required />
-                <flux:input wire:model="defaultAmount" label="Nominal Standar (Rp)" type="number" step="1000" placeholder="100000" required />
+                <flux:input.currency wire:model="defaultAmount" label="Nominal Standar (Rp)" placeholder="Rp. 0" required />
                 <flux:textarea wire:model="description" label="Keterangan / Dasar Pemotongan" placeholder="Deskripsi peruntukan atau syarat potongan..." rows="2" />
 
                 <div class="pt-2">

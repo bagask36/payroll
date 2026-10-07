@@ -10,6 +10,7 @@ use Database\Seeders\DoctorSeeder;
 use Database\Seeders\EmployeeSeeder;
 use Database\Seeders\OrganizationSeeder;
 use Database\Seeders\RoleAndPermissionSeeder;
+use Database\Seeders\ScheduleSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -28,6 +29,7 @@ class DoctorShowTest extends TestCase
             OrganizationSeeder::class,
             EmployeeSeeder::class,
             DoctorSeeder::class,
+            ScheduleSeeder::class,
         ]);
     }
 
@@ -215,5 +217,24 @@ class DoctorShowTest extends TestCase
             ->set('newPasswordConfirmation', 'NewSecret123!')
             ->call('resetUserPassword')
             ->assertHasNoErrors();
+    }
+
+    public function test_doctor_profile_renders_schedule_tab_with_assignments(): void
+    {
+        $admin = User::where('email', 'admin@juwitahospital.com')->firstOrFail();
+        $doctor = Doctor::where('name', 'dr. Hendra Pratama, Sp.PD')->firstOrFail();
+
+        $this->assertGreaterThan(0, $doctor->scheduleAssignments()->count());
+
+        $response = $this->actingAs($admin)->get("/doctors/{$doctor->id}?tab=schedules");
+        $response->assertStatus(200);
+
+        Livewire::actingAs($admin)
+            ->test(DoctorShow::class, ['id' => $doctor->id])
+            ->call('setTab', 'schedules')
+            ->assertSee('Jadwal Praktik')
+            ->assertSee('Jam Kerja Reguler')
+            ->assertSee('Unit Rawat Jalan (Poliklinik)')
+            ->assertSee('Terjadwal');
     }
 }

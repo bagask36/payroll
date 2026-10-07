@@ -51,6 +51,11 @@ class BpjsIndex extends Component
 
     public function saveBpjs(AuditService $auditService): void
     {
+        if (is_string($this->bpjsWageCeiling)) {
+            $cleaned = preg_replace('/[^\d]/', '', $this->bpjsWageCeiling);
+            $this->bpjsWageCeiling = $cleaned !== '' ? (float) $cleaned : null;
+        }
+
         $this->validate([
             'bpjsEmployeeRate' => 'required|numeric|min:0|max:1',
             'bpjsEmployerRate' => 'required|numeric|min:0|max:1',

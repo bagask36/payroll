@@ -669,21 +669,15 @@
                     Standar Remunerasi Jabatan
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <flux:input 
+                    <flux:input.currency 
                         wire:model="positionDefaultBasicSalary" 
                         label="Standar Gaji Pokok (Rp)" 
-                        type="number" 
-                        step="0.01" 
-                        min="0" 
-                        placeholder="misal: 6500000" 
+                        placeholder="Rp. 0" 
                     />
-                    <flux:input 
+                    <flux:input.currency 
                         wire:model="positionDefaultPositionalAllowance" 
                         label="Standar Tunjangan Jabatan (Rp)" 
-                        type="number" 
-                        step="0.01" 
-                        min="0" 
-                        placeholder="misal: 1500000" 
+                        placeholder="Rp. 0" 
                     />
                 </div>
             </div>
@@ -936,7 +930,7 @@
                 <flux:input wire:model="bpjsEmployeeRate" type="number" step="0.0001" label="Tarif Pegawai (Desimal, misal 0.01)" required />
                 <flux:input wire:model="bpjsEmployerRate" type="number" step="0.0001" label="Tarif RS (Desimal, misal 0.04)" required />
             </div>
-            <flux:input wire:model="bpjsWageCeiling" type="number" step="1000" label="Plafon Maksimal Upah (Kosongkan jika tanpa plafon)" />
+            <flux:input.currency wire:model="bpjsWageCeiling" label="Plafon Maksimal Upah (Kosongkan jika tanpa plafon)" placeholder="Rp. 0" />
             <div class="flex items-center gap-2 pt-1">
                 <input type="checkbox" wire:model="bpjsIsActive" id="bpjsActive" class="rounded text-emerald-600 focus:ring-emerald-500">
                 <label for="bpjsActive" class="text-sm font-medium">Status Aktif</label>

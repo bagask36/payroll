@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo Aplikasi - Sistem HR, Presensi & Payroll Rumah Sakit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0B0F19;
+      --bg-card: rgba(17, 24, 39, 0.75);
+      --bg-card-hover: rgba(30, 41, 59, 0.85);
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-highlight: rgba(14, 165, 233, 0.35);
+      --primary: #0EA5E9;
+      --primary-light: #38BDF8;
+      --primary-glow: rgba(14, 165, 233, 0.2);
+      --emerald: #10B981;
+      --emerald-glow: rgba(16, 185, 129, 0.2);
+      --accent: #6366F1;
+      --warning: #F59E0B;
+      --text-main: #F8FAFC;
+      --text-muted: #94A3B8;
+      --text-sub: #64748B;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 8px;
+      --font-display: 'Plus Jakarta Sans', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Ambient Background Glow */
+    .ambient-glow {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .glow-orb-1 {
+      position: absolute;
+      top: -10%;
+      left: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, rgba(14, 165, 233, 0) 70%);
+      filter: blur(80px);
+    }
+    .glow-orb-2 {
+      position: absolute;
+      bottom: -15%;
+      right: -10%;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0) 70%);
+      filter: blur(90px);
+    }
+
+    /* Top Presentation Controls Bar */
+    .top-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, var(--primary), var(--emerald));
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 16px;
+      box-shadow: 0 0 15px var(--primary-glow);
+    }
+    .brand-title {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: -0.01em;
+    }
+    .brand-badge {
+      background: rgba(14, 165, 233, 0.12);
+      border: 1px solid rgba(14, 165, 233, 0.3);
+      color: var(--primary-light);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: var(--font-body);
+      text-decoration: none;
+    }
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #0284C7);
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #fff;
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #38BDF8, var(--primary));
+      box-shadow: 0 0 18px rgba(14, 165, 233, 0.4);
+    }
+
+    /* Presentation Canvas */
+    .deck-viewport {
+      position: relative;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 24px 84px 24px;
+      z-index: 10;
+      min-height: 100vh;
+    }
+
+    .slide {
+      width: 100%;
+      max-width: 1360px;
+      min-height: 740px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 48px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03);
+      display: none;
+      flex-direction: column;
+      position: relative;
+      animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      overflow: hidden;
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.99);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Slide Header */
+    .slide-header {
+      margin-bottom: 28px;
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .slide-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--primary-light);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    .slide-title {
+      font-family: var(--font-display);
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      line-height: 1.25;
+      background: linear-gradient(135deg, #FFFFFF 30%, #94A3B8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .slide-subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-weight: 400;
+      max-width: 820px;
+      line-height: 1.5;
+    }
+    .slide-number-indicator {
+      font-family: var(--font-display);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-sub);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 6px 12px;
+      border-radius: 30px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Slide Body Grid Layouts */
+    .split-layout {
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;
+      gap: 36px;
+      flex: 1;
+      align-items: stretch;
+    }
+
+    .equal-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      flex: 1;
+    }
+
+    .grid-4-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      flex: 1;
+    }
+
+    /* Content Cards & List */
+    .feature-card {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 12px;
+      transition: all 0.25s ease;
+      position: relative;
+    }
+    .feature-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-highlight);
+      transform: translateY(-2px);
+    }
+    .card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      background: rgba(14, 165, 233, 0.1);
+      color: var(--primary-light);
+      border: 1px solid rgba(14, 165, 233, 0.25);
+    }
+    .card-icon.emerald {
+      background: rgba(16, 185, 129, 0.1);
+      color: #34D399;
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+    .card-icon.indigo {
+      background: rgba(99, 102, 241, 0.1);
+      color: #818CF8;
+      border-color: rgba(99, 102, 241, 0.25);
+    }
+    .card-icon.warning {
+      background: rgba(245, 158, 11, 0.1);
+      color: #FBBF24;
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .card-desc {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .key-points-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .point-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
+      transition: all 0.2s ease;
+    }
+    .point-item:hover {
+      border-color: rgba(14, 165, 233, 0.3);
+      background: rgba(14, 165, 233, 0.03);
+    }
+    .point-badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(14, 165, 233, 0.15);
+      color: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .point-content h4 {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #F1F5F9;
+    }
+    .point-content p {
+      font-size: 13.5px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* Interactive Dropzone / Image Slot */
+    .image-slot-wrapper {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 440px;
+      position: relative;
+    }
+
+    .image-dropzone {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: 2px dashed rgba(14, 165, 233, 0.35);
+      background: rgba(15, 23, 42, 0.6);
+      border-radius: var(--radius-md);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      overflow: hidden;
+    }
+    .image-dropzone:hover, .image-dropzone.drag-over {
+      border-color: var(--primary-light);
+      background: rgba(14, 165, 233, 0.08);
+      box-shadow: 0 0 25px var(--primary-glow);
+    }
+    .image-dropzone input[type="file"] {
+      display: none;
+    }
+
+    .placeholder-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      z-index: 2;
+    }
+    .upload-icon-circle {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(14, 165, 233, 0.12);
+      border: 1px solid rgba(14, 165, 233, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-light);
+      font-size: 26px;
+      transition: transform 0.2s ease;
+    }
+    .image-dropzone:hover .upload-icon-circle {
+      transform: scale(1.08);
+    }
+    .dropzone-label {
+      font-family: var(--font-display);
+      font-size: 16px;
+      font-weight: 700;
+      color: #E2E8F0;
+    }
+    .dropzone-hint {
+      font-size: 13px;
+      color: var(--text-muted);
+      max-width: 280px;
+      line-height: 1.45;
+    }
+    .dropzone-shortcuts {
+      margin-top: 6px;
+      display: inline-flex;
+      gap: 6px;
+    }
+    .key-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 4px;
+      color: #CBD5E1;
+    }
+
+    /* Rendered Image Inside Dropzone */
+    .slot-preview-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #060911;
+      display: none;
+      z-index: 3;
+      border-radius: calc(var(--radius-md) - 2px);
+    }
+
+    .slot-actions {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      display: none;
+      gap: 8px;
+      z-index: 10;
+    }
+    .slot-btn {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+    .slot-btn:hover {
+      background: rgba(225, 29, 72, 0.9);
+      border-color: rgba(244, 63, 94, 0.5);
+    }
+
+    /* Specific Slide Styles */
+    /* Slide 1: Cover */
+    .cover-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      height: 100%;
+      flex: 1;
+      gap: 20px;
+      padding: 20px 40px;
+    }
+    .hospital-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 18px;
+      background: rgba(14, 165, 233, 0.12);
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      border-radius: 30px;
+      color: var(--primary-light);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .cover-title {
+      font-family: var(--font-display);
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      max-width: 950px;
+      background: linear-gradient(135deg, #FFFFFF 20%, #E2E8F0 60%, #38BDF8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .cover-desc {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 780px;
+      line-height: 1.6;
+    }
+    .cover-meta {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border-color);
+      width: 100%;
+      max-width: 600px;
+      justify-content: center;
+    }
+    .meta-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      text-align: center;
+    }
+    .meta-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+    .meta-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #F8FAFC;
+    }
+
+    /* Workflow Stepper in Slide 10 */
+    .demo-steps-container {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      flex: 1;
+      align-items: stretch;
+      margin-top: 10px;
+    }
+    .demo-step-card {
+      background: rgba(255, 255, 255, 0.025);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      transition: all 0.25s ease;
+    }
+    .demo-step-card:hover {
+      border-color: var(--primary-light);
+      background: rgba(14, 165, 233, 0.04);
+      transform: translateY(-3px);
+    }
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+    }
+    .step-role-tag {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary-light);
+    }
+    .step-title {
+      font-family: var(--font-display);
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.35;
+    }
+    .step-desc {
+      font-size: 12.5px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Bottom Navigation Bar */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 68px;
+      background: rgba(11, 15, 25, 0.9);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      z-index: 100;
+    }
+
+    .slide-dots {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .dot:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+    .dot.active {
+      width: 30px;
+      background: var(--primary-light);
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+
+    .nav-controls-center {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .slide-counter {
+      font-family: var(--font-display);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+      min-width: 80px;
+      text-align: center;
+    }
+
+    .nav-key-hints {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    /* Fullscreen Mode Adjustments */
+    :fullscreen .deck-viewport {
+      padding: 24px;
+    }
+    :fullscreen .top-bar, :fullscreen .bottom-nav {
+      opacity: 0.15;
+      transition: opacity 0.3s;
+    }
+    :fullscreen .top-bar:hover, :fullscreen .bottom-nav:hover {
+      opacity: 1;
+    }
+
+    /* Print / PDF Export Styling */
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      .ambient-glow, .top-bar, .bottom-nav, .slot-actions, .placeholder-content {
+        display: none !important;
+      }
+      .deck-viewport {
+        padding: 0 !important;
+        display: block !important;
+      }
+      .slide {
+        display: flex !important;
+        page-break-after: always;
+        break-after: page;
+        min-height: 100vh;
+        max-width: 100%;
+        background: #fff !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 40px !important;
+      }
+      .slide-title {
+        background: none !important;
+        -webkit-text-fill-color: initial !important;
+        color: #0F172A !important;
+      }
+      .feature-card, .point-item {
+        background: #F8FAFC !important;
+        border: 1px solid #E2E8F0 !important;
+      }
+      .card-title, .point-content h4 {
+        color: #0F172A !important;
+      }
+      .card-desc, .point-content p, .slide-subtitle {
+        color: #475569 !important;
+      }
+      .image-dropzone {
+        border: 1px solid #CBD5E1 !important;
+        background: #F1F5F9 !important;
+      }
+      .slot-preview-img {
+        display: block !important;
+      }
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 84px;
+      right: 24px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--border-highlight);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      z-index: 1000;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient Lighting Elements -->
+  <div class="ambient-glow">
+    <div class="glow-orb-1"></div>
+    <div class="glow-orb-2"></div>
+  </div>
+
+  <!-- Top Action & Brand Header -->
+  <header class="top-bar">
+    <div class="brand-section">
+      <div class="brand-icon">+</div>
+      <div class="brand-title">SIMRS HR & Payroll</div>
+      <div class="brand-badge">Demo Presentation</div>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn" onclick="clearAllStoredImages()" title="Reset semua foto yang telah diupload">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        Reset Foto
+      </button>
+      <button class="btn" onclick="window.print()" title="Cetak atau simpan slide ke PDF">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        Export PDF
+      </button>
+      <button class="btn btn-primary" onclick="toggleFullscreen()" id="btn-fullscreen">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+        Fullscreen (F)
+      </button>
+    </div>
+  </header>
+
+  <!-- Presentation Main Viewport -->
+  <main class="deck-viewport">
+
+    <!-- ================= SLIDE 1: COVER ================= -->
+    <section class="slide active" data-slide="1">
+      <div class="cover-content">
+        <div class="hospital-pill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Hospital Human Resources & Payroll System
+        </div>
+        <h1 class="cover-title">Transformasi Digital Tata Kelola SDM, Presensi & Penggajian Rumah Sakit</h1>
+        <p class="cover-desc">Platform terintegrasi yang dirancang khusus untuk memenuhi dinamika operasional rumah sakit: tata kelola shift 24/7, kredensial dokter, absensi anti-fraud, dan otomasi payroll berbasis regulasi.</p>
+        
+        <div class="cover-meta">
+          <div class="meta-box">
+            <span class="meta-label">Lingkup Sistem</span>
+            <span class="meta-value">Single Hospital Enterprise</span>
+          </div>
+          <div style="width: 1px; height: 32px; background: var(--border-color);"></div>
+          <div class="meta-box">
+            <span class="meta-label">Modul Inti</span>
+            <span class="meta-value">Pegawai • Dokter • Cuti • Presensi • Payroll</span>
+          </div>
+          <div style="width: 1px; height: 32px; background: var(--border-color);"></div>
+          <div class="meta-box">
+            <span class="meta-label">Kepatuhan Regulasi</span>
+            <span class="meta-value">BPJS & PPh 21 TER</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 2: PROBLEM STATEMENT ================= -->
+    <section class="slide" data-slide="2">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">Tantangan Lapangan</div>
+          <h2 class="slide-title">Kompleksitas Manajemen SDM Rumah Sakit</h2>
+          <p class="slide-subtitle">Rumah sakit memiliki karakteristik unik yang tidak dapat diakomodasi oleh aplikasi HR perkantoran standar.</p>
+        </div>
+        <div class="slide-number-indicator">02 / 12</div>
+      </div>
+
+      <div class="grid-4-cards">
+        <div class="feature-card">
+          <div class="card-icon warning">🕒</div>
+          <h3 class="card-title">Pola Shift 24/7 yang Kompleks</h3>
+          <p class="card-desc">Rotasi dinamis tenaga medis antar bangsal, IGD, ICU, dan poliklinik dengan jadwal pagi, siang, malam, dan libur rotasional yang menuntut akurasi jam kerja aktual.</p>
+        </div>
+        <div class="feature-card">
+          <div class="card-icon indigo">🩺</div>
+          <h3 class="card-title">Dualisme Status Dokter & Tenaga Medis</h3>
+          <p class="card-desc">Pembedaan regulasi antara dokter organik (karyawan) dengan dokter mitra/spesialis tamu, serta pemantauan ketat masa berlaku SIP & STR yang berkala.</p>
+        </div>
+        <div class="feature-card">
+          <div class="card-icon">📍</div>
+          <h3 class="card-title">Integritas Kehadiran & Risiko Fraud</h3>
+          <p class="card-desc">Tingginya risiko absensi manual, titip absen, atau manipulasi lokasi GPS memerlukan sistem validasi radius geofence dan identifikasi perangkat yang ketat.</p>
+        </div>
+        <div class="feature-card">
+          <div class="card-icon emerald">📊</div>
+          <h3 class="card-title">Beban Perhitungan Payroll & Pajak</h3>
+          <p class="card-desc">Kombinasi rumit komponen tunjangan jabatan, insentif shift, uang lembur, denda keterlambatan, kalkulasi BPJS Kesehatan & TK, serta perhitungan PPh 21 TER.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 3: VALUE PILLARS / SOLUTION ================= -->
+    <section class="slide" data-slide="3">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">Arsitektur Solusi</div>
+          <h2 class="slide-title">4 Pilar Keunggulan Sistem HR Juwita</h2>
+          <p class="slide-subtitle">Sistem yang kokoh, transparan, dan dapat diaudit secara menyeluruh untuk kenyamanan manajemen dan seluruh staf.</p>
+        </div>
+        <div class="slide-number-indicator">03 / 12</div>
+      </div>
+
+      <div class="grid-4-cards">
+        <div class="feature-card">
+          <div class="card-icon">🏥</div>
+          <h3 class="card-title">1. Hospital-Domain Architecture</h3>
+          <p class="card-desc">Dirancang spesifik untuk satu rumah sakit. Memisahkan domain Dokter dengan Pegawai reguler secara elegan tanpa kompromi aturan bisnis.</p>
+        </div>
+        <div class="feature-card">
+          <div class="card-icon emerald">🛡️</div>
+          <h3 class="card-title">2. Absensi Terverifikasi Berlapis</h3>
+          <p class="card-desc">Geofence GPS yang presisi, pengenalan identitas, dan perlindungan perangkat untuk menjamin integritas rekap jam kerja nyata.</p>
+        </div>
+        <div class="feature-card">
+          <div class="card-icon indigo">📑</div>
+          <h3 class="card-title">3. Hierarchical Approval Cuti</h3>
+          <p class="card-desc">Alur pengajuan cuti berjenjang (Staf &rarr; Kepala Ruangan/Unit &rarr; HRD) dengan kuota otomatis agar operasional pelayanan pasien tidak terganggu.</p>
+        </div>
+        <div class="feature-card">
+          <div class="card-icon warning">💳</div>
+          <h3 class="card-title">4. Immutable & Auditable Payroll</h3>
+          <p class="card-desc">Perhitungan gaji otomatis sekali klik, formula pajak & BPJS resmi, slip gaji siap cetak, serta perlindungan data payroll final yang terkunci.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 4: EMPLOYEE MANAGEMENT ================= -->
+    <section class="slide" data-slide="4">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">Modul Utama 01</div>
+          <h2 class="slide-title">Manajemen Data Pegawai (Employee Master)</h2>
+          <p class="slide-subtitle">Pusat data induk seluruh karyawan rumah sakit dari staf administrasi, perawat, apoteker, hingga penunjang medis.</p>
+        </div>
+        <div class="slide-number-indicator">04 / 12</div>
+      </div>
+
+      <div class="split-layout">
+        <div class="key-points-list">
+          <div class="point-item">
+            <div class="point-badge">1</div>
+            <div class="point-content">
+              <h4>Struktur Organisasi Bertingkat</h4>
+              <p>Pemetaan jelas unit kerja, departemen, instalasi rawat, dan garis hierarki atasan langsung.</p>
+            </div>
+          </div>
+          <div class="point-item">
+            <div class="point-badge">2</div>
+            <div class="point-content">
+              <h4>Profil Lengkap & Status Kerja</h4>
+              <p>Pencatatan riwayat pendidikan, keluarga, kontak darurat, nomor rekening bank, serta status kontrak (PKWT/PKWTT/Magang).</p>
+            </div>
+          </div>
+          <div class="point-item">
+            <div class="point-badge">3</div>
+            <div class="point-content">
+              <h4>Arsip Digital & Dokumen Kepegawaian</h4>
+              <p>Penyimpanan KTP, KK, Ijazah, dan dokumen kontrak yang aman dan terkontrol hak aksesnya.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="image-slot-wrapper">
+          <div class="image-dropzone" data-slot-id="slot-employee">
+            <img class="slot-preview-img" alt="Screenshot Master Pegawai" />
+            <div class="slot-actions">
+              <button class="slot-btn btn-remove" onclick="removeImage('slot-employee', event)">Hapus Foto</button>
+            </div>
+            <div class="placeholder-content">
+              <div class="upload-icon-circle">📷</div>
+              <div class="dropzone-label">Screenshot Master Pegawai</div>
+              <div class="dropzone-hint">Klik untuk upload foto, seret file ke sini, atau tekan <span class="key-badge">Ctrl+V</span> untuk paste</div>
+            </div>
+            <input type="file" accept="image/*" onchange="handleFileSelect('slot-employee', this)" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 5: DOCTOR DOMAIN ================= -->
+    <section class="slide" data-slide="5">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">Modul Utama 02</div>
+          <h2 class="slide-title">Manajemen Dokter & Profil Medis</h2>
+          <p class="slide-subtitle">Pengelolaan kredensial medis dokter spesialis dan umum dengan pemantauan legalitas praktik yang ketat.</p>
+        </div>
+        <div class="slide-number-indicator">05 / 12</div>
+      </div>
+
+      <div class="split-layout">
+        <div class="key-points-list">
+          <div class="point-item">
+            <div class="point-badge">1</div>
+            <div class="point-content">
+              <h4>Pemisahan Domain Dokter & Pegawai</h4>
+              <p>Dokter dapat berdiri sendiri sebagai mitra/spesialis atau memiliki keterkaitan opsional dengan data karyawan organik.</p>
+            </div>
+          </div>
+          <div class="point-item">
+            <div class="point-badge">2</div>
+            <div class="point-content">
+              <h4>Monitoring Masa Berlaku SIP & STR</h4>
+              <p>Peringatan dini sebelum batas kedaluwarsa Surat Izin Praktik (SIP) dan Surat Tanda Registrasi (STR) untuk memastikan kepatuhan regulasi Kemenkes.</p>
+            </div>
+          </div>
+          <div class="point-item">
+            <div class="point-badge">3</div>
+            <div class="point-content">
+              <h4>Kredensial & Spesialisasi Medis</h4>
+              <p>Pengelompokan spesialisasi poliklinik dan penugasan jadwal poli secara terstruktur.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="image-slot-wrapper">
+          <div class="image-dropzone" data-slot-id="slot-doctor">
+            <img class="slot-preview-img" alt="Screenshot Profil Dokter" />
+            <div class="slot-actions">
+              <button class="slot-btn btn-remove" onclick="removeImage('slot-doctor', event)">Hapus Foto</button>
+            </div>
+            <div class="placeholder-content">
+              <div class="upload-icon-circle">🩺</div>
+              <div class="dropzone-label">Screenshot Profil Medis / Dokter</div>
+              <div class="dropzone-hint">Klik untuk upload foto, seret file ke sini, atau paste screenshot tabel dokter</div>
+            </div>
+            <input type="file" accept="image/*" onchange="handleFileSelect('slot-doctor', this)" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 6: ATTENDANCE & SHIFT ================= -->
+    <section class="slide" data-slide="6">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">Modul Utama 03</div>
+          <h2 class="slide-title">Jadwal Shift & Presensi Anti-Fraud</h2>
+          <p class="slide-subtitle">Sistem presensi cerdas berbasis koordinat geofencing dan pencatatan jam kerja aktual.</p>
+        </div>
+        <div class="slide-number-indicator">06 / 12</div>
+      </div>
+
+      <div class="split-layout">
+        <div class="key-points-list">
+          <div class="point-item">
+            <div class="point-badge">1</div>
+            <div class="point-content">
+              <h4>Validasi Geofence GPS Radius Rumah Sakit</h4>
+              <p>Staf hanya dapat melakukan presensi datang/pulang jika berada di dalam radius resmi area rumah sakit.</p>
+            </div>
+          </div>
+          <div class="point-item">
+            <div class="point-badge">2</div>
+            <div class="point-content">
+              <h4>Multi-Shift & Pergantian Jaga</h4>
+              <p>Mendukung pola shift fleksibel (Pagi, Siang, Malam, Libur) dengan toleransi keterlambatan yang dapat dikonfigurasi.</p>
+            </div>
+          </div>
+          <div class="point-item">
+            <div class="point-badge">3</div>
+            <div class="point-content">
+              <h4>Audit Trail Penyesuaian Presensi</h4>
+              <p>Koreksi jam hadir oleh HR memiliki catatan alasan, bukti, dan jejak waktu tanpa menghapus riwayat asli.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="image-slot-wrapper">
+          <div class="image-dropzone" data-slot-id="slot-attendance">
+            <img class="slot-preview-img" alt="Screenshot Presensi & Shift" />
+            <div class="slot-actions">
+              <button class="slot-btn btn-remove" onclick="removeImage('slot-attendance', event)">Hapus Foto</button>
+            </div>
+            <div class="placeholder-content">
+              <div class="upload-icon-circle">📍</div>
+              <div class="dropzone-label">Screenshot Modul Presensi & Shift</div>
+              <div class="dropzone-hint">Klik untuk upload foto rekap presensi atau pengaturan geofence</div>
+            </div>
+            <input type="file" accept="image/*" onchange="handleFileSelect('slot-attendance', this)" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 7: HIERARCHICAL LEAVE ================= -->
+    <section class="slide" data-slide="7">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">Modul Utama 04</div>
+          <h2 class="slide-title">Alur Persetujuan Cuti Hierarkis</h2>
+          <p class="slide-subtitle">Pengajuan cuti terstruktur berjenjang tanpa hambatan birokrasi manual dan terintegrasi ke absensi.</p>
+        </div>
+        <div class="slide-number-indicator">07 / 12</div>
+      </div>
+
+      <div class="split-layout">
+        <div class="key-points-list">
+          <div class="point-item">
+            <div class="point-badge">1</div>
+            <div class="point-content">
+              <h4>Alur Persetujuan Berjenjang</h4>
+              <p>Pengajuan staf diproses terlebih dahulu oleh Kepala Ruang/Atasan Langsung, lalu difinalisasi oleh HRD.</p>
+            </div>
+          </div>
+          <div class="point-item">
+            <div class="point-badge">2</div>
+            <div class="point-content">
+              <h4>Manajemen Kuota Cuti Otomatis</h4>
+              <p>Sisa hak cuti tahunan terpotong otomatis saat disetujui, lengkap dengan validasi batas kuota dan lampiran surat dokter (bila sakit).</p>
+            </div>
+          </div>
+          <div class="point-item">
+            <div class="point-badge">3</div>
+            <div class="point-content">
+              <h4>Sinkronisasi Instan ke Jadwal & Payroll</h4>
+              <p>Status cuti yang telah disetujui langsung memperbarui jadwal dinas dan mencegah pemotongan absensi secara keliru.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="image-slot-wrapper">
+          <div class="image-dropzone" data-slot-id="slot-leave">
+            <img class="slot-preview-img" alt="Screenshot Approval Cuti" />
+            <div class="slot-actions">
+              <button class="slot-btn btn-remove" onclick="removeImage('slot-leave', event)">Hapus Foto</button>
+            </div>
+            <div class="placeholder-content">
+              <div class="upload-icon-circle">📝</div>
+              <div class="dropzone-label">Screenshot Pengajuan & Approval Cuti</div>
+              <div class="dropzone-hint">Klik untuk upload foto form cuti atau tabel approval bertingkat</div>
+            </div>
+            <input type="file" accept="image/*" onchange="handleFileSelect('slot-leave', this)" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 8: PAYROLL ENGINE & TAX ================= -->
+    <section class="slide" data-slide="8">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">Modul Utama 05</div>
+          <h2 class="slide-title">Engine Penggajian, BPJS, & PPh 21 TER</h2>
+          <p class="slide-subtitle">Perhitungan gaji komprehensif, otomatisasi potongan regulasi, dan perlindungan integritas data keuangan.</p>
+        </div>
+        <div class="slide-number-indicator">08 / 12</div>
+      </div>
+
+      <div class="split-layout">
+        <div class="key-points-list">
+          <div class="point-item">
+            <div class="point-badge">1</div>
+            <div class="point-content">
+              <h4>Kalkulasi BPJS Sesuai Ketentuan</h4>
+              <p>Perhitungan otomatis BPJS Kesehatan (4% pemberi kerja, 1% pekerja) dan BPJS Ketenagakerjaan (JKK, JKM, JHT, JP).</p>
+            </div>
+          </div>
+          <div class="point-item">
+            <div class="point-badge">2</div>
+            <div class="point-content">
+              <h4>PPh 21 Tarif Efektif Rata-Rata (TER)</h4>
+              <p>Penerapan skema TER Kategori A, B, C berdasarkan status PTKP karyawan secara akurat dan taat hukum perpajakan.</p>
+            </div>
+          </div>
+          <div class="point-item">
+            <div class="point-badge">3</div>
+            <div class="point-content">
+              <h4>Status Payroll Final (Immutable)</h4>
+              <p>Periode payroll yang sudah disetujui dikunci secara permanen. Segala perbaikan wajib menggunakan mekanisme penyesuaian resmi.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="image-slot-wrapper">
+          <div class="image-dropzone" data-slot-id="slot-payroll">
+            <img class="slot-preview-img" alt="Screenshot Payroll Engine" />
+            <div class="slot-actions">
+              <button class="slot-btn btn-remove" onclick="removeImage('slot-payroll', event)">Hapus Foto</button>
+            </div>
+            <div class="placeholder-content">
+              <div class="upload-icon-circle">💰</div>
+              <div class="dropzone-label">Screenshot Rekap Periode Payroll</div>
+              <div class="dropzone-hint">Klik untuk upload foto kalkulasi payroll atau tabel rincian gaji</div>
+            </div>
+            <input type="file" accept="image/*" onchange="handleFileSelect('slot-payroll', this)" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 9: PAYSLIP PRINT ================= -->
+    <section class="slide" data-slide="9">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">Output & Reporting</div>
+          <h2 class="slide-title">Format Slip Gaji Resmi & Rekap Laporan</h2>
+          <p class="slide-subtitle">Penerbitan slip gaji resmi rumah sakit dengan format standar cetak yang rapi, informatif, dan aman.</p>
+        </div>
+        <div class="slide-number-indicator">09 / 12</div>
+      </div>
+
+      <div class="split-layout">
+        <div class="key-points-list">
+          <div class="point-item">
+            <div class="point-badge">1</div>
+            <div class="point-content">
+              <h4>Format Cetak Standar Rumah Sakit</h4>
+              <p>Tata letak bersih dilengkapi kop instansi resmi, rincian penghasilan kotor, potongan terperinci, dan take home pay bersih.</p>
+            </div>
+          </div>
+          <div class="point-item">
+            <div class="point-badge">2</div>
+            <div class="point-content">
+              <h4>Akses Mandiri & Kerahasiaan Data</h4>
+              <p>Staf hanya dapat melihat dan mencetak slip gaji miliknya sendiri melalui otorisasi akun terverifikasi.</p>
+            </div>
+          </div>
+          <div class="point-item">
+            <div class="point-badge">3</div>
+            <div class="point-content">
+              <h4>Siap Ekspor & Cetak Massal</h4>
+              <p>Fasilitas cetak batch untuk bagian keuangan serta laporan rekapitulasi penggajian per unit kerja.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="image-slot-wrapper">
+          <div class="image-dropzone" data-slot-id="slot-payslip">
+            <img class="slot-preview-img" alt="Screenshot Cetak Slip Gaji" />
+            <div class="slot-actions">
+              <button class="slot-btn btn-remove" onclick="removeImage('slot-payslip', event)">Hapus Foto</button>
+            </div>
+            <div class="placeholder-content">
+              <div class="upload-icon-circle">📄</div>
+              <div class="dropzone-label">Screenshot Slip Gaji (Payslip Print)</div>
+              <div class="dropzone-hint">Klik untuk upload foto tampilan cetak slip gaji karyawan</div>
+            </div>
+            <input type="file" accept="image/*" onchange="handleFileSelect('slot-payslip', this)" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 10: DEMO SCENARIO ROADMAP ================= -->
+    <section class="slide" data-slide="10">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">Skenario Live Demo</div>
+          <h2 class="slide-title">Alur Demo Aplikasi End-to-End</h2>
+          <p class="slide-subtitle">Panduan langkah-demi-langkah dalam mendemokan aplikasi secara langsung kepada audiens.</p>
+        </div>
+        <div class="slide-number-indicator">10 / 12</div>
+      </div>
+
+      <div class="demo-steps-container">
+        <div class="demo-step-card">
+          <div class="step-number">1</div>
+          <span class="step-role-tag">Staf Medis / Karyawan</span>
+          <h4 class="step-title">Pengajuan Cuti</h4>
+          <p class="step-desc">Login sebagai perawat/staf, memilih tanggal dan jenis cuti tahunan, serta melampirkan keterangan.</p>
+        </div>
+
+        <div class="demo-step-card">
+          <div class="step-number">2</div>
+          <span class="step-role-tag">Kepala Ruangan</span>
+          <h4 class="step-title">Approval Berjenjang</h4>
+          <p class="step-desc">Atasan memeriksa ketersediaan pengganti jaga shift, lalu menyetujui permohonan secara real-time.</p>
+        </div>
+
+        <div class="demo-step-card">
+          <div class="step-number">3</div>
+          <span class="step-role-tag">HR Administrator</span>
+          <h4 class="step-title">Verifikasi Presensi</h4>
+          <p class="step-desc">Memeriksa rekap log absensi, radius GPS, dan memastikan data kehadiran periode berjalan valid.</p>
+        </div>
+
+        <div class="demo-step-card">
+          <div class="step-number">4</div>
+          <span class="step-role-tag">Finance / HR Payroll</span>
+          <h4 class="step-title">Proses Hitung Payroll</h4>
+          <p class="step-desc">Eksekusi hitung otomatis lembur, potongan BPJS & PPh 21 TER, lalu finalisasi periode penggajian.</p>
+        </div>
+
+        <div class="demo-step-card">
+          <div class="step-number">5</div>
+          <span class="step-role-tag">Semua Pengguna</span>
+          <h4 class="step-title">Cetak Slip Gaji</h4>
+          <p class="step-desc">Membuka pratinjau slip gaji individual dengan format kop resmi RS yang siap dicetak ke printer / PDF.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 11: SECURITY & ARCHITECTURE ================= -->
+    <section class="slide" data-slide="11">
+      <div class="slide-header">
+        <div>
+          <div class="slide-tag">Keamanan & Keandalan</div>
+          <h2 class="slide-title">Keamanan Data, Otorisasi, & Audit Trail</h2>
+          <p class="slide-subtitle">Standar keamanan data medis dan finansial rumah sakit dengan pembatasan hak akses ketat.</p>
+        </div>
+        <div class="slide-number-indicator">11 / 12</div>
+      </div>
+
+      <div class="grid-4-cards">
+        <div class="feature-card">
+          <div class="card-icon">🔐</div>
+          <h3 class="card-title">Role-Based Access Control (RBAC)</h3>
+          <p class="card-desc">Pemisahan otorisasi ketat: Direksi, HR Admin, Keuangan, Kepala Ruangan, dan Karyawan biasa. Tidak ada bypass endpoint.</p>
+        </div>
+        <div class="feature-card">
+          <div class="card-icon emerald">🛡️</div>
+          <h3 class="card-title">Perlindungan Data Finansial</h3>
+          <p class="card-desc">Nominal gaji, riwayat rekening, dan rincian pajak terlindungi dari akses ilegal melalui otentikasi di level model & kebijakan (Policy).</p>
+        </div>
+        <div class="feature-card">
+          <div class="card-icon indigo">📜</div>
+          <h3 class="card-title">Pencatatan Audit Trail Menyeluruh</h3>
+          <p class="card-desc">Setiap aksi kritis—seperti koreksi absen atau penyesuaian gaji—merekam aktor, stempel waktu, dan alasan perubahan secara permanen.</p>
+        </div>
+        <div class="feature-card">
+          <div class="card-icon warning">⚡</div>
+          <h3 class="card-title">Teknologi Modern & Andal</h3>
+          <p class="card-desc">Dibangun di atas Laravel 13, Livewire, Flux UI, dan database PostgreSQL untuk integritas transaksi keuangan maksimal.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SLIDE 12: CONCLUSION & Q&A ================= -->
+    <section class="slide" data-slide="12">
+      <div class="cover-content">
+        <div class="hospital-pill" style="background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.35); color: #34D399;">
+          Kesimpulan & Diskusi
+        </div>
+        <h2 class="cover-title" style="font-size: 42px;">Siap Menghadirkan Efisiensi & Akurasi Terbaik bagi Rumah Sakit</h2>
+        <p class="cover-desc">Dari pengaturan shift perawat hingga penerbitan slip gaji dokter dan staf, seluruh siklus kerja SDM terkelola dalam satu ekosistem yang terintegrasi, transparan, dan patuh regulasi.</p>
+        
+        <div style="margin-top: 20px; display: flex; gap: 14px;">
+          <button class="btn btn-primary" style="padding: 12px 24px; font-size: 15px;" onclick="goToSlide(10)">
+            Lihat Skenario Demo
+          </button>
+          <button class="btn" style="padding: 12px 24px; font-size: 15px;" onclick="goToSlide(1)">
+            Kembali ke Awal
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation & Counter -->
+  <footer class="bottom-nav">
+
+    <div class="slide-dots" id="slide-dots">
+      <!-- Dots dynamically generated -->
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">Foto berhasil disimpan!</div>
+
+  <script>
+    // State
+    let currentSlide = 1;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+    const dotsContainer = document.getElementById('slide-dots');
+    const counterEl = document.getElementById('slide-counter');
+    const toastEl = document.getElementById('toast');
+
+    // Initialize slide dots
+    slides.forEach((_, idx) => {
+      const dot = document.createElement('div');
+      dot.className = `dot ${idx === 0 ? 'active' : ''}`;
+      dot.onclick = () => goToSlide(idx + 1);
+      dotsContainer.appendChild(dot);
+    });
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 2500);
+    }
+
+    function updateSlideView() {
+      slides.forEach((slide, idx) => {
+        slide.classList.toggle('active', idx + 1 === currentSlide);
+      });
+
+      const dots = document.querySelectorAll('.dot');
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle('active', idx + 1 === currentSlide);
+      });
+
+      counterEl.textContent = `Slide ${currentSlide} / ${totalSlides}`;
+      window.scrollTo(0, 0);
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        updateSlideView();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        updateSlideView();
+      }
+    }
+
+    function goToSlide(num) {
+      if (num >= 1 && num <= totalSlides) {
+        currentSlide = num;
+        updateSlideView();
+      }
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.error(`Gagal fullscreen: ${err.message}`);
+        });
+      } else {
+        document.exitFullscreen();
+      }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      } else if (e.key === 'Home') {
+        goToSlide(1);
+      } else if (e.key === 'End') {
+        goToSlide(totalSlides);
+      }
+    });
+
+    // ================= Image Management (Local Storage + Drag & Drop + Paste) =================
+    const STORAGE_KEY_PREFIX = 'hospital_demo_img_';
+
+    function initImageSlots() {
+      document.querySelectorAll('.image-dropzone').forEach(dropzone => {
+        const slotId = dropzone.dataset.slotId;
+        const fileInput = dropzone.querySelector('input[type="file"]');
+        const previewImg = dropzone.querySelector('.slot-preview-img');
+        const placeholder = dropzone.querySelector('.placeholder-content');
+        const actions = dropzone.querySelector('.slot-actions');
+
+        // Load existing image if saved
+        const savedData = localStorage.getItem(STORAGE_KEY_PREFIX + slotId);
+        if (savedData) {
+          previewImg.src = savedData;
+          previewImg.style.display = 'block';
+          placeholder.style.display = 'none';
+          actions.style.display = 'flex';
+        }
+
+        // Click to open file picker (if not clicking remove button)
+        dropzone.addEventListener('click', (e) => {
+          if (!e.target.closest('.slot-actions')) {
+            fileInput.click();
+          }
+        });
+
+        // Drag & Drop handlers
+        dropzone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropzone.classList.add('drag-over');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+          dropzone.classList.remove('drag-over');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropzone.classList.remove('drag-over');
+          if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            processFile(slotId, e.dataTransfer.files[0]);
+          }
+        });
+      });
+    }
+
+    function handleFileSelect(slotId, input) {
+      if (input.files && input.files[0]) {
+        processFile(slotId, input.files[0]);
+      }
+    }
+
+    function processFile(slotId, file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Mohon pilih file gambar (PNG, JPG, WebP).');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        try {
+          localStorage.setItem(STORAGE_KEY_PREFIX + slotId, dataUrl);
+          displaySlotImage(slotId, dataUrl);
+          showToast('Foto berhasil disimpan!');
+        } catch (err) {
+          console.warn('Storage limit reached, displaying without persistent storage:', err);
+          displaySlotImage(slotId, dataUrl);
+          showToast('Foto ditampilkan (ukuran file besar)');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function displaySlotImage(slotId, dataUrl) {
+      const dropzone = document.querySelector(`.image-dropzone[data-slot-id="${slotId}"]`);
+      if (!dropzone) return;
+
+      const previewImg = dropzone.querySelector('.slot-preview-img');
+      const placeholder = dropzone.querySelector('.placeholder-content');
+      const actions = dropzone.querySelector('.slot-actions');
+
+      previewImg.src = dataUrl;
+      previewImg.style.display = 'block';
+      placeholder.style.display = 'none';
+      actions.style.display = 'flex';
+    }
+
+    function removeImage(slotId, event) {
+      if (event) event.stopPropagation();
+      localStorage.removeItem(STORAGE_KEY_PREFIX + slotId);
+
+      const dropzone = document.querySelector(`.image-dropzone[data-slot-id="${slotId}"]`);
+      if (!dropzone) return;
+
+      const previewImg = dropzone.querySelector('.slot-preview-img');
+      const placeholder = dropzone.querySelector('.placeholder-content');
+      const actions = dropzone.querySelector('.slot-actions');
+      const fileInput = dropzone.querySelector('input[type="file"]');
+
+      previewImg.src = '';
+      previewImg.style.display = 'none';
+      placeholder.style.display = 'flex';
+      actions.style.display = 'none';
+      if (fileInput) fileInput.value = '';
+
+      showToast('Foto dihapus.');
+    }
+
+    function clearAllStoredImages() {
+      if (confirm('Yakin ingin mereset seluruh screenshot yang sudah dimasukkan?')) {
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith(STORAGE_KEY_PREFIX)) {
+            localStorage.removeItem(key);
+          }
+        });
+        document.querySelectorAll('.image-dropzone').forEach(dz => {
+          const slotId = dz.dataset.slotId;
+          removeImage(slotId);
+        });
+        showToast('Seluruh foto berhasil direset!');
+      }
+    }
+
+    // Global Paste Support (Cmd+V / Ctrl+V into current active slide's dropzone)
+    window.addEventListener('paste', (e) => {
+      const activeSlideEl = document.querySelector('.slide.active');
+      if (!activeSlideEl) return;
+
+      const dropzone = activeSlideEl.querySelector('.image-dropzone');
+      if (!dropzone) return;
+
+      const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+      for (let item of items) {
+        if (item.type.indexOf('image') !== -1) {
+          const blob = item.getAsFile();
+          const slotId = dropzone.dataset.slotId;
+          processFile(slotId, blob);
+          break;
+        }
+      }
+    });
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', () => {
+      initImageSlots();
+      updateSlideView();
+    });
+  </script>
+</body>
+</html>

@@ -104,7 +104,7 @@ class DoctorShow extends Component
             'employee.unit',
             'employee.position',
             'employee.currentEmployment',
-            'scheduleAssignments' => fn ($q) => $q->with(['shift', 'unit'])->orderBy('schedule_date', 'desc')->limit(20),
+            'scheduleAssignments' => fn ($q) => $q->with(['shift'])->orderBy('schedule_date', 'desc')->limit(20),
             'attendances' => fn ($q) => $q->with(['scheduleAssignment.shift'])->orderBy('date', 'desc')->limit(20),
             'leaveBalances.leaveType',
             'leaveRequests' => fn ($q) => $q->with(['leaveType'])->orderBy('start_date', 'desc')->limit(20),

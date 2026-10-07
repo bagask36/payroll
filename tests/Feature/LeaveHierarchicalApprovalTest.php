@@ -355,7 +355,7 @@ class LeaveHierarchicalApprovalTest extends TestCase
         Livewire::test(\App\Livewire\Leave\LeaveIndex::class)
             ->set('activeTab', 'approvals')
             ->assertStatus(200)
-            ->assertSee('Persetujuan Cuti (Hierarkis)')
+            ->assertSee('Persetujuan Cuti')
             ->call('approveHierarchical', $leave->id)
             ->assertSee('Persetujuan berhasil diberikan');
 

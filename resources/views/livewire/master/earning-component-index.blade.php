@@ -74,7 +74,7 @@
                     </div>
                 </div>
 
-                <flux:input wire:model="defaultAmount" :label="$isFixed ? 'Nominal Standar Bulanan (Rp)' : 'Tarif Standar per Hari Hadir (Rp)'" type="number" step="1000" placeholder="50000" required />
+                <flux:input.currency wire:model="defaultAmount" :label="$isFixed ? 'Nominal Standar Bulanan (Rp)' : 'Tarif Standar per Hari Hadir (Rp)'" placeholder="Rp. 0" required />
                 <flux:textarea wire:model="description" label="Keterangan / Aturan Pemberian" placeholder="Penjelasan atau kriteria penerima tunjangan..." rows="2" />
 
                 <div class="grid grid-cols-2 gap-3 pt-1">

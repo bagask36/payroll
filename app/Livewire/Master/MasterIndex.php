@@ -249,6 +249,15 @@ class MasterIndex extends Component
 
     public function savePosition(AuditService $auditService): void
     {
+        if (is_string($this->positionDefaultBasicSalary)) {
+            $cleaned = preg_replace('/[^\d]/', '', $this->positionDefaultBasicSalary);
+            $this->positionDefaultBasicSalary = $cleaned !== '' ? $cleaned : null;
+        }
+        if (is_string($this->positionDefaultPositionalAllowance)) {
+            $cleaned = preg_replace('/[^\d]/', '', $this->positionDefaultPositionalAllowance);
+            $this->positionDefaultPositionalAllowance = $cleaned !== '' ? $cleaned : null;
+        }
+
         $this->validate([
             'positionTitle' => 'required|string|max:100',
             'positionUnitId' => 'nullable|exists:units,id',
@@ -549,6 +558,11 @@ class MasterIndex extends Component
 
     public function saveBpjs(AuditService $auditService): void
     {
+        if (is_string($this->bpjsWageCeiling)) {
+            $cleaned = preg_replace('/[^\d]/', '', $this->bpjsWageCeiling);
+            $this->bpjsWageCeiling = $cleaned !== '' ? (float) $cleaned : null;
+        }
+
         $this->validate([
             'bpjsEmployeeRate' => 'required|numeric|between:0,1',
             'bpjsEmployerRate' => 'required|numeric|between:0,1',

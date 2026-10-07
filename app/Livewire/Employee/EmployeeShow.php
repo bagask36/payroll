@@ -465,6 +465,15 @@ class EmployeeShow extends Component
 
         $canUpdateSalary = Auth::user()?->can('updateSalary', $this->employee);
 
+        if (is_string($this->employmentBasicSalary)) {
+            $cleaned = preg_replace('/[^\d]/', '', $this->employmentBasicSalary);
+            $this->employmentBasicSalary = $cleaned !== '' ? $cleaned : null;
+        }
+        if (is_string($this->employmentPositionalAllowance)) {
+            $cleaned = preg_replace('/[^\d]/', '', $this->employmentPositionalAllowance);
+            $this->employmentPositionalAllowance = $cleaned !== '' ? $cleaned : null;
+        }
+
         $rules = [
             'employmentUnitId' => ['required', 'exists:units,id'],
             'employmentPositionId' => ['required', 'exists:positions,id'],
@@ -1065,6 +1074,11 @@ class EmployeeShow extends Component
         $this->authorize('updateSalary', $this->employee);
         $this->resetMessages();
 
+        if (is_string($this->basicSalary)) {
+            $cleaned = preg_replace('/[^\d]/', '', $this->basicSalary);
+            $this->basicSalary = $cleaned !== '' ? $cleaned : '';
+        }
+
         $this->validate([
             'basicSalary' => ['required', 'numeric', 'min:0'],
             'salaryEffectiveFrom' => ['required', 'date'],
@@ -1150,6 +1164,11 @@ class EmployeeShow extends Component
     {
         $this->authorize('updateSalary', $this->employee);
         $this->resetMessages();
+
+        if (is_string($this->componentAmount)) {
+            $cleaned = preg_replace('/[^\d]/', '', $this->componentAmount);
+            $this->componentAmount = $cleaned !== '' ? $cleaned : '';
+        }
 
         $this->validate([
             'selectedComponentId' => ['required', 'exists:salary_components,id'],
@@ -1877,6 +1896,7 @@ class EmployeeShow extends Component
 
         $statusText = $user->is_active ? 'diaktifkan' : 'dinonaktifkan';
         $this->accountFeedback = "Status akun pengguna berhasil {$statusText}.";
+        $this->dispatch('notify', variant: 'success', message: $this->accountFeedback);
         $this->employee->refresh();
     }
 

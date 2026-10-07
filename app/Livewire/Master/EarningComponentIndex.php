@@ -30,7 +30,7 @@ class EarningComponentIndex extends Component
 
     public bool $isFixed = true;
 
-    public float $defaultAmount = 0.00;
+    public ?float $defaultAmount = 0.00;
 
     public string $description = '';
 
@@ -78,6 +78,11 @@ class EarningComponentIndex extends Component
 
     public function save(AuditService $auditService): void
     {
+        if (is_string($this->defaultAmount)) {
+            $cleaned = preg_replace('/[^\d]/', '', $this->defaultAmount);
+            $this->defaultAmount = $cleaned !== '' ? (float) $cleaned : null;
+        }
+
         $this->validate([
             'code' => ['required', 'string', 'max:50', Rule::unique('salary_components', 'code')->ignore($this->editingId)],
             'name' => 'required|string|max:100',

@@ -41,6 +41,7 @@ class DoctorTableTest extends TestCase
         $actions = $table->actions($doctor);
         $actionSlots = array_map(fn ($act) => $act->slot, $actions);
         $this->assertContains('Lihat Profil', $actionSlots);
+        $this->assertNotContains('Perbarui Kredensial', $actionSlots);
 
         Livewire::test(DoctorTable::class)
             ->assertStatus(200)

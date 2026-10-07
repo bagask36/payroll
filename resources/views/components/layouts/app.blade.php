@@ -834,6 +834,26 @@
             </div>
         </div>
 
+        {{-- Flash Session Alerts via SweetAlert2 --}}
+        @if (session()->has('success') || session()->has('error') || session()->has('warning') || session()->has('info'))
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    @if (session()->has('success'))
+                        window.swalToast?.(@json(session('success')), 'success');
+                    @endif
+                    @if (session()->has('error'))
+                        window.swalToast?.(@json(session('error')), 'danger');
+                    @endif
+                    @if (session()->has('warning'))
+                        window.swalToast?.(@json(session('warning')), 'warning');
+                    @endif
+                    @if (session()->has('info'))
+                        window.swalToast?.(@json(session('info')), 'info');
+                    @endif
+                });
+            </script>
+        @endif
+
         @fluxScripts
     </body>
 </html>
