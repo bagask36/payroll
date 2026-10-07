@@ -13,7 +13,7 @@
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
         <meta name="apple-mobile-web-app-title" content="RS Permata Bunda">
         <link rel="apple-touch-icon" href="{{ asset('assets/icons/apple-touch-icon.png') }}">
-        <meta name="theme-color" content="#059669" media="(prefers-color-scheme: light)">
+        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
         <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -55,14 +55,6 @@
             <flux:sidebar.nav>
                 <flux:sidebar.item icon="home" href="{{ route('dashboard') }}" :current="request()->routeIs('dashboard')">
                     Dashboard
-                </flux:sidebar.item>
-
-                <flux:sidebar.item icon="user-circle" href="{{ route('profile') }}" :current="request()->routeIs('profile')">
-                    Profil Pengguna
-                </flux:sidebar.item>
-
-                <flux:sidebar.item icon="bell" href="{{ route('notifications.index') }}" :current="request()->routeIs('notifications.*')">
-                    Pusat Notifikasi
                 </flux:sidebar.item>
 
                 {{-- 1. DATA MASTER --}}
@@ -452,10 +444,6 @@
 
                         <flux:menu.item href="{{ route('dashboard') }}" icon="home">
                             Dashboard
-                        </flux:menu.item>
-
-                        <flux:menu.item href="{{ route('notifications.index') }}" icon="bell">
-                            Pusat Notifikasi
                         </flux:menu.item>
 
                         <flux:menu.item href="{{ route('profile') }}" icon="user-circle">
