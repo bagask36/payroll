@@ -9,8 +9,10 @@ use App\Livewire\Tables\EmployeeTable;
 use App\Livewire\Tables\DoctorTable;
 use App\Livewire\Tables\LeaveRequestTable;
 use App\Models\User;
+use Database\Seeders\DoctorSeeder;
+use Database\Seeders\EmployeeSeeder;
+use Database\Seeders\OrganizationSeeder;
 use Database\Seeders\RoleAndPermissionSeeder;
-use Database\Seeders\SuperAdminSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -25,10 +27,14 @@ class PowerGridSafeFilterTest extends TestCase
     {
         parent::setUp();
 
-        $this->seed(RoleAndPermissionSeeder::class);
-        $this->seed(SuperAdminSeeder::class);
+        $this->seed([
+            RoleAndPermissionSeeder::class,
+            OrganizationSeeder::class,
+            EmployeeSeeder::class,
+            DoctorSeeder::class,
+        ]);
 
-        $this->adminUser = User::where('email', 'admin@juwita.test')->firstOrFail();
+        $this->adminUser = User::where('email', 'admin@juwitahospital.com')->firstOrFail();
     }
 
     public function test_clear_filter_does_not_throw_type_error_for_dotted_nested_fields(): void

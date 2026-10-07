@@ -1,106 +1,141 @@
 <div class="space-y-6">
-    {{-- Header & Breadcrumb --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('doctors.index') }}">
-                <flux:button size="sm" variant="subtle" icon="arrow-left">
-                    Kembali ke Direktori
-                </flux:button>
-            </a>
-            <div class="flex items-center gap-3">
-                <div class="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 font-mono text-sm font-bold text-white shadow-xs">
-                    {{ strtoupper(substr(str_replace(['dr. ', 'drg. ', 'Sp.'], '', $doctor->name), 0, 2)) }}
-                </div>
-                <div>
-                    <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                        {{ $doctor->name }}
-                    </flux:heading>
-                    <flux:subheading class="text-zinc-500 font-mono text-xs">
-                        {{ $doctor->specialization }} &bull; {{ $doctor->email }}
-                    </flux:subheading>
-                </div>
-            </div>
+    {{-- Top Action Bar: Back Navigation & Status Badges --}}
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <flux:button href="{{ route('doctors.index') }}" size="sm" variant="subtle" icon="arrow-left" class="hidden sm:inline-flex">
+                Kembali ke Direktori
+            </flux:button>
+            <flux:button href="{{ route('doctors.index') }}" size="sm" variant="subtle" icon="arrow-left" class="sm:hidden" aria-label="Kembali ke Direktori" title="Kembali ke Direktori">
+                Kembali
+            </flux:button>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap justify-end">
             @if($doctor->isStrExpired() || $doctor->isSipExpired())
-                <flux:badge size="lg" color="rose" icon="exclamation-triangle">
+                <flux:badge size="sm" color="rose" icon="exclamation-triangle">
                     Lisensi Kedaluwarsa
                 </flux:badge>
             @elseif($doctor->isExpiringSoon(60))
-                <flux:badge size="lg" color="amber" icon="clock">
+                <flux:badge size="sm" color="amber" icon="clock">
                     Lisensi &lt; 60 Hari
                 </flux:badge>
             @endif
 
             @if($doctor->status === 'active')
-                <flux:badge size="lg" color="emerald">Dokter Aktif</flux:badge>
+                <flux:badge size="sm" color="emerald">Dokter Aktif</flux:badge>
             @else
-                <flux:badge size="lg" color="zinc">Non-aktif</flux:badge>
+                <flux:badge size="sm" color="zinc">Non-aktif</flux:badge>
             @endif
         </div>
     </div>
 
-    {{-- Profile Summary Header Card --}}
-    <flux:card class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
-        <div>
-            <span class="text-xs font-medium text-zinc-500">Spesialisasi Klinis</span>
-            <div class="text-base font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">
-                {{ $doctor->specialization }}
+    {{-- Unified Doctor Overview Card --}}
+    <flux:card class="p-4 sm:p-6 bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 shadow-xs rounded-2xl space-y-5">
+        {{-- Doctor Identity Header --}}
+        <div class="flex items-center gap-3.5 sm:gap-4.5 min-w-0">
+            <div class="relative shrink-0">
+                <div class="flex size-13 sm:size-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 font-mono text-base sm:text-xl font-bold text-white shadow-xs">
+                    {{ strtoupper(substr(str_replace(['dr. ', 'drg. ', 'Sp.'], '', $doctor->name), 0, 2)) }}
+                </div>
+                <span class="absolute -bottom-1 -right-1 size-3.5 sm:size-4 rounded-full border-2 border-white dark:border-zinc-900 {{ $doctor->status === 'active' ? 'bg-emerald-500' : 'bg-zinc-400' }}" title="{{ $doctor->status === 'active' ? 'Aktif' : 'Non-aktif' }}"></span>
+            </div>
+
+            <div class="min-w-0 flex-1">
+                <h1 class="text-lg sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 truncate">
+                    {{ $doctor->name }}
+                </h1>
+                <div class="flex flex-wrap items-center gap-2 mt-1 text-xs text-zinc-500">
+                    <span class="font-medium bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded">{{ $doctor->specialization }}</span>
+                    @if($doctor->email)
+                        <span class="hidden sm:inline text-zinc-500 dark:text-zinc-400">&bull; {{ $doctor->email }}</span>
+                    @endif
+                    @if($doctor->phone)
+                        <span class="hidden md:inline text-zinc-500 dark:text-zinc-400">&bull; {{ $doctor->phone }}</span>
+                    @endif
+                </div>
             </div>
         </div>
 
-        <div>
-            <span class="text-xs font-medium text-zinc-500">Kategori Medis</span>
-            <div class="mt-1">
-                @if($doctor->employee_id)
-                    <flux:badge size="sm" color="emerald">Dokter Organik RS</flux:badge>
-                @else
-                    <flux:badge size="sm" color="blue">Dokter Mitra / Tamu</flux:badge>
-                @endif
-            </div>
-        </div>
-
-        <div>
-            <span class="text-xs font-medium text-zinc-500">Lisensi STR (Kemenkes)</span>
-            <div class="mt-1 flex flex-col gap-0.5">
-                <span class="font-mono text-xs font-semibold text-zinc-800 dark:text-zinc-200">
-                    {{ $doctor->str_number ?? '-' }}
+        {{-- Quick Stats & Medical Practice Metrics Grid --}}
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+            {{-- Spesialisasi Klinis --}}
+            <div class="bg-zinc-50/80 dark:bg-zinc-800/40 rounded-xl p-3 border border-zinc-100 dark:border-zinc-800/60 flex flex-col justify-between">
+                <span class="text-[11px] font-medium text-zinc-500 flex items-center gap-1.5">
+                    <flux:icon name="academic-cap" class="size-3.5 text-zinc-400 shrink-0" />
+                    Spesialisasi
                 </span>
-                @if($doctor->str_valid_until)
-                    <span class="text-[11px] {{ $doctor->isStrExpired() ? 'text-rose-600 font-semibold' : 'text-zinc-400' }}">
-                        s/d {{ $doctor->str_valid_until->format('d/m/Y') }}
-                    </span>
-                @endif
+                <div class="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-1 truncate" title="{{ $doctor->specialization }}">
+                    {{ $doctor->specialization }}
+                </div>
             </div>
-        </div>
 
-        <div>
-            <span class="text-xs font-medium text-zinc-500">Izin Praktik SIP (Dinkes)</span>
-            <div class="mt-1 flex flex-col gap-0.5">
-                <span class="font-mono text-xs font-semibold text-zinc-800 dark:text-zinc-200">
-                    {{ $doctor->sip_number ?? '-' }}
+            {{-- Kategori Medis --}}
+            <div class="bg-zinc-50/80 dark:bg-zinc-800/40 rounded-xl p-3 border border-zinc-100 dark:border-zinc-800/60 flex flex-col justify-between">
+                <span class="text-[11px] font-medium text-zinc-500 flex items-center gap-1.5">
+                    <flux:icon name="building-office-2" class="size-3.5 text-zinc-400 shrink-0" />
+                    Kategori Medis
                 </span>
-                @if($doctor->sip_valid_until)
-                    <span class="text-[11px] {{ $doctor->isSipExpired() ? 'text-rose-600 font-semibold' : 'text-zinc-400' }}">
-                        s/d {{ $doctor->sip_valid_until->format('d/m/Y') }}
-                    </span>
-                @endif
+                <div class="mt-1">
+                    @if($doctor->employee_id)
+                        <flux:badge size="sm" color="emerald">Dokter Organik RS</flux:badge>
+                    @else
+                        <flux:badge size="sm" color="blue">Mitra / Tamu</flux:badge>
+                    @endif
+                </div>
             </div>
-        </div>
 
-        <div>
-            <span class="text-xs font-medium text-zinc-500">Integrasi Pegawai Organik</span>
-            <div class="mt-1">
-                @if($doctor->employee)
-                    <a href="{{ route('employees.show', $doctor->employee_id) }}" class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 underline">
-                        <span>NIP: {{ $doctor->employee->nip }}</span>
-                        <flux:icon name="arrow-top-right-on-square" class="size-3.5" />
-                    </a>
-                    <div class="text-[11px] text-zinc-400 mt-0.5">{{ $doctor->employee->unit?->name ?? 'Unit RS' }}</div>
-                @else
-                    <span class="text-xs text-zinc-400">Tidak Terhubung Pegawai</span>
-                @endif
+            {{-- Lisensi STR --}}
+            <div class="bg-zinc-50/80 dark:bg-zinc-800/40 rounded-xl p-3 border border-zinc-100 dark:border-zinc-800/60 flex flex-col justify-between">
+                <span class="text-[11px] font-medium text-zinc-500 flex items-center gap-1.5">
+                    <flux:icon name="shield-check" class="size-3.5 text-zinc-400 shrink-0" />
+                    Lisensi STR
+                </span>
+                <div class="mt-1 flex flex-col gap-0.5">
+                    <span class="font-mono text-xs font-semibold text-zinc-800 dark:text-zinc-200 truncate">
+                        {{ $doctor->str_number ?? '-' }}
+                    </span>
+                    @if($doctor->str_valid_until)
+                        <span class="text-[10px] {{ $doctor->isStrExpired() ? 'text-rose-600 font-semibold' : 'text-zinc-400' }}">
+                            s/d {{ $doctor->str_valid_until->format('d/m/Y') }}
+                        </span>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Izin Praktik SIP --}}
+            <div class="bg-zinc-50/80 dark:bg-zinc-800/40 rounded-xl p-3 border border-zinc-100 dark:border-zinc-800/60 flex flex-col justify-between">
+                <span class="text-[11px] font-medium text-zinc-500 flex items-center gap-1.5">
+                    <flux:icon name="document-text" class="size-3.5 text-zinc-400 shrink-0" />
+                    Izin Praktik SIP
+                </span>
+                <div class="mt-1 flex flex-col gap-0.5">
+                    <span class="font-mono text-xs font-semibold text-zinc-800 dark:text-zinc-200 truncate">
+                        {{ $doctor->sip_number ?? '-' }}
+                    </span>
+                    @if($doctor->sip_valid_until)
+                        <span class="text-[10px] {{ $doctor->isSipExpired() ? 'text-rose-600 font-semibold' : 'text-zinc-400' }}">
+                            s/d {{ $doctor->sip_valid_until->format('d/m/Y') }}
+                        </span>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Integrasi Organik --}}
+            <div class="col-span-2 sm:col-span-1 bg-zinc-50/80 dark:bg-zinc-800/40 rounded-xl p-3 border border-zinc-100 dark:border-zinc-800/60 flex flex-col justify-between">
+                <span class="text-[11px] font-medium text-zinc-500 flex items-center gap-1.5">
+                    <flux:icon name="user-group" class="size-3.5 text-zinc-400 shrink-0" />
+                    Pegawai Organik
+                </span>
+                <div class="mt-1">
+                    @if($doctor->employee)
+                        <a href="{{ route('employees.show', $doctor->employee_id) }}" class="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 underline">
+                            <span>NIP: {{ $doctor->employee->nip }}</span>
+                            <flux:icon name="arrow-top-right-on-square" class="size-3" />
+                        </a>
+                    @else
+                        <span class="text-xs text-zinc-400">-</span>
+                    @endif
+                </div>
             </div>
         </div>
     </flux:card>

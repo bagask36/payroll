@@ -1,13 +1,13 @@
 <div class="max-w-2xl mx-auto space-y-6">
     {{-- Header --}}
-    <div class="flex items-center gap-3">
-        <a href="{{ route('leaves.index') }}">
-            <flux:button size="sm" variant="subtle" icon="arrow-left">
-                Kembali ke Daftar Cuti
-            </flux:button>
-        </a>
-        <div>
-            <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+    <div class="flex items-center gap-3 min-w-0">
+        <flux:button href="{{ route('leaves.index') }}" size="sm" variant="subtle" icon="arrow-left" class="hidden sm:inline-flex shrink-0">
+            Kembali ke Daftar Cuti
+        </flux:button>
+        <flux:button href="{{ route('leaves.index') }}" size="sm" variant="subtle" icon="arrow-left" class="sm:hidden shrink-0" aria-label="Kembali ke Daftar Cuti" title="Kembali ke Daftar Cuti" />
+
+        <div class="min-w-0">
+            <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100 truncate">
                 Formulir Pengajuan Cuti & Izin
             </flux:heading>
             <flux:subheading class="text-zinc-500 text-xs">

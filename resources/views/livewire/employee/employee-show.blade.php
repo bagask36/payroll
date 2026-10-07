@@ -1,94 +1,130 @@
 <div class="space-y-6">
-    {{-- Header & Breadcrumb --}}
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div class="flex items-center gap-3">
-            <a href="{{ route('employees.index') }}">
-                <flux:button size="sm" variant="subtle" icon="arrow-left">
-                    Kembali ke Direktori
-                </flux:button>
-            </a>
-            <div class="flex items-center gap-3">
-                @if($employee->profile_photo_url)
-                    <img src="{{ $employee->profile_photo_url }}" class="size-11 rounded-2xl object-cover ring-2 ring-emerald-500/20 shadow-xs" alt="{{ $employee->name }}" />
-                @else
-                    <div class="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 font-mono text-sm font-bold text-white shadow-xs">
-                        {{ strtoupper(substr($employee->name, 0, 2)) }}
-                    </div>
-                @endif
-                <div>
-                    <flux:heading size="xl" class="font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                        {{ $employee->name }}
-                    </flux:heading>
-                    <flux:subheading class="text-zinc-500 font-mono text-xs">
-                        NIP: {{ $employee->nip }}
-                    </flux:subheading>
-                </div>
-            </div>
+    {{-- Top Action Bar: Back Navigation & Status Badges --}}
+    <div class="flex items-center justify-between gap-3">
+        <div>
+            <flux:button href="{{ route('employees.index') }}" size="sm" variant="subtle" icon="arrow-left" class="hidden sm:inline-flex">
+                Kembali ke Direktori
+            </flux:button>
+            <flux:button href="{{ route('employees.index') }}" size="sm" variant="subtle" icon="arrow-left" class="sm:hidden" aria-label="Kembali ke Direktori" title="Kembali ke Direktori">
+                Kembali
+            </flux:button>
         </div>
 
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap justify-end">
             @if($hasActiveSp)
                 <button type="button" wire:click="setTab('disciplinary')" class="cursor-pointer" title="Klik untuk lihat rincian sanksi SP">
-                    <flux:badge size="lg" color="rose" icon="exclamation-triangle" class="hover:opacity-80 transition-opacity">
+                    <flux:badge size="sm" color="rose" icon="exclamation-triangle" class="hover:opacity-80 transition-opacity">
                         Dalam Sanksi SP
                     </flux:badge>
                 </button>
             @endif
             @if($employee->status === 'ACTIVE')
-                <flux:badge size="lg" color="emerald">Pegawai Aktif</flux:badge>
+                <flux:badge size="sm" color="emerald">Pegawai Aktif</flux:badge>
             @else
-                <flux:badge size="lg" color="zinc">Non-aktif</flux:badge>
+                <flux:badge size="sm" color="zinc">Non-aktif</flux:badge>
             @endif
         </div>
     </div>
 
-    {{-- Profile Summary Header Card --}}
-    <flux:card class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-6">
-        <div>
-            <span class="text-xs font-medium text-zinc-500">Unit / Departemen</span>
-            <div class="text-base font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">
-                {{ $employee->unit?->name ?? 'Belum Ditugaskan' }}
-            </div>
-        </div>
-
-        <div>
-            <span class="text-xs font-medium text-zinc-500">Jabatan Saat Ini</span>
-            <div class="text-base font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">
-                {{ $employee->position?->title ?? 'Staf' }}
-            </div>
-        </div>
-
-        <div>
-            <span class="text-xs font-medium text-zinc-500">Pola Jam Kerja</span>
-            <div class="mt-1">
-                @if(($employee->schedule_type ?? 'non_shift') === 'shift')
-                    <flux:badge size="sm" color="indigo">Shift Operasional</flux:badge>
+    {{-- Unified Profile Overview Card --}}
+    <flux:card class="p-4 sm:p-6 bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 shadow-xs rounded-2xl space-y-5">
+        {{-- Employee Identity Header --}}
+        <div class="flex items-center gap-3.5 sm:gap-4.5 min-w-0">
+            <div class="relative shrink-0">
+                @if($employee->profile_photo_url)
+                    <img src="{{ $employee->profile_photo_url }}" class="size-13 sm:size-16 rounded-2xl object-cover ring-2 ring-emerald-500/20 shadow-xs" alt="{{ $employee->name }}" />
                 @else
-                    <flux:badge size="sm" color="teal">Non-Shift (Reguler)</flux:badge>
+                    <div class="flex size-13 sm:size-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 font-mono text-base sm:text-xl font-bold text-white shadow-xs">
+                        {{ strtoupper(substr($employee->name, 0, 2)) }}
+                    </div>
                 @endif
+                <span class="absolute -bottom-1 -right-1 size-3.5 sm:size-4 rounded-full border-2 border-white dark:border-zinc-900 {{ $employee->status === 'ACTIVE' ? 'bg-emerald-500' : 'bg-zinc-400' }}" title="{{ $employee->status === 'ACTIVE' ? 'Aktif' : 'Non-aktif' }}"></span>
+            </div>
+
+            <div class="min-w-0 flex-1">
+                <h1 class="text-lg sm:text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100 truncate">
+                    {{ $employee->name }}
+                </h1>
+                <div class="flex flex-wrap items-center gap-2 mt-1 text-xs text-zinc-500">
+                    <span class="font-mono bg-zinc-100 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 px-2 py-0.5 rounded font-medium">NIP: {{ $employee->nip }}</span>
+                    @if($employee->nik)
+                        <span class="hidden md:inline font-mono text-zinc-400">&bull; NIK: {{ $employee->nik }}</span>
+                    @endif
+                    @if($employee->email)
+                        <span class="hidden sm:inline text-zinc-500 dark:text-zinc-400">&bull; {{ $employee->email }}</span>
+                    @endif
+                </div>
             </div>
         </div>
 
-        <div>
-            <span class="text-xs font-medium text-zinc-500">Ikatan Kerja</span>
-            <div class="mt-1">
-                @php $contract = $employee->currentEmployment?->contract_type; @endphp
-                @if($contract === 'permanent')
-                    <flux:badge size="sm" color="emerald">Pegawai Tetap (PKWTT)</flux:badge>
-                @elseif($contract === 'contract')
-                    <flux:badge size="sm" color="blue">Kontrak (PKWT)</flux:badge>
-                @elseif($contract === 'probation')
-                    <flux:badge size="sm" color="amber">Masa Percobaan</flux:badge>
-                @else
-                    <span class="text-xs text-zinc-400">-</span>
-                @endif
+        {{-- Quick Stats & Employment Metrics Grid --}}
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3.5 pt-4 border-t border-zinc-100 dark:border-zinc-800">
+            {{-- Unit / Departemen --}}
+            <div class="bg-zinc-50/80 dark:bg-zinc-800/40 rounded-xl p-3 border border-zinc-100 dark:border-zinc-800/60 flex flex-col justify-between">
+                <span class="text-[11px] font-medium text-zinc-500 flex items-center gap-1.5">
+                    <flux:icon name="building-office-2" class="size-3.5 text-zinc-400 shrink-0" />
+                    Unit / Departemen
+                </span>
+                <div class="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-1 truncate" title="{{ $employee->unit?->name ?? 'Belum Ditugaskan' }}">
+                    {{ $employee->unit?->name ?? 'Belum Ditugaskan' }}
+                </div>
             </div>
-        </div>
 
-        <div>
-            <span class="text-xs font-medium text-zinc-500">Tanggal Bergabung</span>
-            <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">
-                {{ $employee->currentEmployment?->start_date ? $employee->currentEmployment->start_date->format('d F Y') : '-' }}
+            {{-- Jabatan Saat Ini --}}
+            <div class="bg-zinc-50/80 dark:bg-zinc-800/40 rounded-xl p-3 border border-zinc-100 dark:border-zinc-800/60 flex flex-col justify-between">
+                <span class="text-[11px] font-medium text-zinc-500 flex items-center gap-1.5">
+                    <flux:icon name="briefcase" class="size-3.5 text-zinc-400 shrink-0" />
+                    Jabatan Saat Ini
+                </span>
+                <div class="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-1 truncate" title="{{ $employee->position?->title ?? 'Staf' }}">
+                    {{ $employee->position?->title ?? 'Staf' }}
+                </div>
+            </div>
+
+            {{-- Pola Jam Kerja --}}
+            <div class="bg-zinc-50/80 dark:bg-zinc-800/40 rounded-xl p-3 border border-zinc-100 dark:border-zinc-800/60 flex flex-col justify-between">
+                <span class="text-[11px] font-medium text-zinc-500 flex items-center gap-1.5">
+                    <flux:icon name="clock" class="size-3.5 text-zinc-400 shrink-0" />
+                    Pola Jam Kerja
+                </span>
+                <div class="mt-1">
+                    @if(($employee->schedule_type ?? 'non_shift') === 'shift')
+                        <flux:badge size="sm" color="indigo">Shift Operasional</flux:badge>
+                    @else
+                        <flux:badge size="sm" color="teal">Non-Shift (Reguler)</flux:badge>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Ikatan Kerja --}}
+            <div class="bg-zinc-50/80 dark:bg-zinc-800/40 rounded-xl p-3 border border-zinc-100 dark:border-zinc-800/60 flex flex-col justify-between">
+                <span class="text-[11px] font-medium text-zinc-500 flex items-center gap-1.5">
+                    <flux:icon name="document-text" class="size-3.5 text-zinc-400 shrink-0" />
+                    Ikatan Kerja
+                </span>
+                <div class="mt-1">
+                    @php $contract = $employee->currentEmployment?->contract_type; @endphp
+                    @if($contract === 'permanent')
+                        <flux:badge size="sm" color="emerald">Pegawai Tetap (PKWTT)</flux:badge>
+                    @elseif($contract === 'contract')
+                        <flux:badge size="sm" color="blue">Kontrak (PKWT)</flux:badge>
+                    @elseif($contract === 'probation')
+                        <flux:badge size="sm" color="amber">Masa Percobaan</flux:badge>
+                    @else
+                        <span class="text-xs text-zinc-400">-</span>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Tanggal Bergabung --}}
+            <div class="col-span-2 sm:col-span-1 bg-zinc-50/80 dark:bg-zinc-800/40 rounded-xl p-3 border border-zinc-100 dark:border-zinc-800/60 flex flex-col justify-between">
+                <span class="text-[11px] font-medium text-zinc-500 flex items-center gap-1.5">
+                    <flux:icon name="calendar" class="size-3.5 text-zinc-400 shrink-0" />
+                    Tanggal Bergabung
+                </span>
+                <div class="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-1">
+                    {{ $employee->currentEmployment?->start_date ? $employee->currentEmployment->start_date->format('d F Y') : '-' }}
+                </div>
             </div>
         </div>
     </flux:card>
@@ -1128,9 +1164,7 @@
                                 <flux:icon name="shield-check" class="w-4 h-4 text-emerald-600" />
                                 Standar Kepatuhan Privasi Data (UU PDP)
                             </div>
-                            <p>Vektor biometrik disimpan dalam bentuk enkripsi kriptografi.
-                                
-                            </p>
+                            <p>Vektor biometrik disimpan dalam format enkripsi kriptografi satu arah yang aman.</p>
                         </div>
 
                         @if(!empty($employee->face_biometric_vector) && $canManageBiometrics)
