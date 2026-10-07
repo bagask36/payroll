@@ -1966,21 +1966,15 @@
 
                     @if($syncSalaryWithSk)
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-zinc-200/60 dark:border-zinc-700/60">
-                            <flux:input 
+                            <flux:input.currency 
                                 label="Gaji Pokok SK (Rp)" 
-                                type="number" 
-                                step="0.01" 
-                                min="0" 
                                 wire:model="employmentBasicSalary" 
-                                placeholder="Terisi otomatis dari master jabatan" 
+                                placeholder="Rp. 0" 
                             />
-                            <flux:input 
+                            <flux:input.currency 
                                 label="Tunjangan Jabatan SK (Rp)" 
-                                type="number" 
-                                step="0.01" 
-                                min="0" 
                                 wire:model="employmentPositionalAllowance" 
-                                placeholder="Terisi otomatis dari master jabatan" 
+                                placeholder="Rp. 0" 
                             />
                         </div>
                         <p class="text-[11px] text-zinc-500">
@@ -2156,13 +2150,10 @@
                 </div>
             @endif
 
-            <flux:input 
+            <flux:input.currency 
                 label="Nominal Gaji Pokok Baru (Rp)" 
-                type="number" 
-                step="0.01" 
-                min="0" 
                 wire:model="basicSalary" 
-                placeholder="misal: 7500000" 
+                placeholder="Rp. 0" 
                 required 
             />
 
@@ -2217,13 +2208,10 @@
                 </optgroup>
             </flux:select>
 
-            <flux:input 
+            <flux:input.currency 
                 :label="($currentComp && ! $currentComp->is_fixed) ? 'Tarif per Hari Hadir (Rp) — Dikalikan Kehadiran Saat Payroll' : 'Nominal Komponen Bulanan (Rp)'" 
-                type="number" 
-                step="0.01" 
-                min="0" 
                 wire:model="componentAmount" 
-                placeholder="misal: 50000" 
+                placeholder="Rp. 0" 
                 required 
             />
 

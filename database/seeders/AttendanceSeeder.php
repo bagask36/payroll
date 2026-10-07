@@ -18,7 +18,7 @@ class AttendanceSeeder extends Seeder
     {
         // 1. Hospital Geofence Location
         $geofence = GeofenceLocation::updateOrCreate(
-            ['name' => 'RS Juwita Kampus Utama'],
+            ['name' => 'RS Permata Bunda'],
             [
                 'latitude' => -6.91746400,
                 'longitude' => 107.61912200,

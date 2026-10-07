@@ -77,7 +77,7 @@
         <div class="space-y-4">
             <div class="p-4 rounded-xl bg-sky-50/60 dark:bg-sky-950/20 border border-sky-200/60 dark:border-sky-900/40 text-xs text-sky-900 dark:text-sky-200 flex items-center gap-2">
                 <flux:icon name="arrows-pointing-in" class="size-4 text-sky-600 shrink-0" />
-                <span>Daftar permohonan cuti bawahan dan alur persetujuan hierarkis RS Juwita. Seluruh pengajuan yang telah disetujui tetap tersimpan dan terpantau pada riwayat tabel ini.</span>
+                <span>Daftar permohonan cuti bawahan dan alur persetujuan hierarkis RS Permata Bunda. Seluruh pengajuan yang telah disetujui tetap tersimpan dan terpantau pada riwayat tabel ini.</span>
             </div>
 
             <flux:card class="p-2 sm:p-4 shadow-xs border border-zinc-200/80 dark:border-zinc-800 overflow-x-auto">

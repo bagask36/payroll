@@ -51,8 +51,8 @@ RUN npm run build
 # ==============================================================================
 FROM php:8.4-fpm-alpine AS app
 
-LABEL maintainer="RS Juwita IT Team"
-LABEL description="SIM SDM RS Juwita Production Container"
+LABEL maintainer="RS Permata Bunda IT Team"
+LABEL description="SIM SDM RS Permata Bunda Production Container"
 
 # Install composer binary & php extension installer helper
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
@@ -117,8 +117,8 @@ CMD ["php-fpm"]
 # ==============================================================================
 FROM nginx:alpine AS web
 
-LABEL maintainer="RS Juwita IT Team"
-LABEL description="SIM SDM RS Juwita Nginx Web Server"
+LABEL maintainer="RS Permata Bunda IT Team"
+LABEL description="SIM SDM RS Permata Bunda Nginx Web Server"
 
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 

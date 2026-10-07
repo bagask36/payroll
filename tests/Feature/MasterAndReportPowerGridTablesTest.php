@@ -106,7 +106,7 @@ class MasterAndReportPowerGridTablesTest extends TestCase
     public function test_geofence_table_renders(): void
     {
         GeofenceLocation::firstOrCreate(
-            ['name' => 'RS Juwita Kampus Utama'],
+            ['name' => 'RS Permata Bunda Kampus Utama'],
             [
                 'latitude' => -6.91746400,
                 'longitude' => 107.61912200,
@@ -117,13 +117,13 @@ class MasterAndReportPowerGridTablesTest extends TestCase
 
         Livewire::test(GeofenceTable::class)
             ->assertStatus(200)
-            ->assertSee('RS Juwita Kampus Utama');
+            ->assertSee('RS Permata Bunda Kampus Utama');
     }
 
     public function test_geofence_edit_handles_powergrid_dispatch_and_opens_modal(): void
     {
         $geo = GeofenceLocation::firstOrCreate(
-            ['name' => 'RS Juwita Kampus Utama'],
+            ['name' => 'RS Permata Bunda Kampus Utama'],
             [
                 'latitude' => -6.91746400,
                 'longitude' => 107.61912200,

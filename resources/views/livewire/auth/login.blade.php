@@ -115,7 +115,7 @@
 
             <div class="pt-4 border-t border-zinc-100 dark:border-zinc-800 text-center">
                 <flux:text class="text-xs text-zinc-400 dark:text-zinc-500">
-                    Akses terbatas pegawai dan tenaga medis RS Juwita terdaftar. Setiap aktivitas diaudit demi keamanan data fasyankes.
+                    Akses terbatas pegawai dan tenaga medis RS Permata Bunda terdaftar. Setiap aktivitas diaudit demi keamanan data fasyankes.
                 </flux:text>
             </div>
         </div>

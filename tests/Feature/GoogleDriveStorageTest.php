@@ -128,7 +128,7 @@ class GoogleDriveStorageTest extends TestCase
             ], 200),
             'https://www.googleapis.com/drive/v3/about*' => Http::response([
                 'user' => [
-                    'displayName' => 'RS Juwita Admin',
+                    'displayName' => 'RS Permata Bunda Admin',
                     'emailAddress' => 'admin@rsjuwita.co.id',
                 ],
                 'storageQuota' => [

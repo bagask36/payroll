@@ -94,7 +94,7 @@ class WarningLetterTest extends TestCase
             ->assertSet('spValidUntil', $expectedValidUntil)
             ->set('spLetterNumber', '001/SP-I/SDM-RSJ/10/2026')
             ->set('spViolationReason', 'Keterlambatan masuk dinas lebih dari 5 kali berturut-turut tanpa izin.')
-            ->set('spAuthorizedBy', 'Direktur SDM RS Juwita')
+            ->set('spAuthorizedBy', 'Direktur SDM RS Permata Bunda')
             ->call('saveWarningLetter')
             ->assertHasNoErrors();
 

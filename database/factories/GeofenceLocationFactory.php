@@ -18,7 +18,7 @@ class GeofenceLocationFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => 'RS Juwita Kampus Utama',
+            'name' => 'RS Permata Bunda Kampus Utama',
             'latitude' => -6.91746400,
             'longitude' => 107.61912200,
             'radius_meters' => 100,

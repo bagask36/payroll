@@ -1,4 +1,4 @@
-# Dokumentasi Deployment Docker SIM SDM RS Juwita
+# Dokumentasi Deployment Docker SIM SDM RS Permata Bunda
 
 Dokumen ini memuat panduan deployment containerized pada Server Pribadi (VPS / Dedicated Server on-premise) menggunakan Docker & Docker Compose.
 
@@ -60,7 +60,7 @@ cp .env.docker.example .env
 
 Sesuaikan parameter kredensial dan URL pada `.env`:
 ```env
-APP_NAME="SIM SDM RS Juwita"
+APP_NAME="SIM SDM RS Permata Bunda"
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=http://ip-server-atau-domain-anda

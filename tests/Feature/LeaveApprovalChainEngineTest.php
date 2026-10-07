@@ -126,7 +126,7 @@ class LeaveApprovalChainEngineTest extends TestCase
         $chain = $this->engine->buildChain($leave);
 
         // Expect 2 stages:
-        // Stage 1: Direktur RS Juwita
+        // Stage 1: Direktur RS Permata Bunda
         // Stage 2: HR / Bagian SDM (Final)
         $this->assertCount(2, $chain);
 

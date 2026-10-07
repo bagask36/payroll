@@ -26,11 +26,11 @@ class Pph21ParameterIndex extends Component
 
     public ?float $paramRate = null;
 
-    public ?float $paramThresholdMin = null;
+    public float|int|string|null $paramThresholdMin = null;
 
-    public ?float $paramThresholdMax = null;
+    public float|int|string|null $paramThresholdMax = null;
 
-    public ?float $paramAmount = null;
+    public float|int|string|null $paramAmount = null;
 
     public string $effectiveFrom = '2024-01-01';
 

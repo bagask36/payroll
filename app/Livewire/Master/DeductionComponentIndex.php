@@ -28,7 +28,7 @@ class DeductionComponentIndex extends Component
 
     public bool $isFixed = true;
 
-    public ?float $defaultAmount = 0.00;
+    public float|int|string|null $defaultAmount = 0.00;
 
     public string $description = '';
 

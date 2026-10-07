@@ -222,7 +222,7 @@ class SidebarAndModulesTest extends TestCase
     {
         Livewire::actingAs($this->adminUser)
             ->test(\App\Livewire\System\SystemSettingIndex::class)
-            ->set('hospitalName', 'RS Juwita Sentosa')
+            ->set('hospitalName', 'RS Permata Bunda Sentosa')
             ->set('hospitalPhone', '(021) 99887766')
             ->set('lateGracePeriodMinutes', 20)
             ->set('defaultGeofenceRadius', 150)
@@ -231,7 +231,7 @@ class SidebarAndModulesTest extends TestCase
 
         $this->assertDatabaseHas('system_settings', [
             'key' => 'hospital_name',
-            'value' => 'RS Juwita Sentosa',
+            'value' => 'RS Permata Bunda Sentosa',
         ]);
     }
 

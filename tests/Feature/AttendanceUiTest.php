@@ -33,9 +33,9 @@ class AttendanceUiTest extends TestCase
         parent::setUp();
         $this->seed(RoleAndPermissionSeeder::class);
 
-        // Seed RS Juwita Main Geofence Location
+        // Seed RS Permata Bunda Main Geofence Location
         GeofenceLocation::factory()->create([
-            'name' => 'RS Juwita Kampus Utama',
+            'name' => 'RS Permata Bunda Kampus Utama',
             'latitude' => -6.195000,
             'longitude' => 106.820000,
             'radius_meters' => 100,
@@ -117,7 +117,7 @@ class AttendanceUiTest extends TestCase
 
         $this->actingAs($user);
 
-        // Exact coordinates of RS Juwita
+        // Exact coordinates of RS Permata Bunda
         Livewire::test(ClockInOut::class)
             ->call('updateCoordinates', -6.195000, 106.820000)
             ->assertSet('isWithinGeofence', true)

@@ -491,38 +491,44 @@ html, body {
 }
 
 /* ==========================================================================
-   8. SWEETALERT2 HOSPITAL THEME (LIGHT & DARK MODE)
+   8. SWEETALERT2 HOSPITAL THEME (UNIFIED LIGHT & DARK MODE)
    ========================================================================== */
 
 .swal2-container {
-    backdrop-filter: blur(4px) !important;
-    -webkit-backdrop-filter: blur(4px) !important;
+    backdrop-filter: blur(5px) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
     z-index: 99999 !important;
 }
 
+/* Unified Modal Popup */
 .swal2-popup.swal2-hospital-popup {
     border-radius: 1.25rem !important;
     padding: 1.75rem !important;
-    border: 1px solid rgba(228, 228, 231, 0.9) !important;
+    max-width: 28rem !important;
+    width: 90% !important;
+    border: 1px solid rgba(228, 228, 231, 0.95) !important;
     background: #ffffff !important;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
     font-family: inherit !important;
+    color: #18181b !important;
 }
 
 .dark .swal2-popup.swal2-hospital-popup,
 .swal2-popup.swal2-hospital-popup.dark {
     background: #18181b !important;
-    border-color: rgba(39, 39, 42, 0.9) !important;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7) !important;
+    border-color: rgba(39, 39, 42, 0.95) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75) !important;
     color: #f4f4f5 !important;
 }
 
+/* Title & Description */
 .swal2-hospital-title {
     font-size: 1.125rem !important;
     font-weight: 700 !important;
     letter-spacing: -0.025em !important;
     color: #18181b !important;
     padding: 0.5rem 0 0 0 !important;
+    margin: 0 !important;
 }
 
 .dark .swal2-hospital-title,
@@ -532,9 +538,10 @@ html, body {
 
 .swal2-hospital-html {
     font-size: 0.875rem !important;
-    line-height: 1.5 !important;
+    line-height: 1.55 !important;
     color: #52525b !important;
-    margin: 0.75rem 0 0 0 !important;
+    margin: 0.625rem 0 0 0 !important;
+    padding: 0 !important;
 }
 
 .dark .swal2-hospital-html,
@@ -542,16 +549,18 @@ html, body {
     color: #a1a1aa !important;
 }
 
+/* Action Buttons Container */
 .swal2-hospital-actions {
     display: flex !important;
     align-items: center !important;
     justify-content: flex-end !important;
-    gap: 0.75rem !important;
+    gap: 0.625rem !important;
     margin-top: 1.5rem !important;
     padding: 0 !important;
     width: 100% !important;
 }
 
+/* Button Base Styles */
 .swal2-hospital-btn {
     display: inline-flex !important;
     align-items: center !important;
@@ -565,13 +574,14 @@ html, body {
     border: none !important;
     outline: none !important;
     user-select: none !important;
+    line-height: 1.25rem !important;
 }
 
 .swal2-hospital-btn:active {
     transform: scale(0.97) !important;
 }
 
-/* Emerald Confirm Button */
+/* Primary Confirm Button (Hospital Emerald) */
 .swal2-hospital-btn-emerald {
     background: #059669 !important;
     color: #ffffff !important;
@@ -580,9 +590,10 @@ html, body {
 
 .swal2-hospital-btn-emerald:hover {
     background: #047857 !important;
+    box-shadow: 0 2px 4px 0 rgba(5, 150, 105, 0.4) !important;
 }
 
-/* Danger Confirm Button */
+/* Danger Confirm Button (Rose for Destructive Actions) */
 .swal2-hospital-btn-danger {
     background: #e11d48 !important;
     color: #ffffff !important;
@@ -591,9 +602,10 @@ html, body {
 
 .swal2-hospital-btn-danger:hover {
     background: #be123c !important;
+    box-shadow: 0 2px 4px 0 rgba(225, 29, 72, 0.4) !important;
 }
 
-/* Cancel Button */
+/* Cancel / Close Button */
 .swal2-hospital-cancel {
     background: #f4f4f5 !important;
     color: #3f3f46 !important;
@@ -618,7 +630,7 @@ html, body {
     color: #ffffff !important;
 }
 
-/* Input for Prompts */
+/* Input Fields (Prompts) */
 .swal2-hospital-input {
     width: 100% !important;
     margin: 1rem auto 0 auto !important;
@@ -650,10 +662,25 @@ html, body {
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25) !important;
 }
 
-/* Custom Icons */
-.swal2-icon.swal2-question {
-    border-color: #059669 !important;
-    color: #059669 !important;
+/* Icons & Fixes for Dark Mode Animated Masks */
+.swal2-icon {
+    transform: scale(0.9) !important;
+    margin: 0.75rem auto 0.5rem auto !important;
+}
+
+.swal2-popup.swal2-hospital-popup .swal2-success-circular-line-left,
+.swal2-popup.swal2-hospital-popup .swal2-success-circular-line-right,
+.swal2-popup.swal2-hospital-popup .swal2-success-fix {
+    background-color: #ffffff !important;
+}
+
+.dark .swal2-popup.swal2-hospital-popup .swal2-success-circular-line-left,
+.dark .swal2-popup.swal2-hospital-popup .swal2-success-circular-line-right,
+.dark .swal2-popup.swal2-hospital-popup .swal2-success-fix,
+.swal2-popup.swal2-hospital-popup.dark .swal2-success-circular-line-left,
+.swal2-popup.swal2-hospital-popup.dark .swal2-success-circular-line-right,
+.swal2-popup.swal2-hospital-popup.dark .swal2-success-fix {
+    background-color: #18181b !important;
 }
 
 .swal2-icon.swal2-success {
@@ -661,9 +688,12 @@ html, body {
     color: #10b981 !important;
 }
 
-.swal2-icon.swal2-warning {
-    border-color: #f59e0b !important;
-    color: #f59e0b !important;
+.swal2-icon.swal2-success [class^='swal2-success-line'] {
+    background-color: #10b981 !important;
+}
+
+.swal2-icon.swal2-success .swal2-success-ring {
+    border-color: rgba(16, 185, 129, 0.3) !important;
 }
 
 .swal2-icon.swal2-error {
@@ -671,24 +701,62 @@ html, body {
     color: #f43f5e !important;
 }
 
+.swal2-icon.swal2-error [class^='swal2-x-mark-line'] {
+    background-color: #f43f5e !important;
+}
+
+.swal2-icon.swal2-warning {
+    border-color: #f59e0b !important;
+    color: #f59e0b !important;
+}
+
+.swal2-icon.swal2-question {
+    border-color: #059669 !important;
+    color: #059669 !important;
+}
+
 .swal2-icon.swal2-info {
     border-color: #0ea5e9 !important;
     color: #0ea5e9 !important;
 }
 
-/* Toast Styling */
+/* Unified Toast Styling */
 .swal2-toast.swal2-hospital-toast {
-    border-radius: 1rem !important;
-    padding: 0.875rem 1.25rem !important;
-    border: 1px solid rgba(228, 228, 231, 0.9) !important;
+    border-radius: 0.875rem !important;
+    padding: 0.75rem 1rem !important;
+    border: 1px solid rgba(228, 228, 231, 0.95) !important;
     background: #ffffff !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04) !important;
+    color: #18181b !important;
 }
 
 .dark .swal2-toast.swal2-hospital-toast,
 .swal2-toast.swal2-hospital-toast.dark {
     background: #18181b !important;
-    border-color: rgba(39, 39, 42, 0.9) !important;
+    border-color: rgba(39, 39, 42, 0.95) !important;
     color: #f4f4f5 !important;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+}
+
+.swal2-toast.swal2-hospital-toast .swal2-title {
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    color: #18181b !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.dark .swal2-toast.swal2-hospital-toast .swal2-title,
+.swal2-toast.swal2-hospital-toast.dark .swal2-title {
+    color: #f4f4f5 !important;
+}
+
+.swal2-toast.swal2-hospital-toast .swal2-icon {
+    margin: 0 0.5rem 0 0 !important;
+    transform: scale(0.75) !important;
+}
+
+.swal2-toast.swal2-hospital-toast .swal2-timer-progress-bar {
+    background: linear-gradient(to right, #10b981, #059669) !important;
+    height: 3px !important;
 }

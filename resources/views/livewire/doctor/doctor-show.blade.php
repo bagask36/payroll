@@ -369,12 +369,12 @@
                 {{-- Status Hubungan Pegawai Organik --}}
                 <div class="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-dashed border-zinc-200 dark:border-zinc-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                        <span class="text-xs font-medium text-zinc-500">Integrasi Pegawai Organik RS Juwita</span>
+                        <span class="text-xs font-medium text-zinc-500">Integrasi Pegawai Organik RS Permata Bunda</span>
                         <div class="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">
                             @if($doctor->employee)
                                 {{ $doctor->employee->full_name }} (NIP: {{ $doctor->employee->nip }}) &bull; {{ $doctor->employee->unit?->name ?? 'Unit RS' }}
                             @else
-                                Dokter Kemitraan (Bukan Pegawai Organik Tetap RS Juwita)
+                                Dokter Kemitraan (Bukan Pegawai Organik Tetap RS Permata Bunda)
                             @endif
                         </div>
                     </div>
@@ -406,7 +406,7 @@
                         Jadwal Praktik &amp; Shift Medis
                     </h3>
                     <p class="text-xs text-zinc-500 mt-0.5">
-                        Daftar penugasan roster jadwal praktik klinik dan jaga dokter di RS Juwita.
+                        Daftar penugasan roster jadwal praktik klinik dan jaga dokter di RS Permata Bunda.
                     </p>
                 </div>
 
@@ -899,7 +899,7 @@
         <flux:modal wire:model="showLinkModal" class="w-full max-w-md space-y-6">
             <div>
                 <flux:heading size="lg">Tautan Pegawai Organik RS</flux:heading>
-                <flux:subheading class="text-xs text-zinc-500">Hubungkan dokter dengan profil pegawai organik RS Juwita.</flux:subheading>
+                <flux:subheading class="text-xs text-zinc-500">Hubungkan dokter dengan profil pegawai organik RS Permata Bunda.</flux:subheading>
             </div>
 
             <form wire:submit="saveLinkEmployee" class="space-y-4">

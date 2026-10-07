@@ -147,7 +147,7 @@
         $alerts->push([
             'id' => 'system_status',
             'type' => 'neutral',
-            'title' => 'Sistem RS Juwita Aktif',
+            'title' => 'Sistem RS Permata Bunda Aktif',
             'message' => 'Layanan geofence, validasi shift medis, dan sinkronisasi presensi operasional normal.',
             'time' => now()->translatedFormat('H:i') . ' WIB',
             'url' => route('dashboard'),

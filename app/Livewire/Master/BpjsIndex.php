@@ -22,7 +22,7 @@ class BpjsIndex extends Component
 
     public float $bpjsEmployerRate = 0.04;
 
-    public ?float $bpjsWageCeiling = null;
+    public float|int|string|null $bpjsWageCeiling = null;
 
     public bool $bpjsIsActive = true;
 

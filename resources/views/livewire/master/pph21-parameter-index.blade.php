@@ -88,11 +88,11 @@
 
             <div class="space-y-3">
                 @if ($paramCategory === 'ptkp')
-                    <flux:input wire:model="paramAmount" label="Nilai PTKP Tahunan (Rp)" type="number" step="1000" required />
+                    <flux:input.currency wire:model="paramAmount" label="Nilai PTKP Tahunan (Rp)" placeholder="Rp. 0" required />
                 @else
                     <flux:input wire:model="paramRate" label="Tarif Pajak (%)" type="number" step="0.1" min="0" max="100" required />
-                    <flux:input wire:model="paramThresholdMin" label="Batas Minimal PKP (Rp)" type="number" step="1000" />
-                    <flux:input wire:model="paramThresholdMax" label="Batas Maksimal PKP (Rp - kosong jika tak terhingga)" type="number" step="1000" />
+                    <flux:input.currency wire:model="paramThresholdMin" label="Batas Minimal PKP (Rp)" placeholder="Rp. 0" />
+                    <flux:input.currency wire:model="paramThresholdMax" label="Batas Maksimal PKP (Rp - kosong jika tak terhingga)" placeholder="Rp. 0" />
                 @endif
 
                 <flux:input wire:model="effectiveFrom" label="Berlaku Mulai Tanggal" type="date" required />
