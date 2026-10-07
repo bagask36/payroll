@@ -20,6 +20,10 @@ class DoctorPolicy
      */
     public function view(User $user, Doctor $doctor): bool
     {
+        if ($doctor->user_id === $user->id) {
+            return true;
+        }
+
         return $user->hasPermission('doctor.view');
     }
 

@@ -331,6 +331,38 @@
                                 @endif
                             </div>
 
+                            @if(auth()->user()?->employee)
+                                <flux:menu.item href="{{ route('employees.show', auth()->user()->employee->id) }}" icon="user">
+                                    Detail Profil Pegawai
+                                </flux:menu.item>
+                            @endif
+
+                            @if(auth()->user()?->doctor)
+                                <flux:menu.item href="{{ route('doctors.show', auth()->user()->doctor->id) }}" icon="identification">
+                                    Detail Profil Medis
+                                </flux:menu.item>
+                            @endif
+
+                            @if(!auth()->user()?->employee && !auth()->user()?->doctor)
+                                <flux:menu.item href="{{ route('profile') }}" icon="user">
+                                    Detail Profil
+                                </flux:menu.item>
+                            @endif
+
+                            @if(auth()->user()?->employee)
+                                <flux:menu.item href="{{ route('payroll.my-payslips') }}" icon="receipt-percent">
+                                    Slip Gaji Saya
+                                </flux:menu.item>
+                            @endif
+
+                            @can('leave.view_own')
+                                <flux:menu.item href="{{ route('leaves.index') }}" icon="document-text">
+                                    Riwayat Cuti
+                                </flux:menu.item>
+                            @endcan
+
+                            <flux:menu.separator />
+
                             <form method="POST" action="{{ route('logout') }}" class="mt-1">
                                 @csrf
                                 <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full text-rose-600 dark:text-rose-400 font-medium cursor-pointer">
@@ -344,7 +376,7 @@
         </flux:sidebar>
 
         {{-- Top App Header --}}
-        <flux:header sticky class="border-b border-zinc-200/80 bg-white/95 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/95 pt-safe h-16 px-3 sm:px-6">
+        <flux:header sticky class="border-b border-zinc-200/80 bg-white/95 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/95 pt-safe h-16 px-3 sm:px-6 z-40!">
             <flux:sidebar.toggle class="me-2.5 lg:hidden" icon="bars-2" inset="left" />
 
             <a href="{{ route('dashboard') }}" class="flex items-center gap-2 lg:hidden me-2.5">
@@ -439,6 +471,24 @@
                         <flux:menu.item href="{{ route('dashboard') }}" icon="home">
                             Dashboard
                         </flux:menu.item>
+
+                        @if(auth()->user()?->employee)
+                            <flux:menu.item href="{{ route('employees.show', auth()->user()->employee->id) }}" icon="user">
+                                Detail Profil Pegawai
+                            </flux:menu.item>
+                        @endif
+
+                        @if(auth()->user()?->doctor)
+                            <flux:menu.item href="{{ route('doctors.show', auth()->user()->doctor->id) }}" icon="identification">
+                                Detail Profil Medis
+                            </flux:menu.item>
+                        @endif
+
+                        @if(!auth()->user()?->employee && !auth()->user()?->doctor)
+                            <flux:menu.item href="{{ route('profile') }}" icon="user">
+                                Detail Profil
+                            </flux:menu.item>
+                        @endif
 
                         @if(auth()->user()?->employee)
                             <flux:menu.item href="{{ route('payroll.my-payslips') }}" icon="receipt-percent">
@@ -647,6 +697,7 @@
                     @if(auth()->user()?->can('attendance.view_summary') || auth()->user()?->can('attendance.check_in_out') || auth()->user()?->can('attendance.view_own') || auth()->user()?->can('attendance.view_all'))
                         { name: 'Presensi & Kehadiran', category: 'Waktu', url: '{{ route('attendance.index') }}', keywords: 'presensi absen check-in check-out kehadiran clock in' },
                     @endif
+                    { name: 'Detail Profil Saya', category: 'Akun', url: '{{ route('profile') }}', keywords: 'profil saya detail profil akun biodata identitas user' },
                     @can('schedule.view')
                         { name: 'Jadwal & Shift Roster', category: 'Waktu', url: '{{ route('schedules.index') }}', keywords: 'jadwal shift roster kalender dinas kerja' },
                     @endcan

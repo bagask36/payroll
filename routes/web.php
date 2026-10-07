@@ -27,9 +27,11 @@ use App\Livewire\Master\Pph21ParameterIndex;
 use App\Livewire\Master\ShiftIndex;
 use App\Livewire\Master\UnitIndex;
 use App\Livewire\Master\WarningLetterTypeIndex;
+use App\Livewire\Notification\NotificationIndex;
 use App\Livewire\Organization\OrgStructureIndex;
 use App\Livewire\Payroll\MyPayslips;
 use App\Livewire\Payroll\PayrollIndex;
+use App\Livewire\Profile\UserProfile;
 use App\Livewire\Report\AttendanceReportIndex;
 use App\Livewire\Report\DoctorReportIndex;
 use App\Livewire\Report\EmployeeReportIndex;
@@ -54,6 +56,8 @@ Route::get('/captcha/{config?}', [CaptchaController::class, 'getCaptcha'])->midd
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
+    Route::get('/notifications', NotificationIndex::class)->name('notifications.index');
+    Route::get('/profile', UserProfile::class)->name('profile');
 
     // Employees & Doctors Routes
     Route::get('/employees', EmployeeIndex::class)->name('employees.index');
