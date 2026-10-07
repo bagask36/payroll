@@ -199,7 +199,7 @@ class NotificationService
                         'category' => 'presensi',
                         'category_label' => 'Presensi & Jadwal',
                         'type' => 'info',
-                        'title' => 'Pengingat Presensi Hari Ini',
+                        'title' => 'Presensi Hari Ini Belum Masuk',
                         'message' => 'Anda belum melakukan pencatatan kehadiran (clock-in) hari ini. Pastikan melakukan presensi saat berada dalam radius geofence rumah sakit.',
                         'time' => 'Hari ini',
                         'date' => now()->translatedFormat('d M Y, H:i'),

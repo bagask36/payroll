@@ -55,6 +55,8 @@ class NotificationDropdownTest extends TestCase
 
     public function test_employee_sees_personal_leave_and_attendance_alerts(): void
     {
+        Carbon::setTestNow(Carbon::parse('2026-10-07 09:00:00'));
+
         $employeeUser = User::factory()->create([
             'name' => 'Staf Perawat',
             'is_active' => true,
@@ -64,11 +66,14 @@ class NotificationDropdownTest extends TestCase
             'user_id' => $employeeUser->id,
             'status' => 'ACTIVE',
         ]);
+        $employeeUser->refresh();
 
         $response = $this->actingAs($employeeUser)->get('/dashboard');
 
         $response->assertStatus(200);
         $response->assertSee('Pemberitahuan & Peringatan');
         $response->assertSee('Presensi Hari Ini Belum Masuk');
+
+        Carbon::setTestNow();
     }
 }

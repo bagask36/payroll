@@ -57,6 +57,14 @@
                     Dashboard
                 </flux:sidebar.item>
 
+                <flux:sidebar.item icon="user-circle" href="{{ route('profile') }}" :current="request()->routeIs('profile')">
+                    Profil Pengguna
+                </flux:sidebar.item>
+
+                <flux:sidebar.item icon="bell" href="{{ route('notifications.index') }}" :current="request()->routeIs('notifications.*')">
+                    Pusat Notifikasi
+                </flux:sidebar.item>
+
                 {{-- 1. DATA MASTER --}}
                 @php
                     $canSeeDataMaster = auth()->user()?->hasRole('super_admin') || auth()->user()?->hasRole('hr_admin') || auth()->user()?->hasRole('payroll') || auth()->user()?->hasPermission('system.config_view');
@@ -331,35 +339,9 @@
                                 @endif
                             </div>
 
-                            @if(auth()->user()?->employee)
-                                <flux:menu.item href="{{ route('employees.show', auth()->user()->employee->id) }}" icon="user">
-                                    Detail Profil Pegawai
-                                </flux:menu.item>
-                            @endif
-
-                            @if(auth()->user()?->doctor)
-                                <flux:menu.item href="{{ route('doctors.show', auth()->user()->doctor->id) }}" icon="identification">
-                                    Detail Profil Medis
-                                </flux:menu.item>
-                            @endif
-
-                            @if(!auth()->user()?->employee && !auth()->user()?->doctor)
-                                <flux:menu.item href="{{ route('profile') }}" icon="user">
-                                    Detail Profil
-                                </flux:menu.item>
-                            @endif
-
-                            @if(auth()->user()?->employee)
-                                <flux:menu.item href="{{ route('payroll.my-payslips') }}" icon="receipt-percent">
-                                    Slip Gaji Saya
-                                </flux:menu.item>
-                            @endif
-
-                            @can('leave.view_own')
-                                <flux:menu.item href="{{ route('leaves.index') }}" icon="document-text">
-                                    Riwayat Cuti
-                                </flux:menu.item>
-                            @endcan
+                            <flux:menu.item href="{{ route('profile') }}" icon="user-circle">
+                                Kelola Akun
+                            </flux:menu.item>
 
                             <flux:menu.separator />
 
@@ -472,35 +454,13 @@
                             Dashboard
                         </flux:menu.item>
 
-                        @if(auth()->user()?->employee)
-                            <flux:menu.item href="{{ route('employees.show', auth()->user()->employee->id) }}" icon="user">
-                                Detail Profil Pegawai
-                            </flux:menu.item>
-                        @endif
+                        <flux:menu.item href="{{ route('notifications.index') }}" icon="bell">
+                            Pusat Notifikasi
+                        </flux:menu.item>
 
-                        @if(auth()->user()?->doctor)
-                            <flux:menu.item href="{{ route('doctors.show', auth()->user()->doctor->id) }}" icon="identification">
-                                Detail Profil Medis
-                            </flux:menu.item>
-                        @endif
-
-                        @if(!auth()->user()?->employee && !auth()->user()?->doctor)
-                            <flux:menu.item href="{{ route('profile') }}" icon="user">
-                                Detail Profil
-                            </flux:menu.item>
-                        @endif
-
-                        @if(auth()->user()?->employee)
-                            <flux:menu.item href="{{ route('payroll.my-payslips') }}" icon="receipt-percent">
-                                Slip Gaji Saya
-                            </flux:menu.item>
-                        @endif
-
-                        @can('leave.view_own')
-                            <flux:menu.item href="{{ route('leaves.index') }}" icon="document-text">
-                                Riwayat Cuti
-                            </flux:menu.item>
-                        @endcan
+                        <flux:menu.item href="{{ route('profile') }}" icon="user-circle">
+                            Kelola Akun
+                        </flux:menu.item>
 
                         <flux:menu.separator />
 
@@ -694,10 +654,11 @@
                 query: '',
                 items: [
                     { name: 'Dashboard', category: 'Navigasi', url: '{{ route('dashboard') }}', keywords: 'beranda home dashboard ringkasan' },
+                    { name: 'Pusat Notifikasi & Pemberitahuan', category: 'Navigasi', url: '{{ route('notifications.index') }}', keywords: 'notifikasi pemberitahuan peringatan alert pengumuman pesan tindakan' },
                     @if(auth()->user()?->can('attendance.view_summary') || auth()->user()?->can('attendance.check_in_out') || auth()->user()?->can('attendance.view_own') || auth()->user()?->can('attendance.view_all'))
                         { name: 'Presensi & Kehadiran', category: 'Waktu', url: '{{ route('attendance.index') }}', keywords: 'presensi absen check-in check-out kehadiran clock in' },
                     @endif
-                    { name: 'Detail Profil Saya', category: 'Akun', url: '{{ route('profile') }}', keywords: 'profil saya detail profil akun biodata identitas user' },
+                    { name: 'Profil Pengguna / Kelola Akun', category: 'Akun', url: '{{ route('profile') }}', keywords: 'profil saya detail profil akun biodata identitas user kelola akun' },
                     @can('schedule.view')
                         { name: 'Jadwal & Shift Roster', category: 'Waktu', url: '{{ route('schedules.index') }}', keywords: 'jadwal shift roster kalender dinas kerja' },
                     @endcan

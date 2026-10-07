@@ -4,15 +4,16 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\Doctor;
+use App\Livewire\Profile\UserProfile;
 use App\Models\Employee;
-use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\DoctorSeeder;
 use Database\Seeders\EmployeeSeeder;
 use Database\Seeders\OrganizationSeeder;
 use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class UserProfileMenuTest extends TestCase
@@ -36,7 +37,7 @@ class UserProfileMenuTest extends TestCase
         $response->assertRedirect('/login');
     }
 
-    public function test_authenticated_employee_sees_detail_profile_menu_and_is_redirected_to_employee_profile(): void
+    public function test_authenticated_user_sees_profil_pengguna_sidebar_menu_and_kelola_akun_in_dropdown(): void
     {
         $employee = Employee::firstOrFail();
         $user = $employee->user;
@@ -47,53 +48,77 @@ class UserProfileMenuTest extends TestCase
 
         $response = $this->actingAs($user)->get('/dashboard');
         $response->assertStatus(200);
-        $response->assertSee('Detail Profil Pegawai');
-        $response->assertSee(route('employees.show', $employee->id));
 
-        // Test /profile redirection
-        $profileResponse = $this->actingAs($user)->get('/profile');
-        $profileResponse->assertRedirect(route('employees.show', $employee->id));
+        // Dedicated sidebar menu exists
+        $response->assertSee('Profil Pengguna');
+        $response->assertSee(route('profile'));
 
-        // Test the target page is accessible by the user
-        $showResponse = $this->actingAs($user)->get(route('employees.show', $employee->id));
-        $showResponse->assertStatus(200);
+        // Dropdown contains only Kelola Akun
+        $response->assertSee('Kelola Akun');
+
+        // Other items are NOT in the dropdown
+        $response->assertDontSee('Detail Profil Pegawai');
+        $response->assertDontSee('Detail Profil Medis');
+        $response->assertDontSee('Slip Gaji Saya');
+        $response->assertDontSee('Riwayat Cuti');
     }
 
-    public function test_authenticated_doctor_without_employee_sees_detail_profil_medis_and_is_redirected(): void
+    public function test_user_can_access_and_render_user_profile_page(): void
     {
-        $doctor = Doctor::whereNull('employee_id')->first();
-        if (! $doctor) {
-            $doctor = Doctor::firstOrFail();
-            $doctor->update(['employee_id' => null]);
-        }
+        $user = User::where('email', 'admin@juwitahospital.com')->firstOrFail();
 
-        $user = $doctor->user;
-        if (! $user) {
-            $user = User::factory()->create();
-            $doctor->update(['user_id' => $user->id]);
-        }
-
-        $response = $this->actingAs($user)->get('/dashboard');
+        $response = $this->actingAs($user)->get('/profile');
         $response->assertStatus(200);
-        $response->assertSee('Detail Profil Medis');
-        $response->assertSee(route('doctors.show', $doctor->id));
+        $response->assertSee('Profil Pengguna');
+        $response->assertSee('Informasi Akun');
+        $response->assertSee('Keamanan & Kata Sandi');
 
-        // Test /profile redirection
-        $profileResponse = $this->actingAs($user)->get('/profile');
-        $profileResponse->assertRedirect(route('doctors.show', $doctor->id));
-
-        // Test doctor can view their own profile
-        $showResponse = $this->actingAs($user)->get(route('doctors.show', $doctor->id));
-        $showResponse->assertStatus(200);
+        Livewire::actingAs($user)
+            ->test(UserProfile::class)
+            ->assertStatus(200)
+            ->assertSet('name', $user->name)
+            ->assertSet('email', $user->email);
     }
 
-    public function test_super_admin_without_employee_can_access_profile_redirect(): void
+    public function test_user_can_update_profile_information(): void
     {
-        $adminRole = Role::where('name', 'super_admin')->firstOrFail();
-        $adminUser = User::factory()->create();
-        $adminUser->roles()->attach($adminRole->id);
+        $user = User::factory()->create([
+            'name' => 'Original Name',
+            'email' => 'original@example.com',
+            'password' => Hash::make('password123'),
+        ]);
 
-        $response = $this->actingAs($adminUser)->get('/profile');
-        $response->assertRedirect(route('employees.index'));
+        Livewire::actingAs($user)
+            ->test(UserProfile::class)
+            ->set('name', 'Updated Name')
+            ->set('email', 'updated@example.com')
+            ->call('updateProfileInformation')
+            ->assertHasNoErrors()
+            ->assertSee('Informasi akun profil Anda berhasil diperbarui.');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'name' => 'Updated Name',
+            'email' => 'updated@example.com',
+        ]);
+    }
+
+    public function test_user_can_update_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('old-secret-123'),
+        ]);
+
+        Livewire::actingAs($user)
+            ->test(UserProfile::class)
+            ->set('currentPassword', 'old-secret-123')
+            ->set('newPassword', 'new-secure-password-456')
+            ->set('newPasswordConfirmation', 'new-secure-password-456')
+            ->call('updatePassword')
+            ->assertHasNoErrors()
+            ->assertSee('Kata sandi akun Anda berhasil diperbarui dengan aman.');
+
+        $user->refresh();
+        $this->assertTrue(Hash::check('new-secure-password-456', $user->password));
     }
 }
