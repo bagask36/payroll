@@ -893,58 +893,71 @@
     {{-- ========================================================================= --}}
     @else
         {{-- Management Hero Header --}}
-        <div class="relative overflow-hidden rounded-3xl border border-zinc-200/80 bg-white p-6 sm:p-7 shadow-xs dark:border-zinc-800 dark:bg-zinc-900">
-            <div class="absolute -right-12 -top-12 size-64 rounded-full bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-transparent blur-3xl dark:from-emerald-500/25"></div>
-            <div class="absolute -left-12 -bottom-12 size-56 rounded-full bg-gradient-to-tr from-blue-500/10 via-indigo-500/5 to-transparent blur-2xl dark:from-blue-500/15"></div>
+        <div class="relative overflow-hidden rounded-3xl border border-zinc-200/80 bg-gradient-to-b from-white via-white to-zinc-50/50 p-6 sm:p-7 shadow-xs dark:border-zinc-800 dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-950/70">
+            {{-- Ambient Glows --}}
+            <div class="pointer-events-none absolute -right-16 -top-16 size-72 rounded-full bg-gradient-to-br from-emerald-500/15 via-teal-500/10 to-transparent blur-3xl dark:from-emerald-500/20"></div>
+            <div class="pointer-events-none absolute -left-16 -bottom-16 size-64 rounded-full bg-gradient-to-tr from-blue-500/10 via-indigo-500/5 to-transparent blur-3xl dark:from-blue-500/15"></div>
 
             <div class="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                <div class="flex items-start gap-4 sm:gap-5">
-                    <div class="relative flex size-15 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-600/25">
-                        <flux:icon name="building-office-2" class="size-8" />
-                        <span class="absolute -bottom-1 -right-1 flex size-4 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900">
-                            <span class="size-2 rounded-full bg-white animate-pulse"></span>
+                <div class="flex items-start sm:items-center gap-4 sm:gap-5">
+                    <div class="relative flex size-14 sm:size-15 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-600 to-emerald-700 text-white shadow-md shadow-emerald-600/20 ring-4 ring-emerald-500/10 dark:ring-emerald-400/10 transition-transform duration-300 hover:scale-105">
+                        <flux:icon name="building-office-2" class="size-7 sm:size-8 drop-shadow-xs" />
+                        <span class="absolute -bottom-1 -right-1 flex size-4.5 items-center justify-center rounded-full bg-white dark:bg-zinc-900 shadow-xs ring-2 ring-emerald-50 dark:ring-zinc-950">
+                            <span class="relative flex size-2.5">
+                                <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                                <span class="relative inline-flex size-2.5 rounded-full bg-emerald-500"></span>
+                            </span>
                         </span>
                     </div>
-                    <div>
+                    <div class="space-y-1">
                         <div class="flex flex-wrap items-center gap-2.5">
-                            <flux:heading size="xl" class="font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100 text-xl sm:text-2xl">
+                            <flux:heading size="xl" class="font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 text-xl sm:text-2xl">
                                 Dashboard Operasional & SDM
                             </flux:heading>
-                            <flux:badge size="sm" color="emerald" class="shadow-2xs font-semibold">
+                            <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 backdrop-blur-xs shadow-2xs">
+                                <span class="size-1.5 rounded-full bg-emerald-500"></span>
                                 RS Permata Bunda Executive
-                            </flux:badge>
+                            </span>
                         </div>
-                        <flux:subheading class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                            {{ $this->greeting }}, <span class="font-bold text-zinc-800 dark:text-zinc-200">{{ auth()->user()?->name }}</span>. Pantau indikator kinerja rumah sakit terkini.
+                        <flux:subheading class="text-xs sm:text-sm text-zinc-500 dark:text-zinc-400 flex flex-wrap items-center gap-x-1.5">
+                            <span>{{ $this->greeting }},</span>
+                            <span class="font-bold text-zinc-800 dark:text-zinc-200">{{ auth()->user()?->name }}</span>
+                            <span class="hidden sm:inline text-zinc-300 dark:text-zinc-700">•</span>
+                            <span class="text-zinc-500 dark:text-zinc-400">Pantau indikator kinerja rumah sakit terkini.</span>
                         </flux:subheading>
                     </div>
                 </div>
 
-                {{-- Header Actions & Realtime Status --}}
-                <div class="flex flex-wrap items-center gap-3">
+                {{-- Header Actions & Real-time Digital Clock --}}
+                <div class="flex flex-wrap items-center gap-2.5 sm:gap-3">
                     {{-- Real-time Digital Clock & Date Capsule --}}
                     <div 
                         x-data="{ 
                             time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) 
                         }" 
                         x-init="setInterval(() => time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }), 1000)"
-                        class="flex items-center gap-2.5 rounded-2xl border border-zinc-200/90 bg-zinc-50/90 px-4 py-2 text-xs text-zinc-700 dark:border-zinc-800 dark:bg-zinc-800/70 dark:text-zinc-300 shadow-2xs"
+                        class="flex items-center gap-2 rounded-2xl border border-zinc-200/80 bg-zinc-50/80 backdrop-blur-md px-3.5 py-2 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-850/80 dark:text-zinc-300 shadow-2xs transition-all"
                     >
-                        <flux:icon name="calendar" class="size-4 text-emerald-600 dark:text-emerald-400" />
-                        <span class="font-medium">{{ now()->translatedFormat('l, d F Y') }}</span>
+                        <flux:icon name="calendar" class="size-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span class="font-medium text-zinc-700 dark:text-zinc-200">{{ now()->translatedFormat('l, d F Y') }}</span>
                         <span class="text-zinc-300 dark:text-zinc-600">•</span>
-                        <span class="font-mono font-bold text-emerald-700 dark:text-emerald-400 tabular-nums" x-text="time"></span>
-                        <span class="text-[10px] uppercase font-semibold text-zinc-400">WIB</span>
+                        <span class="font-mono font-bold text-emerald-700 dark:text-emerald-400 tabular-nums tracking-wide" x-text="time"></span>
+                        <span class="text-[9px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 bg-zinc-200/60 dark:bg-zinc-700/60 px-1 py-0.5 rounded">WIB</span>
                     </div>
 
                     {{-- Refresh Button --}}
-                    <flux:button wire:click="refreshData" variant="subtle" size="sm" class="rounded-xl! cursor-pointer border border-zinc-200/80 dark:border-zinc-800">
+                    <flux:button 
+                        wire:click="refreshData" 
+                        variant="subtle" 
+                        size="sm" 
+                        class="group rounded-2xl! cursor-pointer border border-zinc-200/80 bg-white hover:bg-zinc-50 active:scale-95 px-3 py-2 text-xs font-semibold text-zinc-700 dark:border-zinc-800 dark:bg-zinc-850 dark:hover:bg-zinc-800 dark:text-zinc-200 transition-all shadow-2xs"
+                    >
                         <span wire:loading.remove wire:target="refreshData" class="flex items-center gap-1.5">
-                            <flux:icon name="arrow-path" class="size-4" />
+                            <flux:icon name="arrow-path" class="size-3.5 text-zinc-400 group-hover:text-emerald-600 group-hover:rotate-180 transition-transform duration-500" />
                             <span>Segarkan</span>
                         </span>
                         <span wire:loading wire:target="refreshData" class="flex items-center gap-1.5">
-                            <flux:icon name="arrow-path" class="size-4 animate-spin text-emerald-600" />
+                            <flux:icon name="arrow-path" class="size-3.5 animate-spin text-emerald-600" />
                             <span>Memuat...</span>
                         </span>
                     </flux:button>
@@ -952,14 +965,16 @@
             </div>
 
             {{-- Executive Quick Action Deck inside Hero --}}
-            <div class="mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-800">
-                <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
-                    <div class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-                        <flux:icon name="bolt" class="size-3.5 text-amber-500" />
+            <div class="mt-6 pt-5 border-t border-zinc-100 dark:border-zinc-800/80">
+                <div class="mb-3.5 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+                        <span class="flex size-5 items-center justify-center rounded-md bg-amber-500/10 text-amber-500 dark:bg-amber-500/20 shadow-2xs">
+                            <flux:icon name="bolt" class="size-3" />
+                        </span>
                         <span>Pintasan Operasional</span>
                     </div>
 
-                    <div class="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+                    <div class="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 shadow-2xs">
                         <span class="relative flex size-2">
                             <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
                             <span class="relative inline-flex size-2 rounded-full bg-emerald-500"></span>
@@ -969,85 +984,93 @@
                 </div>
 
                 {{-- Responsive Grid: 2 columns on mobile, 4 columns on sm+ --}}
-                <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+                <div class="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3.5">
                     {{-- 1. Live Presensi --}}
                     <a href="{{ route('attendance.index') }}" 
-                        class="group relative flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 sm:p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500/50 hover:bg-white hover:shadow-md dark:border-zinc-800 dark:bg-zinc-850/60 dark:hover:border-emerald-500/40 dark:hover:bg-zinc-800 active:scale-98">
-                        <div class="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 transition-all duration-200 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white dark:bg-emerald-950/60 dark:text-emerald-400 shadow-2xs">
-                            <flux:icon name="clock" class="size-4.5 sm:size-5" />
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <div class="flex items-center justify-between gap-1">
-                                <span class="truncate text-xs font-bold text-zinc-900 group-hover:text-emerald-700 dark:text-zinc-100 dark:group-hover:text-emerald-400 transition-colors">
+                        class="group relative flex items-center justify-between gap-3 rounded-2xl border border-zinc-200/80 bg-white/70 dark:bg-zinc-850/60 p-3 sm:p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-emerald-500/40 hover:bg-gradient-to-br hover:from-emerald-50/40 hover:to-white hover:shadow-md hover:shadow-emerald-500/5 dark:border-zinc-800 dark:hover:border-emerald-500/30 dark:hover:from-emerald-950/20 dark:hover:to-zinc-850 active:scale-98">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/15 to-emerald-500/5 text-emerald-600 ring-1 ring-emerald-500/20 group-hover:scale-105 group-hover:bg-emerald-600 group-hover:text-white group-hover:ring-emerald-600 group-hover:shadow-md group-hover:shadow-emerald-600/25 dark:from-emerald-500/20 dark:to-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-500/30 transition-all duration-200 shadow-2xs">
+                                <flux:icon name="clock" class="size-5" />
+                            </div>
+                            <div class="min-w-0">
+                                <span class="truncate block text-xs sm:text-sm font-bold text-zinc-900 group-hover:text-emerald-700 dark:text-zinc-100 dark:group-hover:text-emerald-400 transition-colors">
                                     Live Presensi
                                 </span>
-                                <flux:icon name="chevron-right" class="size-3 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                                <p class="truncate text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+                                    Pantau absensi
+                                </p>
                             </div>
-                            <p class="truncate text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
-                                Pantau absensi
-                            </p>
+                        </div>
+                        <div class="hidden sm:flex size-6 shrink-0 items-center justify-center rounded-full bg-zinc-100/70 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:bg-emerald-500 group-hover:text-white dark:bg-zinc-800 dark:text-zinc-500 dark:group-hover:bg-emerald-500 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200">
+                            <flux:icon name="chevron-right" class="size-3.5" />
                         </div>
                     </a>
 
                     {{-- 2. Roster Shift --}}
                     <a href="{{ route('schedules.index') }}" 
-                        class="group relative flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 sm:p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500/50 hover:bg-white hover:shadow-md dark:border-zinc-800 dark:bg-zinc-850/60 dark:hover:border-blue-500/40 dark:hover:bg-zinc-800 active:scale-98">
-                        <div class="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 transition-all duration-200 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white dark:bg-blue-950/60 dark:text-blue-400 shadow-2xs">
-                            <flux:icon name="calendar" class="size-4.5 sm:size-5" />
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <div class="flex items-center justify-between gap-1">
-                                <span class="truncate text-xs font-bold text-zinc-900 group-hover:text-blue-700 dark:text-zinc-100 dark:group-hover:text-blue-400 transition-colors">
+                        class="group relative flex items-center justify-between gap-3 rounded-2xl border border-zinc-200/80 bg-white/70 dark:bg-zinc-850/60 p-3 sm:p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500/40 hover:bg-gradient-to-br hover:from-blue-50/40 hover:to-white hover:shadow-md hover:shadow-blue-500/5 dark:border-zinc-800 dark:hover:border-blue-500/30 dark:hover:from-blue-950/20 dark:hover:to-zinc-850 active:scale-98">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500/15 to-blue-500/5 text-blue-600 ring-1 ring-blue-500/20 group-hover:scale-105 group-hover:bg-blue-600 group-hover:text-white group-hover:ring-blue-600 group-hover:shadow-md group-hover:shadow-blue-600/25 dark:from-blue-500/20 dark:to-blue-500/10 dark:text-blue-400 dark:ring-blue-500/30 transition-all duration-200 shadow-2xs">
+                                <flux:icon name="calendar" class="size-5" />
+                            </div>
+                            <div class="min-w-0">
+                                <span class="truncate block text-xs sm:text-sm font-bold text-zinc-900 group-hover:text-blue-700 dark:text-zinc-100 dark:group-hover:text-blue-400 transition-colors">
                                     Roster Shift
                                 </span>
-                                <flux:icon name="chevron-right" class="size-3 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                                <p class="truncate text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+                                    Jadwal kerja tim
+                                </p>
                             </div>
-                            <p class="truncate text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
-                                Jadwal kerja tim
-                            </p>
+                        </div>
+                        <div class="hidden sm:flex size-6 shrink-0 items-center justify-center rounded-full bg-zinc-100/70 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:bg-blue-500 group-hover:text-white dark:bg-zinc-800 dark:text-zinc-500 dark:group-hover:bg-blue-500 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200">
+                            <flux:icon name="chevron-right" class="size-3.5" />
                         </div>
                     </a>
 
                     {{-- 3. Approval Cuti --}}
                     <a href="{{ route('leaves.index') }}" 
-                        class="group relative flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 sm:p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-purple-500/50 hover:bg-white hover:shadow-md dark:border-zinc-800 dark:bg-zinc-850/60 dark:hover:border-purple-500/40 dark:hover:bg-zinc-800 active:scale-98">
-                        <div class="relative flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-purple-500/10 text-purple-600 transition-all duration-200 group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white dark:bg-purple-950/60 dark:text-purple-400 shadow-2xs">
-                            <flux:icon name="document-text" class="size-4.5 sm:size-5" />
-                            @if($pendingLeavesCount > 0)
-                                <span class="absolute -top-1 -right-1 flex size-4 items-center justify-center rounded-full bg-amber-500 text-[9px] font-extrabold text-white ring-2 ring-white dark:ring-zinc-900">
-                                    {{ $pendingLeavesCount }}
-                                </span>
-                            @endif
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <div class="flex items-center justify-between gap-1">
-                                <span class="truncate text-xs font-bold text-zinc-900 group-hover:text-purple-700 dark:text-zinc-100 dark:group-hover:text-purple-400 transition-colors">
+                        class="group relative flex items-center justify-between gap-3 rounded-2xl border border-zinc-200/80 bg-white/70 dark:bg-zinc-850/60 p-3 sm:p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-purple-500/40 hover:bg-gradient-to-br hover:from-purple-50/40 hover:to-white hover:shadow-md hover:shadow-purple-500/5 dark:border-zinc-800 dark:hover:border-purple-500/30 dark:hover:from-purple-950/20 dark:hover:to-zinc-850 active:scale-98">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="relative flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500/15 to-purple-500/5 text-purple-600 ring-1 ring-purple-500/20 group-hover:scale-105 group-hover:bg-purple-600 group-hover:text-white group-hover:ring-purple-600 group-hover:shadow-md group-hover:shadow-purple-600/25 dark:from-purple-500/20 dark:to-purple-500/10 dark:text-purple-400 dark:ring-purple-500/30 transition-all duration-200 shadow-2xs">
+                                <flux:icon name="document-text" class="size-5" />
+                                @if($pendingLeavesCount > 0)
+                                    <span class="absolute -top-1 -right-1 flex size-4.5 items-center justify-center rounded-full bg-amber-500 text-[10px] font-extrabold text-white ring-2 ring-white dark:ring-zinc-900 shadow-xs animate-pulse">
+                                        {{ $pendingLeavesCount }}
+                                    </span>
+                                @endif
+                            </div>
+                            <div class="min-w-0">
+                                <span class="truncate block text-xs sm:text-sm font-bold text-zinc-900 group-hover:text-purple-700 dark:text-zinc-100 dark:group-hover:text-purple-400 transition-colors">
                                     Approval Cuti
                                 </span>
-                                <flux:icon name="chevron-right" class="size-3 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                                <p class="truncate text-[11px] font-medium {{ $pendingLeavesCount > 0 ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-zinc-500 dark:text-zinc-400' }}">
+                                    {{ $pendingLeavesCount > 0 ? $pendingLeavesCount . ' antrean permohonan' : 'Persetujuan cuti' }}
+                                </p>
                             </div>
-                            <p class="truncate text-[10px] font-medium {{ $pendingLeavesCount > 0 ? 'text-amber-600 dark:text-amber-400 font-semibold' : 'text-zinc-500 dark:text-zinc-400' }}">
-                                {{ $pendingLeavesCount > 0 ? $pendingLeavesCount . ' antrean permohonan' : 'Persetujuan cuti' }}
-                            </p>
+                        </div>
+                        <div class="hidden sm:flex size-6 shrink-0 items-center justify-center rounded-full bg-zinc-100/70 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:bg-purple-500 group-hover:text-white dark:bg-zinc-800 dark:text-zinc-500 dark:group-hover:bg-purple-500 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200">
+                            <flux:icon name="chevron-right" class="size-3.5" />
                         </div>
                     </a>
 
                     {{-- 4. Manajemen Payroll --}}
                     <a href="{{ route('payroll.index') }}" 
-                        class="group relative flex items-center gap-2.5 sm:gap-3 rounded-2xl border border-zinc-200/80 bg-zinc-50/70 p-2.5 sm:p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500/50 hover:bg-white hover:shadow-md dark:border-zinc-800 dark:bg-zinc-850/60 dark:hover:border-amber-500/40 dark:hover:bg-zinc-800 active:scale-98">
-                        <div class="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 transition-all duration-200 group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white dark:bg-amber-950/60 dark:text-amber-400 shadow-2xs">
-                            <flux:icon name="banknotes" class="size-4.5 sm:size-5" />
-                        </div>
-                        <div class="min-w-0 flex-1">
-                            <div class="flex items-center justify-between gap-1">
-                                <span class="truncate text-xs font-bold text-zinc-900 group-hover:text-amber-700 dark:text-zinc-100 dark:group-hover:text-amber-400 transition-colors">
+                        class="group relative flex items-center justify-between gap-3 rounded-2xl border border-zinc-200/80 bg-white/70 dark:bg-zinc-850/60 p-3 sm:p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-amber-500/40 hover:bg-gradient-to-br hover:from-amber-50/40 hover:to-white hover:shadow-md hover:shadow-amber-500/5 dark:border-zinc-800 dark:hover:border-amber-500/30 dark:hover:from-amber-950/20 dark:hover:to-zinc-850 active:scale-98">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="flex size-10 sm:size-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500/15 to-amber-500/5 text-amber-600 ring-1 ring-amber-500/20 group-hover:scale-105 group-hover:bg-amber-600 group-hover:text-white group-hover:ring-amber-600 group-hover:shadow-md group-hover:shadow-amber-600/25 dark:from-amber-500/20 dark:to-amber-500/10 dark:text-amber-400 dark:ring-amber-500/30 transition-all duration-200 shadow-2xs">
+                                <flux:icon name="banknotes" class="size-5" />
+                            </div>
+                            <div class="min-w-0">
+                                <span class="truncate block text-xs sm:text-sm font-bold text-zinc-900 group-hover:text-amber-700 dark:text-zinc-100 dark:group-hover:text-amber-400 transition-colors">
                                     Payroll
                                 </span>
-                                <flux:icon name="chevron-right" class="size-3 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all hidden sm:block" />
+                                <p class="truncate text-[11px] text-zinc-500 dark:text-zinc-400 font-medium">
+                                    Proses gaji & slip
+                                </p>
                             </div>
-                            <p class="truncate text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
-                                Proses gaji & slip
-                            </p>
+                        </div>
+                        <div class="hidden sm:flex size-6 shrink-0 items-center justify-center rounded-full bg-zinc-100/70 text-zinc-400 opacity-0 group-hover:opacity-100 group-hover:bg-amber-500 group-hover:text-white dark:bg-zinc-800 dark:text-zinc-500 dark:group-hover:bg-amber-500 dark:group-hover:text-white group-hover:translate-x-0.5 transition-all duration-200">
+                            <flux:icon name="chevron-right" class="size-3.5" />
                         </div>
                     </a>
                 </div>
