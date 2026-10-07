@@ -331,10 +331,8 @@ class LeaveHierarchicalApprovalTest extends TestCase
         $table = new \App\Livewire\Tables\LeaveApprovalTable();
         $actions = $table->actions($approvedLeave);
 
-        // Actions must include Detail button and disabled '✓ Disetujui' button
-        $this->assertCount(2, $actions);
-        $this->assertEquals('Detail', $actions[0]->slot);
-        $this->assertEquals('✓ Disetujui', $actions[1]->slot);
+        // Actions for approved request is empty because finalized requests have no action buttons to keep the table clean
+        $this->assertCount(0, $actions);
     }
 
     public function test_leave_index_handles_hierarchical_approval_dispatch(): void

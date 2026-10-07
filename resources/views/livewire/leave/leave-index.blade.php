@@ -257,7 +257,7 @@
             @endif
 
             <div class="flex items-center justify-between pt-3 border-t border-zinc-100 dark:border-zinc-800">
-                <div>
+                <div class="flex items-center gap-2">
                     @if($selectedRequest->status === 'pending_tier1' && ($selectedRequest->isApplicant(auth()->user()) || auth()->user()?->can('cancel', $selectedRequest)))
                         <flux:button 
                             variant="danger" 
@@ -266,6 +266,24 @@
                             wire:confirm="Yakin ingin membatalkan permohonan cuti ini?"
                         >
                             Batalkan Permohonan
+                        </flux:button>
+                    @endif
+
+                    @if($selectedRequest->canUserApprove(auth()->user()))
+                        <flux:button 
+                            variant="primary" 
+                            size="sm"
+                            wire:click="approveHierarchical({{ $selectedRequest->id }})"
+                        >
+                            Setujui Permohonan
+                        </flux:button>
+
+                        <flux:button 
+                            variant="danger" 
+                            size="sm"
+                            wire:click="openRejectModal({{ $selectedRequest->id }}, {{ $selectedRequest->getCurrentPendingStage()['tier'] ?? 1 }})"
+                        >
+                            Tolak
                         </flux:button>
                     @endif
                 </div>

@@ -250,7 +250,7 @@ class WarningLetterTest extends TestCase
 
     public function test_unauthorized_employee_cannot_issue_warning_letter(): void
     {
-        // An employee viewing their own profile has 'view' authority, but cannot manage disciplinary
+        // An employee cannot access employee detail profile
         $employee = Employee::firstOrFail();
         $employeeUser = User::factory()->create();
         $employeeUser->assignRole('employee');
@@ -258,9 +258,8 @@ class WarningLetterTest extends TestCase
 
         $this->actingAs($employeeUser);
 
-        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
-            ->call('openCreateWarningLetter')
-            ->assertStatus(403);
+        $this->get("/employees/{$employee->id}")
+            ->assertForbidden();
     }
 
     public function test_employee_report_reflects_active_warning_letters_and_exports_csv(): void

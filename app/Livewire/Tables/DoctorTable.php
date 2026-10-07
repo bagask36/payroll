@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Tables;
 
+use App\Livewire\Tables\Concerns\HasSafeFilters;
 use App\Models\Doctor;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -17,6 +18,8 @@ use PowerComponents\LivewirePowerGrid\PowerGridFields;
 
 final class DoctorTable extends PowerGridComponent
 {
+    use HasSafeFilters;
+
     public string $tableName = 'doctors_table';
 
     public function setUp(): array

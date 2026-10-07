@@ -20,10 +20,6 @@ class EmployeePolicy
      */
     public function view(User $user, Employee $employee): bool
     {
-        if ($employee->user_id === $user->id) {
-            return true;
-        }
-
         return $user->hasPermission('employee.view');
     }
 

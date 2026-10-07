@@ -318,15 +318,41 @@
                             <flux:icon name="chevron-up-down" class="size-4 text-zinc-400 group-hover:text-zinc-600 dark:group-hover:text-zinc-300 in-data-flux-sidebar-collapsed-desktop:hidden" />
                         </button>
 
-                        <flux:menu class="w-64 p-1.5 rounded-2xl shadow-xl border border-zinc-200/80 dark:border-zinc-800">
-                            <div class="px-3 py-2.5 border-b border-zinc-100 dark:border-zinc-800">
-                                <p class="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Masuk sebagai</p>
-                                <p class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate mt-0.5">{{ auth()->user()?->email }}</p>
+                        <flux:menu class="w-72 p-1.5 rounded-2xl shadow-xl border border-zinc-200/80 dark:border-zinc-800">
+                            {{-- User Profile Header Card --}}
+                            <div class="p-3 bg-zinc-50/80 dark:bg-zinc-800/60 rounded-xl mb-1.5 border border-zinc-100 dark:border-zinc-700/60">
+                                <div class="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-2">
+                                    Masuk sebagai
+                                </div>
+                                <div class="flex items-center gap-2.5">
+                                    @if(auth()->user()?->profile_photo_url)
+                                        <img src="{{ auth()->user()->profile_photo_url }}" class="size-9.5 shrink-0 rounded-xl object-cover ring-1 ring-zinc-200 dark:ring-zinc-700 shadow-2xs" alt="{{ auth()->user()->name }}" />
+                                    @else
+                                        <div class="flex size-9.5 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 font-bold text-xs text-white shadow-2xs ring-1 ring-emerald-500/20">
+                                            {{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 2)) }}
+                                        </div>
+                                    @endif
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate leading-tight">
+                                            {{ auth()->user()?->name ?? 'Pengguna' }}
+                                        </p>
+                                        <p class="text-[11px] text-zinc-500 dark:text-zinc-400 truncate leading-tight mt-0.5">
+                                            {{ auth()->user()?->email }}
+                                        </p>
+                                    </div>
+                                </div>
+
                                 @if(auth()->user()?->roles->isNotEmpty())
-                                    <div class="mt-1.5 flex flex-wrap gap-1">
-                                        @foreach(auth()->user()->roles as $role)
-                                            <flux:badge size="xs" color="emerald" class="font-bold">{{ ucfirst(str_replace('_', ' ', $role->name)) }}</flux:badge>
-                                        @endforeach
+                                    <div class="mt-2.5 pt-2 border-t border-zinc-200/60 dark:border-zinc-700/60 flex items-center justify-between gap-2">
+                                        <span class="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Peran</span>
+                                        <div class="flex flex-wrap gap-1 justify-end">
+                                            @foreach(auth()->user()->roles as $role)
+                                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60">
+                                                    <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                                                    {{ ucwords(str_replace('_', ' ', $role->name)) }}
+                                                </span>
+                                            @endforeach
+                                        </div>
                                     </div>
                                 @endif
                             </div>
@@ -337,9 +363,9 @@
 
                             <flux:menu.separator />
 
-                            <form method="POST" action="{{ route('logout') }}" class="mt-1">
+                            <form method="POST" action="{{ route('logout') }}" class="w-full">
                                 @csrf
-                                <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full text-rose-600 dark:text-rose-400 font-medium cursor-pointer">
+                                <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" variant="danger" class="w-full text-rose-600 dark:text-rose-400 font-medium cursor-pointer">
                                     Keluar (Logout)
                                 </flux:menu.item>
                             </form>
@@ -419,32 +445,51 @@
                             <div class="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate">
                                 {{ auth()->user()?->name ?? 'User' }}
                             </div>
-                            <div class="text-[10px] text-zinc-400 truncate capitalize font-medium">
-                                {{ auth()->user()?->roles->first()?->name ? str_replace('_', ' ', auth()->user()->roles->first()->name) : 'Pengguna' }}
+                            <div class="text-[10px] text-zinc-400 truncate font-medium">
+                                {{ auth()->user()?->roles->first()?->name ? ucwords(str_replace('_', ' ', auth()->user()->roles->first()->name)) : 'Pengguna' }}
                             </div>
                         </div>
                         <flux:icon name="chevron-down" class="size-3 text-zinc-400" />
                     </button>
 
-                    <flux:menu class="w-60">
-                        <div class="px-3.5 py-2.5 border-b border-zinc-100 dark:border-zinc-800">
-                            <p class="text-xs text-zinc-400 font-medium">Masuk sebagai:</p>
-                            <p class="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate">{{ auth()->user()?->name }}</p>
-                            <p class="text-xs text-zinc-500 dark:text-zinc-400 truncate font-mono mt-0.5">{{ auth()->user()?->email }}</p>
+                    <flux:menu class="w-72 p-1.5 rounded-2xl shadow-xl border border-zinc-200/80 dark:border-zinc-800">
+                        {{-- User Profile Header Card --}}
+                        <div class="p-3 bg-zinc-50/80 dark:bg-zinc-800/60 rounded-xl mb-1.5 border border-zinc-100 dark:border-zinc-700/60">
+                            <div class="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-2">
+                                Masuk sebagai
+                            </div>
+                            <div class="flex items-center gap-2.5">
+                                @if(auth()->user()?->profile_photo_url)
+                                    <img src="{{ auth()->user()->profile_photo_url }}" class="size-9.5 shrink-0 rounded-xl object-cover ring-1 ring-zinc-200 dark:ring-zinc-700 shadow-2xs" alt="{{ auth()->user()->name }}" />
+                                @else
+                                    <div class="flex size-9.5 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 font-bold text-xs text-white shadow-2xs ring-1 ring-emerald-500/20">
+                                        {{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 2)) }}
+                                    </div>
+                                @endif
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate leading-tight">
+                                        {{ auth()->user()?->name ?? 'Pengguna' }}
+                                    </p>
+                                    <p class="text-[11px] text-zinc-500 dark:text-zinc-400 truncate leading-tight mt-0.5">
+                                        {{ auth()->user()?->email }}
+                                    </p>
+                                </div>
+                            </div>
+
                             @if(auth()->user()?->roles->isNotEmpty())
-                                <div class="mt-2 flex flex-wrap gap-1">
-                                    @foreach(auth()->user()->roles as $r)
-                                        <flux:badge size="xs" color="emerald" class="capitalize">
-                                            {{ str_replace('_', ' ', $r->name) }}
-                                        </flux:badge>
-                                    @endforeach
+                                <div class="mt-2.5 pt-2 border-t border-zinc-200/60 dark:border-zinc-700/60 flex items-center justify-between gap-2">
+                                    <span class="text-[10px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">Peran</span>
+                                    <div class="flex flex-wrap gap-1 justify-end">
+                                        @foreach(auth()->user()->roles as $role)
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800/60">
+                                                <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                                                {{ ucwords(str_replace('_', ' ', $role->name)) }}
+                                            </span>
+                                        @endforeach
+                                    </div>
                                 </div>
                             @endif
                         </div>
-
-                        <flux:menu.item href="{{ route('dashboard') }}" icon="home">
-                            Dashboard
-                        </flux:menu.item>
 
                         <flux:menu.item href="{{ route('profile') }}" icon="user-circle">
                             Kelola Akun
@@ -452,9 +497,9 @@
 
                         <flux:menu.separator />
 
-                        <form method="POST" action="{{ route('logout') }}">
+                        <form method="POST" action="{{ route('logout') }}" class="w-full">
                             @csrf
-                            <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full text-red-600 dark:text-red-400">
+                            <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" variant="danger" class="w-full text-rose-600 dark:text-rose-400 font-medium cursor-pointer">
                                 Keluar (Logout)
                             </flux:menu.item>
                         </form>

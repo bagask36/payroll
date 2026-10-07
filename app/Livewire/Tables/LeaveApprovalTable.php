@@ -89,8 +89,8 @@ final class LeaveApprovalTable extends PowerGridComponent
                 $unitHtml = $unit !== '' ? '<div class="text-[11px] text-zinc-500 truncate max-w-xs">'.e($unit).'</div>' : '';
 
                 return '<div>
-                    <div class="font-medium text-zinc-900 dark:text-zinc-100">'.e($name).'</div>
-                    <div class="text-xs text-zinc-400 font-mono">'.e($sub).'</div>
+                    <button type="button" wire:click="$dispatch(\'open-detail-modal\', {requestId: '.$row->id.'})" class="font-medium text-zinc-900 dark:text-zinc-100 hover:text-emerald-600 dark:hover:text-emerald-400 hover:underline cursor-pointer text-left leading-tight">'.e($name).'</button>
+                    <div class="text-xs text-zinc-400 font-mono mt-0.5">'.e($sub).'</div>
                     '.$unitHtml.'
                 </div>';
             })
@@ -161,58 +161,49 @@ final class LeaveApprovalTable extends PowerGridComponent
             Column::make('Alasan', 'reason', 'leave_requests.reason')
                 ->searchable(),
 
-            Column::action('Opsi Aksi'),
+            Column::action('Opsi'),
         ];
     }
 
     public function actions(LeaveRequest $row): array
     {
-        $actions = [];
         $user = Auth::user();
 
-        // 1. Detail button is always visible
-        $actions[] = Button::add('detail')
-            ->slot('Detail')
-            ->class('inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer mr-1.5')
-            ->dispatch('open-detail-modal', ['requestId' => $row->id]);
+        // 1. For finalized requests (approved/rejected/cancelled), no action buttons needed at all
+        // to keep the table clean and tidy, as status is already shown in the Status column.
+        if (in_array($row->status, ['approved', 'rejected', 'cancelled'], true)) {
+            return [];
+        }
 
-        // 2. Action based on status
-        if ($row->status === 'approved') {
-            $actions[] = Button::add('statusApproved')
-                ->slot('✓ Disetujui')
-                ->class('inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 cursor-default opacity-90');
-        } elseif ($row->status === 'rejected') {
-            $actions[] = Button::add('statusRejected')
-                ->slot('Ditolak')
-                ->class('inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800 cursor-default opacity-80');
-        } elseif ($row->status === 'cancelled') {
-            $actions[] = Button::add('statusCancelled')
-                ->slot('Dibatalkan')
-                ->class('inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-500 cursor-default opacity-80');
+        $actions = [];
+
+        // 2. Pending states
+        if ($row->isApplicant($user) && ! $user->isSuperAdmin()) {
+            $actions[] = Button::add('selfRequest')
+                ->slot('Pengajuan Sendiri')
+                ->class('inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 cursor-not-allowed opacity-80');
+        } elseif ($row->canUserApprove($user)) {
+            $currentStage = $row->getCurrentPendingStage();
+            $tier = $currentStage['tier'] ?? 1;
+
+            $actions[] = Button::add('detail')
+                ->slot('Detail')
+                ->class('inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-300 transition-colors cursor-pointer mr-1')
+                ->dispatch('open-detail-modal', ['requestId' => $row->id]);
+
+            $actions[] = Button::add('approveHierarchical')
+                ->slot('Setujui')
+                ->class('inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-colors cursor-pointer mr-1')
+                ->dispatch('approve-hierarchical', ['requestId' => $row->id]);
+
+            $actions[] = Button::add('rejectHierarchical')
+                ->slot('Tolak')
+                ->class('inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:hover:bg-rose-900/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800 shadow-2xs transition-colors cursor-pointer')
+                ->dispatch('open-reject-modal', ['requestId' => $row->id, 'tier' => $tier]);
         } else {
-            // Pending states
-            if ($row->isApplicant($user) && ! $user->isSuperAdmin()) {
-                $actions[] = Button::add('selfRequest')
-                    ->slot('Pengajuan Sendiri')
-                    ->class('inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 cursor-not-allowed opacity-80');
-            } elseif ($row->canUserApprove($user)) {
-                $currentStage = $row->getCurrentPendingStage();
-                $tier = $currentStage['tier'] ?? 1;
-
-                $actions[] = Button::add('approveHierarchical')
-                    ->slot('Setujui')
-                    ->class('inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs transition-colors cursor-pointer mr-1')
-                    ->dispatch('approve-hierarchical', ['requestId' => $row->id]);
-
-                $actions[] = Button::add('rejectHierarchical')
-                    ->slot('Tolak')
-                    ->class('inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:hover:bg-rose-900/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800 shadow-2xs transition-colors cursor-pointer')
-                    ->dispatch('open-reject-modal', ['requestId' => $row->id, 'tier' => $tier]);
-            } else {
-                $actions[] = Button::add('waitingOther')
-                    ->slot('Menunggu Tahap Lain')
-                    ->class('inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 cursor-default opacity-80');
-            }
+            $actions[] = Button::add('waitingOther')
+                ->slot('Menunggu Tahap Lain')
+                ->class('inline-flex items-center px-2 py-1 text-xs font-medium rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800 cursor-default opacity-80');
         }
 
         return $actions;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Tables;
 
+use App\Livewire\Tables\Concerns\HasSafeFilters;
 use App\Models\LeaveRequest;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,8 @@ use PowerComponents\LivewirePowerGrid\PowerGridFields;
 
 final class LeaveRequestTable extends PowerGridComponent
 {
+    use HasSafeFilters;
+
     public string $tableName = 'leave_requests_table';
 
     public function setUp(): array

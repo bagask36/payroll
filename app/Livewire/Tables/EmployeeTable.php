@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Tables;
 
+use App\Livewire\Tables\Concerns\HasSafeFilters;
 use App\Models\Employee;
 use Illuminate\Database\Eloquent\Builder;
 use PowerComponents\LivewirePowerGrid\Button;
@@ -15,6 +16,8 @@ use PowerComponents\LivewirePowerGrid\PowerGridFields;
 
 final class EmployeeTable extends PowerGridComponent
 {
+    use HasSafeFilters;
+
     public string $tableName = 'employees_table';
 
     public string $scheduleTypeFilter = 'all';

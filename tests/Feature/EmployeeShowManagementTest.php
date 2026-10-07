@@ -207,8 +207,8 @@ class EmployeeShowManagementTest extends TestCase
         $employee = Employee::factory()->create(['user_id' => $user->id]);
         $this->actingAs($user);
 
-        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
-            ->call('openBankModal')
+        // Regular employee is forbidden from accessing employee show page
+        $this->get("/employees/{$employee->id}")
             ->assertForbidden();
     }
 
@@ -368,22 +368,11 @@ class EmployeeShowManagementTest extends TestCase
     {
         $user = $this->userWithRole('employee');
         $employee = Employee::factory()->create(['user_id' => $user->id]);
-        $newUnit = Unit::factory()->create();
-        $newPos = Position::factory()->create();
 
         $this->actingAs($user);
 
-        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
-            ->call('openEmploymentModal')
-            ->assertForbidden();
-
-        Livewire::test(EmployeeShow::class, ['id' => $employee->id])
-            ->set('employmentUnitId', $newUnit->id)
-            ->set('employmentPositionId', $newPos->id)
-            ->set('employmentContractType', 'permanent')
-            ->set('employmentContractNumber', 'SK/HACK/001')
-            ->set('employmentStartDate', '2026-02-01')
-            ->call('saveEmployment')
+        // Regular employee is forbidden from accessing employee show page
+        $this->get("/employees/{$employee->id}")
             ->assertForbidden();
     }
 

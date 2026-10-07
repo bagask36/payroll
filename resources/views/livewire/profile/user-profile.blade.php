@@ -3,21 +3,7 @@
     <x-page-header 
         title="Profil Pengguna &amp; Akun" 
         subtitle="Kelola informasi akun pengguna, foto profil, keamanan kata sandi, dan status hak akses sistem RS Permata Bunda."
-    >
-        @if($user->employee)
-            <x-slot:actions>
-                <flux:button variant="subtle" icon="arrow-top-right-on-square" href="{{ route('employees.show', $user->employee->id) }}">
-                    Lihat Data Pegawai Lengkap
-                </flux:button>
-            </x-slot:actions>
-        @elseif($user->doctor)
-            <x-slot:actions>
-                <flux:button variant="subtle" icon="arrow-top-right-on-square" href="{{ route('doctors.show', $user->doctor->id) }}">
-                    Lihat Data Medis Lengkap
-                </flux:button>
-            </x-slot:actions>
-        @endif
-    </x-page-header>
+    />
 
     {{-- User Profile Overview Banner --}}
     <flux:card class="p-4 sm:p-6 shadow-xs border border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900">
@@ -266,12 +252,6 @@
                             <span class="font-mono text-zinc-800 dark:text-zinc-200">{{ $user->employee->phone_number ?? '-' }}</span>
                         </div>
                     </div>
-
-                    <div class="pt-2">
-                        <flux:button variant="subtle" size="sm" icon="identification" href="{{ route('employees.show', $user->employee->id) }}" class="w-full">
-                            Buka Detail Pegawai
-                        </flux:button>
-                    </div>
                 </flux:card>
             @endif
 
@@ -296,12 +276,6 @@
                             <span class="text-zinc-400">Nomor SIP</span>
                             <span class="font-mono text-zinc-800 dark:text-zinc-200">{{ $user->doctor->sip_number ?? '-' }}</span>
                         </div>
-                    </div>
-
-                    <div class="pt-2">
-                        <flux:button variant="subtle" size="sm" icon="identification" href="{{ route('doctors.show', $user->doctor->id) }}" class="w-full">
-                            Buka Detail Medis
-                        </flux:button>
                     </div>
                 </flux:card>
             @endif

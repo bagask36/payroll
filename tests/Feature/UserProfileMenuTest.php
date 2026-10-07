@@ -37,7 +37,7 @@ class UserProfileMenuTest extends TestCase
         $response->assertRedirect('/login');
     }
 
-    public function test_authenticated_user_sees_profil_pengguna_sidebar_menu_and_kelola_akun_in_dropdown(): void
+    public function test_authenticated_user_sees_kelola_akun_in_dropdown_and_no_unnecessary_items(): void
     {
         $employee = Employee::firstOrFail();
         $user = $employee->user;
@@ -49,12 +49,9 @@ class UserProfileMenuTest extends TestCase
         $response = $this->actingAs($user)->get('/dashboard');
         $response->assertStatus(200);
 
-        // Dedicated sidebar menu exists
-        $response->assertSee('Profil Pengguna');
-        $response->assertSee(route('profile'));
-
-        // Dropdown contains only Kelola Akun
+        // Dropdown contains Kelola Akun
         $response->assertSee('Kelola Akun');
+        $response->assertSee(route('profile'));
 
         // Other items are NOT in the dropdown
         $response->assertDontSee('Detail Profil Pegawai');
@@ -73,11 +70,40 @@ class UserProfileMenuTest extends TestCase
         $response->assertSee('Informasi Akun');
         $response->assertSee('Keamanan & Kata Sandi');
 
+        // Verify buttons to open detail pegawai/medis are NOT present
+        $response->assertDontSee('Buka Detail Pegawai');
+        $response->assertDontSee('Lihat Data Pegawai Lengkap');
+        $response->assertDontSee('Buka Detail Medis');
+
         Livewire::actingAs($user)
             ->test(UserProfile::class)
             ->assertStatus(200)
             ->assertSet('name', $user->name)
             ->assertSet('email', $user->email);
+    }
+
+    public function test_regular_employee_cannot_access_employee_show_detail_page(): void
+    {
+        $employeeUser = User::factory()->create(['is_active' => true]);
+        $employeeUser->assignRole('employee');
+
+        $employee = Employee::factory()->create([
+            'user_id' => $employeeUser->id,
+            'status' => 'ACTIVE',
+        ]);
+
+        // Access to employee detail (/employees/{id}) must be strictly forbidden (403)
+        $response = $this->actingAs($employeeUser)->get("/employees/{$employee->id}");
+        $response->assertForbidden();
+    }
+
+    public function test_authorized_hr_admin_can_access_employee_show_detail_page(): void
+    {
+        $admin = User::where('email', 'admin@juwitahospital.com')->firstOrFail();
+        $employee = Employee::firstOrFail();
+
+        $response = $this->actingAs($admin)->get("/employees/{$employee->id}");
+        $response->assertStatus(200);
     }
 
     public function test_user_can_update_profile_information(): void
