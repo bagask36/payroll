@@ -39,7 +39,7 @@ class AttendanceTest extends TestCase
 
     public function test_it_seeds_geofence_and_attendance_records(): void
     {
-        $geofence = GeofenceLocation::where('name', 'RS Permata Bunda Kampus Utama')->firstOrFail();
+        $geofence = GeofenceLocation::where('name', 'RS Permata Bunda')->firstOrFail();
         $this->assertEquals(100, $geofence->radius_meters);
 
         $nurse = Employee::where('nip', 'PEG-2025042')->firstOrFail();
@@ -52,7 +52,7 @@ class AttendanceTest extends TestCase
 
     public function test_geofence_haversine_distance_and_boundary_checks(): void
     {
-        $geofence = GeofenceLocation::where('name', 'RS Permata Bunda Kampus Utama')->firstOrFail();
+        $geofence = GeofenceLocation::where('name', 'RS Permata Bunda')->firstOrFail();
 
         // 1. Point ~15m away (inside hospital courtyard): INSIDE GEOFENCE
         $insideLat = -6.91745000;
