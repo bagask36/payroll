@@ -80,7 +80,7 @@
             <div class="p-3 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900 text-xs text-blue-900 dark:text-blue-300 space-y-1">
                 <div class="font-semibold flex items-center gap-1.5">
                     <flux:icon name="information-circle" class="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                    <span>Alur Persetujuan Bertingkat (SOP RS Juwita):</span>
+                    <span>Alur Persetujuan Bertingkat (SOP RS Permata Bunda):</span>
                 </div>
                 <p class="text-zinc-600 dark:text-zinc-400 pl-5">
                     Pengajuan akan dievaluasi terlebih dahulu oleh Kepala Unit / Supervisor (Tier 1), kemudian diteruskan ke Manajer SDM (Tier 2) untuk finalisasi dan pemotongan saldo kuota.

@@ -234,4 +234,17 @@ class SidebarAndModulesTest extends TestCase
             'value' => 'RS Juwita Sentosa',
         ]);
     }
+
+    public function test_sidebar_renders_proper_collapsed_classes_and_elements(): void
+    {
+        $response = $this->actingAs($this->adminUser)->get('/dashboard');
+
+        $response->assertStatus(200);
+        $response->assertSee('in-data-flux-sidebar-collapsed-desktop:justify-center');
+        $response->assertSee('in-data-flux-sidebar-collapsed-desktop:inset-0');
+        $response->assertSee('in-data-flux-sidebar-collapsed-desktop:size-10');
+        $response->assertSee('Pegawai &amp; Staf', false);
+        $response->assertSee('Presensi');
+        $response->assertSee('Penggajian (Payroll)');
+    }
 }

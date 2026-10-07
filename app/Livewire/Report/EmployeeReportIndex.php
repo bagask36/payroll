@@ -10,7 +10,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Laporan Kepegawaian - RS Juwita')]
+#[Title('Laporan Kepegawaian - RS Permata Bunda')]
 class EmployeeReportIndex extends Component
 {
     use WithPagination;

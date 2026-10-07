@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'SIM SDM RS Juwita'),
+    'name' => env('APP_NAME', 'SIM SDM RS Permata Bunda'),
 
     /*
     |--------------------------------------------------------------------------

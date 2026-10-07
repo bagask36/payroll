@@ -23,8 +23,8 @@ class MobilePwaTest extends TestCase
 
         $content = json_decode(file_get_contents($manifestPath), true);
         $this->assertIsArray($content);
-        $this->assertSame('SIM SDM RS Juwita', $content['name']);
-        $this->assertSame('RS Juwita', $content['short_name']);
+        $this->assertSame('SIM SDM RS Permata Bunda', $content['name']);
+        $this->assertSame('RS Permata Bunda', $content['short_name']);
         $this->assertSame('standalone', $content['display']);
         $this->assertSame('/', $content['start_url']);
         $this->assertNotEmpty($content['icons']);

@@ -11,7 +11,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Data Master: Komponen Potongan - RS Juwita')]
+#[Title('Data Master: Komponen Potongan - RS Permata Bunda')]
 class DeductionComponentIndex extends Component
 {
     use WithPagination;

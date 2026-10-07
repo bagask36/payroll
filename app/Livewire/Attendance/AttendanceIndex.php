@@ -20,7 +20,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-#[Title('Riwayat Presensi - RS Juwita')]
+#[Title('Riwayat Presensi - RS Permata Bunda')]
 class AttendanceIndex extends Component
 {
     use WithDataTable, WithFileUploads;

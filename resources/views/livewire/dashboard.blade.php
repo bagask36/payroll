@@ -30,7 +30,7 @@
                             @if(auth()->user()?->employee)
                                 <span class="mx-1 text-zinc-300 dark:text-zinc-700">•</span>
                                 <span>{{ auth()->user()->employee->position?->title ?? 'Staf' }}</span>
-                                <span class="text-zinc-400 dark:text-zinc-500 font-medium">({{ auth()->user()->employee->unit?->name ?? 'RS Juwita' }})</span>
+                                <span class="text-zinc-400 dark:text-zinc-500 font-medium">({{ auth()->user()->employee->unit?->name ?? 'RS Permata Bunda' }})</span>
                             @elseif($myDoctorCredentials)
                                 <span class="mx-1 text-zinc-300 dark:text-zinc-700">•</span>
                                 <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ $myDoctorCredentials['specialization'] }}</span>
@@ -911,7 +911,7 @@
                                 Dashboard Operasional &amp; SDM
                             </flux:heading>
                             <flux:badge size="sm" color="emerald" class="shadow-2xs font-semibold">
-                                RS Juwita Executive
+                                RS Permata Bunda Executive
                             </flux:badge>
                         </div>
                         <flux:subheading class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">

@@ -224,7 +224,7 @@ class PayrollUiTest extends TestCase
         $response = $this->withSession(['payslip_unlocked_until' => now()->addMinutes(15)->timestamp])
             ->get(route('payroll.payslips.print', $item->id));
         $response->assertStatus(200);
-        $response->assertSee('RUMAH SAKIT JUWITA');
+        $response->assertSee('RS PERMATA BUNDA');
         $response->assertSee('KODE REGISTRASI FASKES KEMENKES');
         $response->assertSee('Slip Penghasilan Pegawai');
         $response->assertSee($nurse->full_name);

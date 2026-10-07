@@ -9,7 +9,7 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Data Master: Regulasi Tarif BPJS - RS Juwita')]
+#[Title('Data Master: Regulasi Tarif BPJS - RS Permata Bunda')]
 class BpjsIndex extends Component
 {
     public bool $showBpjsModal = false;

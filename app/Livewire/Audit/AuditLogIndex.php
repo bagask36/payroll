@@ -10,7 +10,7 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-#[Title('Audit Trail Kepatuhan Sistem - RS Juwita')]
+#[Title('Audit Trail Kepatuhan Sistem - RS Permata Bunda')]
 class AuditLogIndex extends Component
 {
     use WithDataTable;

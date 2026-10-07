@@ -1,7 +1,7 @@
 <div class="app-page-container">
     {{-- Header --}}
     <x-page-header 
-        title="Master Data: Periode Payroll &amp; Cut-off" 
+        title="Master Data: Periode Payroll & Cut-off" 
         subtitle="Jadwal siklus penggajian bulanan, tanggal mulai/selesai perhitungan, dan cut-off kehadiran."
     >
         <x-slot:actions>

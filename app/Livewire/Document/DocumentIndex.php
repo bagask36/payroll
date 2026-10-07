@@ -16,7 +16,7 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-#[Title('Arsip Dokumen Kepatuhan - RS Juwita')]
+#[Title('Arsip Dokumen Kepatuhan - RS Permata Bunda')]
 class DocumentIndex extends Component
 {
     use WithDataTable, WithFileUploads;

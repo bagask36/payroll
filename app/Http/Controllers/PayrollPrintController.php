@@ -44,7 +44,7 @@ class PayrollPrintController extends Controller
         );
 
         $hospital = [
-            'name' => SystemSetting::get('hospital_name', 'Rumah Sakit Juwita'),
+            'name' => SystemSetting::get('hospital_name', 'RS Permata Bunda'),
             'address' => SystemSetting::get('hospital_address', 'Jl. Mayor M. Hasibuan No. 78, Bekasi Timur, Jawa Barat'),
             'phone' => SystemSetting::get('hospital_phone', '(021) 8816654'),
             'email' => SystemSetting::get('hospital_email', 'sdm@rsjuwita.co.id'),

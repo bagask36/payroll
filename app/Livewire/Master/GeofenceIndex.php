@@ -10,7 +10,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Data Master: Titik Geofence Presensi - RS Juwita')]
+#[Title('Data Master: Titik Geofence Presensi - RS Permata Bunda')]
 class GeofenceIndex extends Component
 {
     use WithPagination;

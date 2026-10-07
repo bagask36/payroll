@@ -338,7 +338,7 @@
                                 </div>
                                 <div class="flex items-center gap-1.5 shrink-0 text-right">
                                     <span class="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                                        {{ $emp->unit?->name ?? 'RS Juwita' }}
+                                        {{ $emp->unit?->name ?? 'RS Permata Bunda' }}
                                     </span>
                                     <span class="text-[10px] px-1.5 py-0.5 rounded {{ $emp->schedule_type === 'shift' ? 'bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300' : 'bg-zinc-100 text-zinc-500' }}">
                                         {{ $emp->schedule_type === 'shift' ? 'Shift' : 'Non-Shift' }}

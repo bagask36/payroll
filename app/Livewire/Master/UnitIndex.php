@@ -12,7 +12,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Data Master: Unit Kerja - RS Juwita')]
+#[Title('Data Master: Unit Kerja - RS Permata Bunda')]
 class UnitIndex extends Component
 {
     use WithPagination;

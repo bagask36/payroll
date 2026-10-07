@@ -6,13 +6,13 @@
             <div class="text-center space-y-3">
                 <div class="flex justify-center">
                     <a href="/" class="group inline-flex items-center justify-center p-2 rounded-2xl hover:opacity-95 transition">
-                        <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="Logo RS Juwita" class="h-14 sm:h-16 w-auto object-contain drop-shadow-xs" />
+                        <img src="{{ asset('assets/RS-Permata-Bunda.jpg') }}" alt="Logo RS Permata Bunda" class="h-14 sm:h-16 w-auto object-contain rounded-2xl drop-shadow-xs" />
                     </a>
                 </div>
 
                 <div>
                     <flux:heading class="text-center font-bold tracking-tight text-2xl sm:text-3xl text-zinc-900 dark:text-white" size="xl">
-                        SIM SDM RS Juwita
+                        SIM SDM RS Permata Bunda
                     </flux:heading>
                     <flux:subheading class="text-center text-sm sm:text-base text-zinc-500 dark:text-zinc-400 mt-1">
                         Sistem Informasi Manajemen SDM & Penggajian
@@ -36,7 +36,7 @@
                     <div class="mb-2 flex justify-between items-center">
                         <flux:label>Kata Sandi</flux:label>
 
-                        <flux:link href="mailto:sdm@juwitahospital.com?subject=Bantuan%20Akses%20SIM%20SDM%20RS%20Juwita" variant="subtle" class="text-xs sm:text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400">
+                        <flux:link href="mailto:sdm@rspermatabunda.com?subject=Bantuan%20Akses%20SIM%20SDM%20RS%20Permata%20Bunda" variant="subtle" class="text-xs sm:text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400">
                             Lupa kata sandi?
                         </flux:link>
                     </div>
@@ -140,12 +140,12 @@
             </div>
 
             <div class="relative z-10 flex items-center gap-4">
-                <div class="h-14 w-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center p-2.5 backdrop-blur-md shadow-lg">
-                    <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="Logo RS Juwita" class="h-full w-auto object-contain brightness-0 invert" />
+                <div class="h-14 w-14 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center p-1.5 backdrop-blur-md shadow-lg overflow-hidden">
+                    <img src="{{ asset('assets/RS-Permata-Bunda.jpg') }}" alt="Logo RS Permata Bunda" class="h-full w-auto object-contain rounded-xl" />
                 </div>
 
                 <div class="flex flex-col justify-center font-medium">
-                    <div class="text-lg text-white font-semibold tracking-tight">Rumah Sakit Juwita</div>
+                    <div class="text-lg text-white font-semibold tracking-tight">RS Permata Bunda</div>
                     <div class="text-xs sm:text-sm text-zinc-300">Standar Pelayanan Paripurna • SIM SDM & Medis</div>
                 </div>
             </div>

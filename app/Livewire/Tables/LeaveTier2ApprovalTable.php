@@ -50,7 +50,6 @@ final class LeaveTier2ApprovalTable extends PowerGridComponent
                 'leave_types.name as leave_type_name',
             ])
             ->with(['employee', 'doctor', 'leaveType', 'approvals.approver'])
-            ->where('leave_requests.status', 'pending_tier2')
             ->latest('leave_requests.created_at');
     }
 
@@ -111,6 +110,22 @@ final class LeaveTier2ApprovalTable extends PowerGridComponent
     {
         $actions = [];
         $user = Auth::user();
+
+        if ($row->status === 'approved') {
+            $actions[] = Button::add('statusApproved')
+                ->slot('✓ Disetujui')
+                ->class('inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 cursor-default opacity-90');
+
+            return $actions;
+        }
+
+        if ($row->status === 'rejected') {
+            $actions[] = Button::add('statusRejected')
+                ->slot('Ditolak')
+                ->class('inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800 cursor-default opacity-80');
+
+            return $actions;
+        }
 
         if ($user?->hasPermission('leave.approve_tier2')) {
             if ($row->isApplicant($user) && ! $user->isSuperAdmin()) {

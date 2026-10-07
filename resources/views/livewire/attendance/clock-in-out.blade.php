@@ -61,7 +61,7 @@
                 </div>
                 <div>
                     <h4 class="font-semibold text-xs sm:text-sm text-zinc-900 dark:text-zinc-100">
-                        {{ $todaySchedule?->shift?->name ?? 'Jadwal Standar RS Juwita' }}
+                        {{ $todaySchedule?->shift?->name ?? 'Jadwal Standar RS Permata Bunda' }}
                     </h4>
                     <p class="text-[11px] text-zinc-500">
                         @if($todaySchedule?->shift)
@@ -144,7 +144,7 @@
             </div>
             <div>
                 <div class="font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                    <span>{{ $isWithinGeofence ? 'Radius RS Juwita Valid' : ($latitude ? 'Di Luar Area RS' : 'Mencari GPS...') }}</span>
+                    <span>{{ $isWithinGeofence ? 'Radius RS Permata Bunda Valid' : ($latitude ? 'Di Luar Area RS' : 'Mencari GPS...') }}</span>
                     @if($distanceMeters !== null)
                         <span class="text-[11px] font-normal text-zinc-500">({{ $distanceMeters }}m)</span>
                     @endif

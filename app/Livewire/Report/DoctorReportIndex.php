@@ -8,7 +8,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Laporan Tenaga Medis & Dokter - RS Juwita')]
+#[Title('Laporan Tenaga Medis & Dokter - RS Permata Bunda')]
 class DoctorReportIndex extends Component
 {
     use WithPagination;

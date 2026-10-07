@@ -30,7 +30,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
-#[Title('Profil Pegawai - RS Juwita')]
+#[Title('Profil Pegawai - RS Permata Bunda')]
 class EmployeeShow extends Component
 {
     use WithFileUploads;
@@ -1468,7 +1468,7 @@ class EmployeeShow extends Component
 
         $count = $this->employee->warningLetters()->count() + 1;
         $this->spLetterNumber = sprintf('%03d/SP/HRD-RSJ/%s/%s', $count, date('m'), date('Y'));
-        $this->spAuthorizedBy = Auth::user()?->name ?? 'HRD RS Juwita';
+        $this->spAuthorizedBy = Auth::user()?->name ?? 'HRD RS Permata Bunda';
 
         $this->showWarningLetterModal = true;
     }

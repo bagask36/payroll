@@ -10,7 +10,7 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Laporan PPh 21 Pegawai - RS Juwita')]
+#[Title('Laporan PPh 21 Pegawai - RS Permata Bunda')]
 class Pph21ReportIndex extends Component
 {
     public ?int $periodFilter = null;

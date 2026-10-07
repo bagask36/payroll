@@ -2,7 +2,7 @@
     {{-- Header --}}
     <x-page-header 
         title="Komponen Penghasilan (Allowances)" 
-        subtitle="Kelola master tunjangan, premi shift, uang saku, dan penambah gaji pegawai RS Juwita."
+        subtitle="Kelola master tunjangan, premi shift, uang saku, dan penambah gaji pegawai RS Permata Bunda."
     >
         <x-slot:actions>
             <flux:button wire:click="openCreate" variant="primary" icon="plus" class="bg-emerald-600 hover:bg-emerald-700 text-white">

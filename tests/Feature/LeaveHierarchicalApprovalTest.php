@@ -295,4 +295,73 @@ class LeaveHierarchicalApprovalTest extends TestCase
             ->assertDontSee('Siti Perawat ICU')
             ->assertDontSee('Izin ICU');
     }
+
+    public function test_leave_approval_table_keeps_approved_requests_visible(): void
+    {
+        // 1. Create an approved leave request
+        $approvedLeave = LeaveRequest::factory()->create([
+            'employee_id' => $this->icuNurseEmployee->id,
+            'leave_type_id' => $this->annualLeaveType->id,
+            'start_date' => Carbon::parse('2026-08-01'),
+            'end_date' => Carbon::parse('2026-08-03'),
+            'total_days' => 3.0,
+            'reason' => 'Cuti Sudah Disetujui Final',
+            'status' => 'approved',
+            'created_by' => $this->icuNurseUser->id,
+        ]);
+
+        // Create approval record
+        $approvedLeave->approvals()->create([
+            'approver_id' => $this->icuHeadUser->id,
+            'tier' => 1,
+            'status' => 'approved',
+            'action_at' => Carbon::now(),
+            'notes' => 'Disetujui atasan',
+        ]);
+
+        // When ICU Head (Supervisor) views LeaveApprovalTable:
+        $this->actingAs($this->icuHeadUser);
+
+        Livewire::test(\App\Livewire\Tables\LeaveApprovalTable::class)
+            ->assertStatus(200)
+            ->assertSee('Siti Perawat ICU')
+            ->assertSee('Cuti Sudah Disetujui Final')
+            ->assertSee('Disetujui');
+
+        $table = new \App\Livewire\Tables\LeaveApprovalTable();
+        $actions = $table->actions($approvedLeave);
+
+        // Actions must include Detail button and disabled '✓ Disetujui' button
+        $this->assertCount(2, $actions);
+        $this->assertEquals('Detail', $actions[0]->slot);
+        $this->assertEquals('✓ Disetujui', $actions[1]->slot);
+    }
+
+    public function test_leave_index_handles_hierarchical_approval_dispatch(): void
+    {
+        $leave = LeaveRequest::factory()->create([
+            'employee_id' => $this->icuNurseEmployee->id,
+            'leave_type_id' => $this->annualLeaveType->id,
+            'start_date' => Carbon::parse('2026-08-10'),
+            'end_date' => Carbon::parse('2026-08-11'),
+            'total_days' => 2.0,
+            'reason' => 'Pengajuan untuk uji hierarkis',
+            'status' => 'pending_tier1',
+            'created_by' => $this->icuNurseUser->id,
+        ]);
+
+        $this->actingAs($this->icuHeadUser);
+
+        Livewire::test(\App\Livewire\Leave\LeaveIndex::class)
+            ->set('activeTab', 'approvals')
+            ->assertStatus(200)
+            ->assertSee('Persetujuan Cuti (Hierarkis)')
+            ->call('approveHierarchical', $leave->id)
+            ->assertSee('Persetujuan berhasil diberikan');
+
+        $leave->refresh();
+        $this->assertCount(1, $leave->approvals);
+        $this->assertEquals('approved', $leave->approvals->first()->status);
+        $this->assertEquals($this->icuHeadUser->id, $leave->approvals->first()->approver_id);
+    }
 }

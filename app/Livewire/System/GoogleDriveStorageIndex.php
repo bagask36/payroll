@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Manajemen Kapasitas Google Drive - RS Juwita')]
+#[Title('Manajemen Kapasitas Google Drive - RS Permata Bunda')]
 class GoogleDriveStorageIndex extends Component
 {
     public int $folderMaxLimitMb = 10240; // Default 10 GB

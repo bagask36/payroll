@@ -36,10 +36,17 @@ class DoctorTableTest extends TestCase
 
         $this->actingAs($admin);
 
+        $doctor = Doctor::where('name', 'dr. Hendra Pratama, Sp.PD')->firstOrFail();
+        $table = new DoctorTable();
+        $actions = $table->actions($doctor);
+        $actionSlots = array_map(fn ($act) => $act->slot, $actions);
+        $this->assertContains('Lihat Profil', $actionSlots);
+
         Livewire::test(DoctorTable::class)
             ->assertStatus(200)
             ->assertSee('dr. Hendra Pratama, Sp.PD')
-            ->assertSee('Dokter Organik');
+            ->assertSee('Dokter Organik')
+            ->assertSee(route('doctors.show', $doctor->id));
     }
 
     public function test_doctor_table_search(): void

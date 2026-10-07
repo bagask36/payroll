@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Struktur Organisasi - RS Juwita')]
+#[Title('Struktur Organisasi - RS Permata Bunda')]
 class OrgStructureIndex extends Component
 {
     public string $search = '';

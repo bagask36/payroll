@@ -12,7 +12,7 @@ use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Pengajuan Cuti / Izin - RS Juwita')]
+#[Title('Pengajuan Cuti / Izin - RS Permata Bunda')]
 class LeaveApply extends Component
 {
     #[Rule(['required', 'exists:leave_types,id'])]

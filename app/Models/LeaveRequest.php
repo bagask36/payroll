@@ -143,6 +143,14 @@ class LeaveRequest extends Model
     }
 
     /**
+     * Determine whether the given user can approve the current pending stage.
+     */
+    public function canUserApprove(User $user): bool
+    {
+        return app(LeaveApprovalChainService::class)->canUserApprove($user, $this);
+    }
+
+    /**
      * Advance approval for the current stage via the approval engine.
      */
     public function approveStage(User $approver, ?string $notes = null): void

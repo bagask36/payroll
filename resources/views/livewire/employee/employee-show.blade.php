@@ -1697,7 +1697,7 @@
                         <flux:card class="space-y-5">
                             <div>
                                 <flux:heading size="base" class="font-semibold text-zinc-900 dark:text-zinc-100">Peran &amp; Hak Akses Aplikasi (Roles)</flux:heading>
-                                <flux:subheading class="text-xs text-zinc-500">Tentukan wewenang yang dimiliki pegawai dalam sistem SIM SDM RS Juwita.</flux:subheading>
+                                <flux:subheading class="text-xs text-zinc-500">Tentukan wewenang yang dimiliki pegawai dalam sistem SIM SDM RS Permata Bunda.</flux:subheading>
                             </div>
 
                             @if($canManageAccount)

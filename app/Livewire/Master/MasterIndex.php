@@ -17,7 +17,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Master Data Rumah Sakit - RS Juwita')]
+#[Title('Master Data Rumah Sakit - RS Permata Bunda')]
 class MasterIndex extends Component
 {
     use WithPagination;

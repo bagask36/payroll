@@ -1,7 +1,7 @@
 {
-  "name": "SIM SDM RS Juwita",
-  "short_name": "RS Juwita",
-  "description": "Sistem Informasi Manajemen SDM & Payroll Rumah Sakit Juwita",
+  "name": "SIM SDM RS Permata Bunda",
+  "short_name": "RS Permata Bunda",
+  "description": "Sistem Informasi Manajemen SDM & Payroll RS Permata Bunda",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

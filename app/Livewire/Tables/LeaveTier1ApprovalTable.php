@@ -51,7 +51,6 @@ final class LeaveTier1ApprovalTable extends PowerGridComponent
                 'leave_types.name as leave_type_name',
             ])
             ->with(['employee.position', 'doctor', 'leaveType'])
-            ->where('leave_requests.status', 'pending_tier1')
             ->latest('leave_requests.created_at');
 
         // Scope to subordinates (plus own requests for the 'Pengajuan Sendiri' action state)
@@ -78,6 +77,14 @@ final class LeaveTier1ApprovalTable extends PowerGridComponent
             ->add('leave_type_badge', fn (LeaveRequest $row) => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200">'.e($row->leave_type_name ?? $row->leaveType?->name ?? '-').'</span>')
             ->add('period', fn (LeaveRequest $row) => '<div class="text-xs font-mono text-zinc-700 dark:text-zinc-300">'.e($row->start_date ? $row->start_date->format('d/m/Y') : '-').' - '.e($row->end_date ? $row->end_date->format('d/m/Y') : '-').'</div>')
             ->add('duration', fn (LeaveRequest $row) => '<span class="font-bold text-zinc-900 dark:text-zinc-100">'.e((string) $row->total_days).' Hari</span>')
+            ->add('status_badge', function (LeaveRequest $row) {
+                return match ($row->status) {
+                    'approved' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800">Disetujui</span>',
+                    'rejected' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-50 text-rose-700 border border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800">Ditolak</span>',
+                    'cancelled' => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 text-zinc-600 border border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700">Dibatalkan</span>',
+                    default => '<span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800">Menunggu Verifikasi</span>',
+                };
+            })
             ->add('reason', fn (LeaveRequest $row) => '<div class="text-xs text-zinc-600 dark:text-zinc-400 max-w-xs truncate" title="'.e($row->reason ?? '').'">'.e($row->reason ?? '-').'</div>');
     }
 
@@ -98,6 +105,9 @@ final class LeaveTier1ApprovalTable extends PowerGridComponent
             Column::make('Durasi', 'duration', 'leave_requests.total_days')
                 ->sortable(),
 
+            Column::make('Status', 'status_badge', 'leave_requests.status')
+                ->sortable(),
+
             Column::make('Alasan Cuti', 'reason', 'leave_requests.reason')
                 ->searchable(),
 
@@ -109,6 +119,22 @@ final class LeaveTier1ApprovalTable extends PowerGridComponent
     {
         $actions = [];
         $user = Auth::user();
+
+        if ($row->status === 'approved') {
+            $actions[] = Button::add('statusApproved')
+                ->slot('✓ Disetujui')
+                ->class('inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 cursor-default opacity-90');
+
+            return $actions;
+        }
+
+        if ($row->status === 'rejected') {
+            $actions[] = Button::add('statusRejected')
+                ->slot('Ditolak')
+                ->class('inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg bg-rose-50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800 cursor-default opacity-80');
+
+            return $actions;
+        }
 
         if ($user?->hasPermission('leave.approve_tier1')) {
             if ($row->isApplicant($user) && ! $user->isSuperAdmin()) {

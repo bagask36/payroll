@@ -2,7 +2,7 @@
     {{-- Header --}}
     <x-page-header 
         title="Master Data: Unit Kerja &amp; Ruangan" 
-        subtitle="Kelola daftar unit operasional, instalasi medis, dan ruangan kerja di lingkungan RS Juwita."
+        subtitle="Kelola daftar unit operasional, instalasi medis, dan ruangan kerja di lingkungan RS Permata Bunda."
     >
         <x-slot:actions>
             <flux:button variant="primary" icon="plus" wire:click="openCreateUnit">

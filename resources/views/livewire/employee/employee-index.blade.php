@@ -1,8 +1,8 @@
 <div class="app-page-container">
     {{-- Header --}}
     <x-page-header 
-        title="Direktori Pegawai &amp; Staf" 
-        subtitle="Kelola data induk SDM, unit kerja, jabatan, dan riwayat penugasan di RS Juwita."
+        title="Direktori Pegawai & Staf" 
+        subtitle="Kelola data induk SDM, unit kerja, jabatan, dan riwayat penugasan di RS Permata Bunda."
     >
         @can('create', App\Models\Employee::class)
             <x-slot:actions>
@@ -95,7 +95,7 @@
     @if($showCreateModal)
         <flux:modal wire:model="showCreateModal" class="w-full max-w-4xl space-y-6">
             <div>
-                <flux:heading size="lg">Pendaftaran Pegawai Baru RS Juwita</flux:heading>
+                <flux:heading size="lg">Pendaftaran Pegawai Baru RS Permata Bunda</flux:heading>
                 <flux:subheading class="text-xs text-zinc-500">Lengkapi data pokok kepegawaian dan penempatan.</flux:subheading>
             </div>
 

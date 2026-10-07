@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Presensi Mandiri - RS Juwita')]
+#[Title('Presensi Mandiri - RS Permata Bunda')]
 class ClockInOut extends Component
 {
     public ?float $latitude = null;

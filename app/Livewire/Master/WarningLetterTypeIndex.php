@@ -11,7 +11,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Data Master: Tingkat & Jenis Surat Peringatan (SP) - RS Juwita')]
+#[Title('Data Master: Tingkat & Jenis Surat Peringatan (SP) - RS Permata Bunda')]
 class WarningLetterTypeIndex extends Component
 {
     use WithPagination;

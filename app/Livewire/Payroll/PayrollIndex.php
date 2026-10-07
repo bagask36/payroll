@@ -17,7 +17,7 @@ use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Manajemen Penggajian (Payroll) - RS Juwita')]
+#[Title('Manajemen Penggajian (Payroll) - RS Permata Bunda')]
 class PayrollIndex extends Component
 {
     use WithDataTable;

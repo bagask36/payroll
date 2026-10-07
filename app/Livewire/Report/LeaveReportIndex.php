@@ -10,7 +10,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Laporan Cuti & Izin - RS Juwita')]
+#[Title('Laporan Cuti & Izin - RS Permata Bunda')]
 class LeaveReportIndex extends Component
 {
     use WithPagination;

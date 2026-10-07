@@ -285,7 +285,7 @@ class MasterPayrollAndSystemSeeder extends Seeder
 
         // 4. System Settings
         $settings = [
-            ['group' => 'general', 'key' => 'hospital_name', 'value' => 'Rumah Sakit Juwita', 'description' => 'Nama resmi faskes rumah sakit'],
+            ['group' => 'general', 'key' => 'hospital_name', 'value' => 'RS Permata Bunda', 'description' => 'Nama resmi faskes rumah sakit'],
             ['group' => 'general', 'key' => 'hospital_address', 'value' => 'Jl. Mayor M. Hasibuan No. 78, Bekasi Timur, Jawa Barat', 'description' => 'Alamat operasional rumah sakit'],
             ['group' => 'general', 'key' => 'hospital_phone', 'value' => '(021) 8816654', 'description' => 'Nomor kontak hotline / IGD'],
             ['group' => 'general', 'key' => 'hospital_email', 'value' => 'sdm@rsjuwita.co.id', 'description' => 'Email korespondensi SDM Rumah Sakit'],

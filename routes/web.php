@@ -9,6 +9,7 @@ use App\Livewire\Audit\AuditLogIndex;
 use App\Livewire\Auth\Login;
 use App\Livewire\Dashboard;
 use App\Livewire\Doctor\DoctorIndex;
+use App\Livewire\Doctor\DoctorShow;
 use App\Livewire\Document\DocumentIndex;
 use App\Livewire\Employee\EmployeeIndex;
 use App\Livewire\Employee\EmployeeShow;
@@ -58,6 +59,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/employees', EmployeeIndex::class)->name('employees.index');
     Route::get('/employees/{id}', EmployeeShow::class)->name('employees.show');
     Route::get('/doctors', DoctorIndex::class)->name('doctors.index');
+    Route::get('/doctors/{id}', DoctorShow::class)->name('doctors.show');
 
     // Duty Rosters & Shifts
     Route::get('/schedules', ScheduleRoster::class)->name('schedules.index');

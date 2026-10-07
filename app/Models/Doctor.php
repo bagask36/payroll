@@ -117,6 +117,16 @@ class Doctor extends Model
     }
 
     /**
+     * Attendance records for this doctor.
+     *
+     * @return HasMany<Attendance, $this>
+     */
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class);
+    }
+
+    /**
      * Check if the doctor's STR license is expired.
      */
     public function isStrExpired(): bool

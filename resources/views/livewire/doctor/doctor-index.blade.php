@@ -2,7 +2,7 @@
     {{-- Page Header --}}
     <x-page-header 
         title="Direktori Tenaga Medis" 
-        subtitle="Pemantauan kredensial praktik medis, Surat Tanda Registrasi (STR), dan Surat Izin Praktik (SIP) RS Juwita."
+        subtitle="Pemantauan kredensial praktik medis, Surat Tanda Registrasi (STR), dan Surat Izin Praktik (SIP) RS Permata Bunda."
     >
         @can('create', App\Models\Doctor::class)
             <x-slot:actions>
@@ -30,7 +30,7 @@
             :value="$stats['organic']" 
             icon="check-circle" 
             color="emerald" 
-            sublabel="Staf medis tetap RS Juwita" 
+            sublabel="Staf medis tetap RS Permata Bunda" 
         />
         <x-stat-card 
             label="Dokter Mitra / Tamu" 

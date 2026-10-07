@@ -12,7 +12,7 @@
                 Laporan Kehadiran & Presensi Pegawai
             </h1>
             <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                Analisis jam kerja aktual, kepatuhan jadwal shift, rekap keterlambatan, dan ketidakhadiran pegawai RS Juwita.
+                Analisis jam kerja aktual, kepatuhan jadwal shift, rekap keterlambatan, dan ketidakhadiran pegawai RS Permata Bunda.
             </p>
         </div>
 

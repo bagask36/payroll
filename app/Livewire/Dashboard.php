@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Dashboard - RS Juwita')]
+#[Title('Dashboard - RS Permata Bunda')]
 class Dashboard extends Component
 {
     // Hospital / Admin metrics

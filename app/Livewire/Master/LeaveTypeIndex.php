@@ -11,7 +11,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Data Master: Jenis Cuti & Kebijakan - RS Juwita')]
+#[Title('Data Master: Jenis Cuti & Kebijakan - RS Permata Bunda')]
 class LeaveTypeIndex extends Component
 {
     use WithPagination;

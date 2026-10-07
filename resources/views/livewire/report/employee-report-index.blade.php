@@ -12,7 +12,7 @@
                 Laporan Data Kepegawaian & SDM
             </h1>
             <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                Rekapitulasi demografi staf, status kontrak kerja, penempatan unit, dan masa kerja pegawai RS Juwita.
+                Rekapitulasi demografi staf, status kontrak kerja, penempatan unit, dan masa kerja pegawai RS Permata Bunda.
             </p>
         </div>
 

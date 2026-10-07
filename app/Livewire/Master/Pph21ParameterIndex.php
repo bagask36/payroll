@@ -9,7 +9,7 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Data Master: Parameter PPh 21 - RS Juwita')]
+#[Title('Data Master: Parameter PPh 21 - RS Permata Bunda')]
 class Pph21ParameterIndex extends Component
 {
     public string $activeTab = 'ptkp'; // ptkp, tarif_pasal_17

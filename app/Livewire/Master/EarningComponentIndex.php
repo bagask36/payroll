@@ -11,7 +11,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Data Master: Komponen Penghasilan - RS Juwita')]
+#[Title('Data Master: Komponen Penghasilan - RS Permata Bunda')]
 class EarningComponentIndex extends Component
 {
     use WithPagination;

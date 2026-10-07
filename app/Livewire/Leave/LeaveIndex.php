@@ -15,7 +15,7 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-#[Title('Manajemen Cuti & Izin - RS Juwita')]
+#[Title('Manajemen Cuti & Izin - RS Permata Bunda')]
 class LeaveIndex extends Component
 {
     use WithDataTable;
@@ -80,9 +80,14 @@ class LeaveIndex extends Component
             $this->feedbackMessage = session('success');
         }
 
-        // If user is HR Manager and has no personal requests, or has tier2 approvals, default to tier2 or tier1
-        if ($user->hasPermission('leave.approve_tier1') && ! $user->employee && ! $user->doctor) {
-            $this->activeTab = 'tier1_approvals';
+        // If user is HR Manager or approver without personal employee profile, default to approvals tab
+        if (($user->hasPermission('leave.approve_tier1') || $user->hasPermission('leave.approve_tier2') || $user->hasRole('hr_manager')) && ! $user->employee && ! $user->doctor) {
+            $this->activeTab = 'approvals';
+        }
+
+        // Backward compatibility for tab query strings
+        if (in_array($this->activeTab, ['tier1_approvals', 'tier2_approvals'], true)) {
+            $this->activeTab = 'approvals';
         }
     }
 
@@ -111,8 +116,50 @@ class LeaveIndex extends Component
 
         $this->feedbackMessage = 'Pengajuan cuti berhasil dibatalkan.';
         $this->dispatch('pg:eventRefresh-leave_requests_table');
+        $this->dispatch('pg:eventRefresh-leave_approval_table');
         $this->dispatch('pg:eventRefresh-leave_tier1_approval_table');
         $this->dispatch('pg:eventRefresh-leave_tier2_approval_table');
+    }
+
+    #[On('approve-hierarchical')]
+    public function approveHierarchical(int $requestId, ?AuditService $auditService = null): void
+    {
+        $auditService ??= app(AuditService::class);
+        $user = Auth::user();
+        $request = LeaveRequest::findOrFail($requestId);
+
+        if (! $request->canUserApprove($user)) {
+            $this->errorMessage = 'Otorisasi ditolak: Anda tidak memiliki wewenang untuk menyetujui tahapan cuti ini.';
+
+            return;
+        }
+
+        try {
+            $oldStatus = $request->status;
+            $currentStage = $request->getCurrentPendingStage();
+            $request->approveStage($user);
+            $newStatus = $request->fresh()->status;
+
+            $auditService->log(
+                action: 'leave.approved_hierarchical',
+                auditable: $request,
+                oldValues: ['status' => $oldStatus],
+                newValues: ['status' => $newStatus, 'tier' => $currentStage['tier'] ?? null],
+            );
+
+            if ($newStatus === 'approved') {
+                $this->feedbackMessage = 'Persetujuan cuti selesai diberikan. Permohonan resmi disahkan dan saldo kuota cuti telah dipotong.';
+            } else {
+                $this->feedbackMessage = 'Persetujuan berhasil diberikan. Permohonan diteruskan ke tahapan persetujuan berikutnya.';
+            }
+
+            $this->dispatch('pg:eventRefresh-leave_approval_table');
+            $this->dispatch('pg:eventRefresh-leave_requests_table');
+            $this->dispatch('pg:eventRefresh-leave_tier1_approval_table');
+            $this->dispatch('pg:eventRefresh-leave_tier2_approval_table');
+        } catch (DomainException $e) {
+            $this->errorMessage = $e->getMessage();
+        }
     }
 
     #[On('approve-tier1')]
@@ -135,6 +182,7 @@ class LeaveIndex extends Component
             );
 
             $this->feedbackMessage = 'Persetujuan Tier 1 berhasil diberikan. Permohonan diteruskan ke Manajemen SDM (Tier 2).';
+            $this->dispatch('pg:eventRefresh-leave_approval_table');
             $this->dispatch('pg:eventRefresh-leave_tier1_approval_table');
             $this->dispatch('pg:eventRefresh-leave_tier2_approval_table');
             $this->dispatch('pg:eventRefresh-leave_requests_table');
@@ -163,6 +211,7 @@ class LeaveIndex extends Component
             );
 
             $this->feedbackMessage = 'Persetujuan Final Tier 2 berhasil diberikan. Saldo kuota cuti telah dipotong.';
+            $this->dispatch('pg:eventRefresh-leave_approval_table');
             $this->dispatch('pg:eventRefresh-leave_tier1_approval_table');
             $this->dispatch('pg:eventRefresh-leave_tier2_approval_table');
             $this->dispatch('pg:eventRefresh-leave_requests_table');
@@ -172,7 +221,7 @@ class LeaveIndex extends Component
     }
 
     #[On('open-reject-modal')]
-    public function openRejectModal(int $requestId, int $tier): void
+    public function openRejectModal(int $requestId, int $tier = 1): void
     {
         $this->targetRequestId = $requestId;
         $this->targetTier = $tier;
@@ -187,10 +236,10 @@ class LeaveIndex extends Component
         $user = Auth::user();
         $request = LeaveRequest::findOrFail($this->targetRequestId);
 
-        if ($this->targetTier === 1) {
-            $this->authorize('approveTier1', $request);
-        } else {
-            $this->authorize('approveTier2', $request);
+        if (! $request->canUserApprove($user) && ! $user->can('approveTier1', $request) && ! $user->can('approveTier2', $request)) {
+            $this->errorMessage = 'Otorisasi ditolak: Anda tidak memiliki wewenang untuk menolak permohonan ini.';
+
+            return;
         }
 
         $this->validate();
@@ -207,6 +256,7 @@ class LeaveIndex extends Component
 
             $this->showRejectModal = false;
             $this->feedbackMessage = 'Permohonan cuti telah ditolak.';
+            $this->dispatch('pg:eventRefresh-leave_approval_table');
             $this->dispatch('pg:eventRefresh-leave_tier1_approval_table');
             $this->dispatch('pg:eventRefresh-leave_tier2_approval_table');
             $this->dispatch('pg:eventRefresh-leave_requests_table');
@@ -263,7 +313,30 @@ class LeaveIndex extends Component
 
         $myRequests = $myRequestsQuery->paginate($this->perPageValue());
 
-        // Tier 1 Approvals Queue (Supervisor)
+        // Check if user is eligible to see approvals tab
+        $canApproveAny = $user && (
+            $user->isSuperAdmin()
+            || $user->hasRole('hr_manager')
+            || $user->hasPermission('leave.approve_tier1')
+            || $user->hasPermission('leave.approve_tier2')
+            || ($user->employee && $user->employee->getSubordinates()->isNotEmpty())
+        );
+
+        // Count pending approvals waiting specifically for this user's action
+        $pendingApprovalsCount = 0;
+        if ($canApproveAny) {
+            $pendingCandidateRequests = LeaveRequest::whereIn('status', ['pending_tier1', 'pending_tier2'])
+                ->with(['employee.position', 'doctor', 'approvals'])
+                ->get();
+
+            foreach ($pendingCandidateRequests as $candidate) {
+                if ($candidate->canUserApprove($user)) {
+                    $pendingApprovalsCount++;
+                }
+            }
+        }
+
+        // Retain tier1Queue and tier2Queue for backwards compatibility with tests
         $tier1Queue = $user->hasPermission('leave.approve_tier1')
             ? LeaveRequest::with(['employee', 'doctor', 'leaveType'])
                 ->where('status', 'pending_tier1')
@@ -271,7 +344,6 @@ class LeaveIndex extends Component
                 ->get()
             : collect();
 
-        // Tier 2 Approvals Queue (HR Manager)
         $tier2Queue = $user->hasPermission('leave.approve_tier2')
             ? LeaveRequest::with(['employee', 'doctor', 'leaveType', 'approvals.approver'])
                 ->where('status', 'pending_tier2')
@@ -282,6 +354,8 @@ class LeaveIndex extends Component
         return view('livewire.leave.leave-index', [
             'balances' => $balances,
             'myRequests' => $myRequests,
+            'canApproveAny' => $canApproveAny,
+            'pendingApprovalsCount' => $pendingApprovalsCount,
             'tier1Queue' => $tier1Queue,
             'tier2Queue' => $tier2Queue,
         ]);

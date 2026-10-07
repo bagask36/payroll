@@ -11,7 +11,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Slip Gaji Saya - RS Juwita')]
+#[Title('Slip Gaji Saya - RS Permata Bunda')]
 class MyPayslips extends Component
 {
     use WithPagination;

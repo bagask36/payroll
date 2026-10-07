@@ -6,7 +6,7 @@
                 Master Data: Titik Geofence Presensi
             </flux:heading>
             <flux:subheading class="mt-1 text-zinc-500 dark:text-zinc-400">
-                Konfigurasi titik koordinat GPS perimeter radius kehadiran mandiri pegawai dan dokter RS Juwita.
+                Konfigurasi titik koordinat GPS perimeter radius kehadiran mandiri pegawai dan dokter RS Permata Bunda.
             </flux:subheading>
         </div>
 
@@ -29,7 +29,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-zinc-100 dark:border-zinc-800 pb-3">
             <div>
                 <flux:heading size="md" class="font-semibold text-zinc-900 dark:text-zinc-100">
-                    Peta Sebaran Titik Geofence Presensi RS Juwita
+                    Peta Sebaran Titik Geofence Presensi RS Permata Bunda
                 </flux:heading>
                 <flux:subheading class="text-xs text-zinc-500">
                     Visualisasi lokasi titik presensi aktif dan perimeter radius toleransi pegawai/dokter.
@@ -88,7 +88,7 @@
                             class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 transition"
                         >
                             <flux:icon name="building-office-2" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                            RS Juwita Utama
+                            RS Permata Bunda Utama
                         </button>
                     </div>
                 </div>

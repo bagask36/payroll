@@ -10,7 +10,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Data Master: Periode Payroll & Cut-off - RS Juwita')]
+#[Title('Data Master: Periode Payroll & Cut-off - RS Permata Bunda')]
 class PayrollPeriodIndex extends Component
 {
     use WithPagination;

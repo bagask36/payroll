@@ -33,7 +33,7 @@
                                         {{ $employee->full_name }}
                                     </div>
                                     <div class="truncate text-[11px] font-mono text-zinc-400">
-                                        NIP: {{ $employee->nip }} • {{ $employee->unit?->name ?? 'RS Juwita' }}
+                                        NIP: {{ $employee->nip }} • {{ $employee->unit?->name ?? 'RS Permata Bunda' }}
                                     </div>
                                 </div>
                             </div>
@@ -144,10 +144,10 @@
             <div class="border-b border-zinc-100 dark:border-zinc-800 pb-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="Logo RS Juwita" class="h-9 w-auto max-w-[110px] object-contain" />
+                        <img src="{{ asset('assets/RS-Permata-Bunda.jpg') }}" alt="Logo RS Permata Bunda" class="h-9 w-auto max-w-[110px] object-contain rounded" />
                         <div>
                             <flux:heading size="lg">SLIP GAJI ELEKTRONIK</flux:heading>
-                            <div class="text-xs text-zinc-500 font-semibold tracking-wider uppercase mt-0.5">SIM SDM RS Juwita</div>
+                            <div class="text-xs text-zinc-500 font-semibold tracking-wider uppercase mt-0.5">SIM SDM RS Permata Bunda</div>
                         </div>
                     </div>
                     <flux:badge size="sm" color="emerald">{{ $selectedItem->run?->period?->name }}</flux:badge>

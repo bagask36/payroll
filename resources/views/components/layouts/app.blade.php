@@ -4,14 +4,14 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 
-        <title>{{ $title ?? config('app.name', 'SIM SDM RS Juwita') }}</title>
+        <title>{{ $title ?? config('app.name', 'SIM SDM RS Permata Bunda') }}</title>
 
         <!-- Web App Manifest & Mobile Capabilities -->
         <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
-        <meta name="apple-mobile-web-app-title" content="RS Juwita">
+        <meta name="apple-mobile-web-app-title" content="RS Permata Bunda">
         <link rel="apple-touch-icon" href="{{ asset('assets/icons/apple-touch-icon.png') }}">
         <meta name="theme-color" content="#059669" media="(prefers-color-scheme: light)">
         <meta name="theme-color" content="#09090b" media="(prefers-color-scheme: dark)">
@@ -28,27 +28,27 @@
     </head>
     <body class="min-h-screen bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 antialiased selection:bg-emerald-500/20">
         {{-- Collapsible Sidebar with Enhanced Desktop Noticeability --}}
-        <flux:sidebar sticky collapsible class="border-r border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900 w-72 sm:w-80 max-w-[85vw] lg:w-68 max-lg:shadow-2xl max-lg:z-70! pt-safe">
-            <flux:sidebar.header class="px-2 py-3 border-b border-zinc-100 dark:border-zinc-800/80">
-                <a href="{{ route('dashboard') }}" class="flex items-center gap-3 min-w-0 group">
-                    <div class="relative flex size-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-500/10 to-teal-500/10 p-1.5 border border-emerald-500/20 dark:border-emerald-500/30 shadow-2xs group-hover:scale-105 transition-transform">
+        <flux:sidebar sticky collapsible class="border-r border-zinc-200/80 bg-white dark:border-zinc-800 dark:bg-zinc-900 w-72 sm:w-80 max-w-[85vw] lg:w-76 max-lg:shadow-2xl max-lg:z-70! pt-safe">
+            <flux:sidebar.header class="relative px-2.5 py-3 border-b border-zinc-100 dark:border-zinc-800/80 in-data-flux-sidebar-collapsed-desktop:px-0 in-data-flux-sidebar-collapsed-desktop:justify-center">
+                <a href="{{ route('dashboard') }}" class="flex items-center gap-2.5 min-w-0 group in-data-flux-sidebar-collapsed-desktop:w-10 in-data-flux-sidebar-collapsed-desktop:justify-center in-data-flux-sidebar-collapsed-desktop:in-data-flux-sidebar-active:opacity-0 transition-opacity">
+                    <div class="relative flex size-9.5 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-500/10 to-teal-500/10 p-1.5 border border-emerald-500/20 dark:border-emerald-500/30 shadow-2xs group-hover:scale-105 transition-transform">
                         <img 
-                            src="{{ asset('assets/logo-rs-juwita.png') }}" 
-                            alt="RS Juwita" 
-                            class="size-full object-contain" 
+                            src="{{ asset('assets/RS-Permata-Bunda.jpg') }}" 
+                            alt="RS Permata Bunda" 
+                            class="size-full object-contain rounded-xl" 
                         />
-                        <span class="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900 animate-pulse"></span>
+                        <span class="absolute -bottom-0.5 -right-0.5 size-2 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-zinc-900 animate-pulse"></span>
                     </div>
                     <div class="min-w-0 flex-1 in-data-flux-sidebar-collapsed-desktop:hidden">
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-sm font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">RS JUWITA</span>
-                            <span class="rounded-full bg-emerald-500/10 px-1.5 py-0.2 text-[9px] font-bold text-emerald-700 dark:text-emerald-300">ONLINE</span>
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <span class="truncate text-xs font-black tracking-tight text-zinc-900 dark:text-zinc-100 uppercase">RS PERMATA BUNDA</span>
+                            <span class="shrink-0 rounded-full bg-emerald-500/10 px-1.5 py-0.2 text-[9px] font-bold text-emerald-700 dark:text-emerald-300">ONLINE</span>
                         </div>
-                        <p class="truncate text-[11px] font-medium text-zinc-400">SIM SDM &amp; Payroll</p>
+                        <p class="truncate text-[11px] font-medium text-zinc-400 mt-0.5">SIM SDM &amp; Payroll</p>
                     </div>
                 </a>
 
-                <flux:sidebar.collapse class="max-lg:hidden in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-2 cursor-pointer" />
+                <flux:sidebar.collapse class="max-lg:hidden in-data-flux-sidebar-on-desktop:not-in-data-flux-sidebar-collapsed-desktop:-mr-1.5 in-data-flux-sidebar-collapsed-desktop:inset-0 in-data-flux-sidebar-collapsed-desktop:m-auto cursor-pointer" />
                 <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
             </flux:sidebar.header>
 
@@ -297,13 +297,13 @@
             <flux:sidebar.spacer />
 
             <flux:sidebar.nav>
-                <div class="px-1 py-2 border-t border-zinc-100 dark:border-zinc-800/80 pb-safe max-lg:pb-10">
-                    <flux:dropdown position="top" align="start" class="w-full">
-                        <button type="button" class="group flex w-full items-center gap-3 rounded-2xl p-2 text-left transition-all hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 cursor-pointer">
+                <div class="px-1 py-2 border-t border-zinc-100 dark:border-zinc-800/80 pb-safe max-lg:pb-10 in-data-flux-sidebar-collapsed-desktop:px-0">
+                    <flux:dropdown position="top" align="start" class="w-full in-data-flux-sidebar-collapsed-desktop:flex in-data-flux-sidebar-collapsed-desktop:justify-center">
+                        <button type="button" class="group flex w-full items-center gap-3 rounded-2xl p-2 text-left transition-all hover:bg-zinc-100/80 dark:hover:bg-zinc-800/60 cursor-pointer in-data-flux-sidebar-collapsed-desktop:p-0 in-data-flux-sidebar-collapsed-desktop:size-10 in-data-flux-sidebar-collapsed-desktop:justify-center in-data-flux-sidebar-collapsed-desktop:rounded-xl in-data-flux-sidebar-collapsed-desktop:mx-auto" title="{{ auth()->user()?->name ?? 'Pengguna' }}">
                             @if(auth()->user()?->profile_photo_url)
-                                <img src="{{ auth()->user()->profile_photo_url }}" class="size-9 shrink-0 rounded-xl object-cover ring-1 ring-zinc-200 dark:ring-zinc-700 shadow-xs" alt="{{ auth()->user()->name }}" />
+                                <img src="{{ auth()->user()->profile_photo_url }}" class="size-8.5 shrink-0 rounded-xl object-cover ring-1 ring-zinc-200 dark:ring-zinc-700 shadow-xs" alt="{{ auth()->user()->name }}" />
                             @else
-                                <div class="flex size-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 font-mono text-xs font-bold text-white shadow-xs">
+                                <div class="flex size-8.5 shrink-0 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 font-mono text-xs font-bold text-white shadow-xs">
                                     {{ strtoupper(substr(auth()->user()?->name ?? 'U', 0, 2)) }}
                                 </div>
                             @endif
@@ -348,7 +348,7 @@
             <flux:sidebar.toggle class="me-2.5 lg:hidden" icon="bars-2" inset="left" />
 
             <a href="{{ route('dashboard') }}" class="flex items-center gap-2 lg:hidden me-2.5">
-                <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="SIM SDM RS Juwita" class="h-7 w-auto max-w-[110px] object-contain" />
+                <img src="{{ asset('assets/RS-Permata-Bunda.jpg') }}" alt="SIM SDM RS Permata Bunda" class="h-7 w-auto max-w-[110px] object-contain rounded" />
             </a>
 
             {{-- Left: Breadcrumbs & Hospital Live Status Pill --}}
@@ -364,7 +364,7 @@
 
                 <div class="hidden 2xl:flex items-center gap-1.5 px-2.5 py-0.8 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
                     <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>RS Juwita • 24 Jam</span>
+                    <span>RS Permata Bunda • 24 Jam</span>
                 </div>
             </div>
 
@@ -829,7 +829,7 @@
                 {{-- Footer Hints --}}
                 <div class="flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/60 px-4 py-2 text-[11px] text-zinc-400">
                     <span>Tekan <kbd class="px-1.5 py-0.5 rounded font-mono border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">Enter</kbd> untuk membuka</span>
-                    <span>Pencarian Cepat SIM SDM RS Juwita</span>
+                    <span>Pencarian Cepat SIM SDM RS Permata Bunda</span>
                 </div>
             </div>
         </div>

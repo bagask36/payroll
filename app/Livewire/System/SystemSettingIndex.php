@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Pengaturan Sistem & Faskes - RS Juwita')]
+#[Title('Pengaturan Sistem & Faskes - RS Permata Bunda')]
 class SystemSettingIndex extends Component
 {
     // Hospital Profile
@@ -43,7 +43,7 @@ class SystemSettingIndex extends Component
             abort(403, 'Akses ke pengaturan sistem ditolak.');
         }
 
-        $this->hospitalName = SystemSetting::get('hospital_name', 'Rumah Sakit Juwita');
+        $this->hospitalName = SystemSetting::get('hospital_name', 'RS Permata Bunda');
         $this->hospitalAddress = SystemSetting::get('hospital_address', 'Jl. Mayor M. Hasibuan No. 78, Bekasi Timur');
         $this->hospitalPhone = SystemSetting::get('hospital_phone', '(021) 8816654');
         $this->hospitalEmail = SystemSetting::get('hospital_email', 'sdm@rsjuwita.co.id');

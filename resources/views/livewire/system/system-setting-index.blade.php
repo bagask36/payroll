@@ -12,7 +12,7 @@
                 Pengaturan Sistem & Konfigurasi Faskes
             </h1>
             <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                Konfigurasi identitas faskes tunggal RS Juwita, kebijakan presensi & geofence, serta parameter keamanan sesi aplikasi.
+                Konfigurasi identitas faskes tunggal RS Permata Bunda, kebijakan presensi & geofence, serta parameter keamanan sesi aplikasi.
             </p>
         </div>
     </div>
@@ -42,7 +42,7 @@
                     </div>
                 </div>
                 <div class="shrink-0 p-1.5 bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
-                    <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="Logo RS Juwita" class="h-7 w-auto max-w-[120px] object-contain" />
+                    <img src="{{ asset('assets/RS-Permata-Bunda.jpg') }}" alt="Logo RS Permata Bunda" class="h-7 w-auto max-w-[120px] object-contain rounded" />
                 </div>
             </div>
 

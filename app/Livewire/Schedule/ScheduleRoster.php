@@ -16,7 +16,7 @@ use Livewire\Attributes\Rule;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
-#[Title('Roster & Jadwal Dinas - RS Juwita')]
+#[Title('Roster & Jadwal Dinas - RS Permata Bunda')]
 class ScheduleRoster extends Component
 {
     public string $weekStartDate = '';

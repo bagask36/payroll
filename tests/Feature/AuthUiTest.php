@@ -18,7 +18,7 @@ class AuthUiTest extends TestCase
         $response = $this->get('/login');
 
         $response->assertStatus(200);
-        $response->assertSee('SIM SDM RS Juwita');
+        $response->assertSee('SIM SDM RS Permata Bunda');
     }
 
     public function test_unauthenticated_user_is_redirected_to_login(): void

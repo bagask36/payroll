@@ -49,6 +49,7 @@ final class DoctorTable extends PowerGridComponent
             ->add('doctor_display', function (Doctor $doc) {
                 $cleanName = str_replace(['dr. ', 'drg. ', 'Sp.'], '', $doc->name);
                 $initials = strtoupper(substr(trim($cleanName), 0, 2));
+                $url = route('doctors.show', $doc->id);
 
                 return '
                     <div class="flex items-center gap-3">
@@ -56,7 +57,9 @@ final class DoctorTable extends PowerGridComponent
                             '.e($initials).'
                         </div>
                         <div>
-                            <div class="font-medium text-zinc-900 dark:text-zinc-100">'.e($doc->name).'</div>
+                            <a href="'.e($url).'" class="font-medium text-zinc-900 dark:text-zinc-100 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                                '.e($doc->name).'
+                            </a>
                             <div class="text-xs text-zinc-500">'.e($doc->specialization).'</div>
                         </div>
                     </div>
@@ -159,7 +162,12 @@ final class DoctorTable extends PowerGridComponent
 
     public function actions(Doctor $row): array
     {
-        $actions = [];
+        $actions = [
+            Button::add('viewProfile')
+                ->slot('Lihat Profil')
+                ->route('doctors.show', ['id' => $row->id])
+                ->class('inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-lg bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 shadow-2xs transition-colors cursor-pointer'),
+        ];
 
         if (Auth::user()?->can('manageCredentials', $row)) {
             $actions[] = Button::add('renewCredentials')

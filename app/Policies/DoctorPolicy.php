@@ -82,4 +82,24 @@ class DoctorPolicy
     {
         return $user->hasPermission('doctor.deactivate');
     }
+
+    /**
+     * Determine whether the user can upload compliance documents for this doctor.
+     */
+    public function uploadDocument(User $user, Doctor $doctor): bool
+    {
+        if ($doctor->user_id === $user->id) {
+            return $user->hasPermission('document.upload_own') || $user->hasPermission('doctor.manage_credentials');
+        }
+
+        return $user->hasPermission('doctor.manage_credentials') || $user->hasPermission('document.upload_all');
+    }
+
+    /**
+     * Determine whether the user can associate an organic doctor with an employee record.
+     */
+    public function linkEmployee(User $user, Doctor $doctor): bool
+    {
+        return $user->hasPermission('doctor.link_employee') || $user->hasPermission('doctor.update');
+    }
 }

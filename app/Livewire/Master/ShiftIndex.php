@@ -11,7 +11,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Data Master: Shift Kerja & Jam Dinas - RS Juwita')]
+#[Title('Data Master: Shift Kerja & Jam Dinas - RS Permata Bunda')]
 class ShiftIndex extends Component
 {
     use WithPagination;

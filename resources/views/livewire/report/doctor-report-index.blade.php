@@ -12,7 +12,7 @@
                 Laporan Kredensial & Praktik Dokter
             </h1>
             <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-                Monitoring masa berlaku Surat Tanda Registrasi (STR), Surat Izin Praktik (SIP), dan distribusi keahlian spesialisasi medis RS Juwita.
+                Monitoring masa berlaku Surat Tanda Registrasi (STR), Surat Izin Praktik (SIP), dan distribusi keahlian spesialisasi medis RS Permata Bunda.
             </p>
         </div>
 
@@ -28,7 +28,7 @@
         <div class="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs">
             <div class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Dokter Aktif Praktik</div>
             <div class="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">{{ $totalActive }}</div>
-            <div class="text-xs text-emerald-600 font-medium">Praktik aktif di RS Juwita</div>
+            <div class="text-xs text-emerald-600 font-medium">Praktik aktif di RS Permata Bunda</div>
         </div>
         <div class="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs">
             <div class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Dokter Spesialis & Subspesialis</div>

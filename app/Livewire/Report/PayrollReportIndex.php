@@ -9,7 +9,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Title('Laporan Payroll & Gaji - RS Juwita')]
+#[Title('Laporan Payroll & Gaji - RS Permata Bunda')]
 class PayrollReportIndex extends Component
 {
     use WithPagination;

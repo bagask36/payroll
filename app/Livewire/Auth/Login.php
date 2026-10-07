@@ -13,7 +13,7 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 #[Layout('layouts.guest')]
-#[Title('Masuk - SIM SDM RS Juwita')]
+#[Title('Masuk - SIM SDM RS Permata Bunda')]
 class Login extends Component
 {
     public string $email = '';
@@ -119,7 +119,7 @@ class Login extends Component
             $this->reloadCaptcha();
 
             throw ValidationException::withMessages([
-                'email' => __('Akun Anda dinonaktifkan. Silakan hubungi bagian SDM RS Juwita.'),
+                'email' => __('Akun Anda dinonaktifkan. Silakan hubungi bagian SDM RS Permata Bunda.'),
             ]);
         }
 

@@ -15,7 +15,7 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
-#[Title('Direktori Tenaga Medis & Dokter - RS Juwita')]
+#[Title('Direktori Tenaga Medis & Dokter - RS Permata Bunda')]
 class DoctorIndex extends Component
 {
     use WithDataTable;

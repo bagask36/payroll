@@ -276,7 +276,7 @@
             <div class="border-b border-zinc-100 dark:border-zinc-800 pb-3">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
-                        <img src="{{ asset('assets/logo-rs-juwita.png') }}" alt="Logo RS Juwita" class="h-7 w-auto max-w-[90px] object-contain" />
+                        <img src="{{ asset('assets/RS-Permata-Bunda.jpg') }}" alt="Logo RS Permata Bunda" class="h-7 w-auto max-w-[90px] object-contain rounded" />
                         <flux:heading size="lg">
                             {{ $isThrItem ? 'Slip Tunjangan Hari Raya (THR)' : 'Slip Gaji Pegawai' }}
                         </flux:heading>
